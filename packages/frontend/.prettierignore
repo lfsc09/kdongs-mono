@@ -1,0 +1,10 @@
+# Node
+node_modules
+dist
+coverage
+
+# Angular build output
+.angular
+
+# Env files
+*.env

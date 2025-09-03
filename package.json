@@ -1,0 +1,20 @@
+{
+  "name": "kdongs-mono",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:frontend": "cd packages/frontend && npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lfsc09/kdongs-mono.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lfsc09/kdongs-mono/issues"
+  },
+  "homepage": "https://github.com/lfsc09/kdongs-mono#readme"
+}
