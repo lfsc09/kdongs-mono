@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prepare": "husky install",
     "dev:frontend": "cd packages/frontend && npm start"
   },
   "repository": {
@@ -16,5 +17,15 @@
   "bugs": {
     "url": "https://github.com/lfsc09/kdongs-mono/issues"
   },
-  "homepage": "https://github.com/lfsc09/kdongs-mono#readme"
+  "homepage": "https://github.com/lfsc09/kdongs-mono#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6"
+  },
+  "lint-staged": {
+    "packages/frontend/src/**/*.{ts,js,json,css,scss,html,md}": [
+      "cd packages/frontend && npm run format",
+      "cd packages/frontend && npm run lint:fix"
+    ]
+  }
 }
