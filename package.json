@@ -24,8 +24,11 @@
   },
   "lint-staged": {
     "packages/frontend/src/**/*.{ts,js,json,css,scss,html,md}": [
-      "cd packages/frontend && npm run format",
-      "cd packages/frontend && npm run lint:fix"
+      "npm --prefix packages/frontend run format",
+      "npm --prefix packages/frontend run lint:fix"
+    ],
+    "packages/backend/**/*.{ts,js,json,env,md}": [
+      "npm --prefix packages/backend run biome:check"
     ]
   }
 }
