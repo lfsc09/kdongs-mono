@@ -13,11 +13,17 @@
 */
 
 import { Bouncer } from '@adonisjs/bouncer';
+import type User from '#models/user/user';
+import { UserRole } from '../core/types/user/user_roles.js';
 
-/**
- * Delete the following ability to start from
- * scratch
- */
-export const editUser = Bouncer.ability(() => {
-  return true;
+export const onlyAdmin = Bouncer.ability((user: User) => {
+  return user.role === UserRole.ADMIN;
+});
+
+export const onlyUser = Bouncer.ability((user: User) => {
+  return user.role === UserRole.USER;
+});
+
+export const anyUser = Bouncer.ability((user: User) => {
+  return user.role === UserRole.USER || user.role === UserRole.ADMIN;
 });
