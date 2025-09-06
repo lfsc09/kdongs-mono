@@ -10,6 +10,7 @@
 
 import router from '@adonisjs/core/services/router';
 import server from '@adonisjs/core/services/server';
+import env from '#start/env';
 
 /**
  * The error handler is used to convert an exception
@@ -26,6 +27,7 @@ server.use([
   () => import('#middleware/container_bindings_middleware'),
   () => import('#middleware/force_json_response_middleware'),
   () => import('@adonisjs/cors/cors_middleware'),
+  ...(env.get('LOG_LEVEL') !== 'error' ? [() => import('#middleware/time_logger_middleware')] : []),
 ]);
 
 /**
@@ -35,6 +37,7 @@ server.use([
 router.use([
   () => import('@adonisjs/core/bodyparser_middleware'),
   () => import('@adonisjs/auth/initialize_auth_middleware'),
+  () => import('#middleware/initialize_bouncer_middleware'),
 ]);
 
 /**
@@ -42,5 +45,6 @@ router.use([
  * the routes or the routes group.
  */
 export const middleware = router.named({
+  cookieToAuthHeader: () => import('#middleware/cookie_to_auth_header_middleware'),
   auth: () => import('#middleware/auth_middleware'),
 });
