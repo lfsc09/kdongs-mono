@@ -1,8 +1,9 @@
 import app from '@adonisjs/core/services/app';
 import testUtils from '@adonisjs/core/services/test_utils';
 import { apiClient } from '@japa/api-client';
-import { assert } from '@japa/assert';
+import { expect } from '@japa/expect';
 import { pluginAdonisJS } from '@japa/plugin-adonisjs';
+import { github, spec } from '@japa/runner/reporters';
 import type { Config } from '@japa/runner/types';
 
 /**
@@ -13,7 +14,7 @@ import type { Config } from '@japa/runner/types';
  * Configure Japa plugins in the plugins array.
  * Learn more - https://japa.dev/docs/runner-config#plugins-optional
  */
-export const plugins: Config['plugins'] = [assert(), apiClient(), pluginAdonisJS(app)];
+export const plugins: Config['plugins'] = [expect(), apiClient(), pluginAdonisJS(app)];
 
 /**
  * Configure lifecycle function to run before and after all the
@@ -35,4 +36,16 @@ export const configureSuite: Config['configureSuite'] = (suite) => {
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
     return suite.setup(() => testUtils.httpServer().start());
   }
+};
+
+/**
+ * Configure reporters to use for the test
+ */
+const activated = ['spec'];
+if (process.env.GITHUB_ACTIONS === 'true') {
+  activated.push('github');
+}
+export const reporters: Config['reporters'] = {
+  activated,
+  list: [spec(), github()],
 };
