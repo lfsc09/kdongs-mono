@@ -186,15 +186,17 @@ export default class AssetSefbfr extends BaseModel {
       )
       .orderBy('dateUtc', 'asc');
 
-    return transactions.map((row: any) => ({
-      type: row.type as ProfitTrasaction['type'],
-      dateUtc: DateTime.fromJSDate(new Date(row.dateUtc)),
-      sharesAmount: row.sharesAmount ? new Big(row.sharesAmount) : undefined,
-      priceQuote: row.priceQuote ? new Big(row.priceQuote) : undefined,
-      costs: row.costs ? new Big(row.costs) : null,
-      value: row.value ? new Big(row.value) : undefined,
-      factor: row.factor ? new Big(row.factor) : undefined,
-    }));
+    return (
+      transactions?.map((row) => ({
+        type: row.type as ProfitTrasaction['type'],
+        dateUtc: DateTime.fromJSDate(new Date(row.dateUtc)),
+        sharesAmount: row.sharesAmount ? new Big(row.sharesAmount) : undefined,
+        priceQuote: row.priceQuote ? new Big(row.priceQuote) : undefined,
+        costs: row.costs ? new Big(row.costs) : null,
+        value: row.value ? new Big(row.value) : undefined,
+        factor: row.factor ? new Big(row.factor) : undefined,
+      })) ?? []
+    );
   }
 
   /**
@@ -205,7 +207,7 @@ export default class AssetSefbfr extends BaseModel {
 
     let currentPriceQuote = new Big(0);
 
-    const lastTransactionAt = transactions.length > 0 ? transactions.at(-1)!.dateUtc : undefined;
+    const lastTransactionAt = transactions.length > 0 ? transactions.at(-1)?.dateUtc : undefined;
     const current = {
       sharesAmount: new Big(0),
       value: new Big(0),
@@ -217,53 +219,65 @@ export default class AssetSefbfr extends BaseModel {
     for (const transaction of transactions) {
       switch (transaction.type) {
         case 'buy':
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount!);
+          if (transaction.sharesAmount === undefined || transaction.priceQuote === undefined)
+            continue;
+          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount);
           current.value = current.value
-            .add(transaction.sharesAmount!.mul(transaction.priceQuote!))
-            .add(transaction.costs!);
+            .add(transaction.sharesAmount.mul(transaction.priceQuote))
+            .add(transaction.costs ?? 0);
           avgPrice = current.value.div(current.sharesAmount);
           break;
         case 'sell':
+          if (transaction.sharesAmount === undefined || transaction.priceQuote === undefined)
+            continue;
           // Sell shares amount is negative
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount!);
+          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount);
           current.value = current.sharesAmount.mul(avgPrice);
           doneProfit = doneProfit.add(
-            transaction
-              .sharesAmount!.abs()
-              .mul(transaction.priceQuote!.sub(avgPrice))
-              .add(transaction.costs!),
+            transaction.sharesAmount
+              .abs()
+              .mul(transaction.priceQuote.sub(avgPrice))
+              .add(transaction.costs ?? 0),
           );
           break;
         case 'transfer':
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount!);
+          if (transaction.sharesAmount === undefined) continue;
+          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount);
           // Transfer shares amount is negative (avg. price is not affected)
-          if (transaction.sharesAmount!.lt(0)) {
+          if (transaction.sharesAmount.lt(0)) {
             current.value = current.sharesAmount.mul(avgPrice);
           }
           // Transfer shares amount is positive (avg. price is affected)
           else {
-            current.value = current.value.add(
-              transaction.sharesAmount!.mul(transaction.priceQuote!),
-            );
+            // Undo shares amount sum if price quote is undefined
+            if (transaction.priceQuote === undefined) {
+              current.sharesAmount = current.sharesAmount.sub(transaction.sharesAmount);
+              continue;
+            }
+            current.value = current.value.add(transaction.sharesAmount.mul(transaction.priceQuote));
             avgPrice = current.value.div(current.sharesAmount);
           }
           break;
         case 'bonus_share':
+          if (transaction.factor === undefined || transaction.factor === null) continue;
           current.sharesAmount = current.sharesAmount.add(
-            current.sharesAmount.mul(transaction.factor!),
+            current.sharesAmount.mul(transaction.factor),
           );
           avgPrice = current.value.div(current.sharesAmount);
           break;
         case 'split':
-          current.sharesAmount = current.sharesAmount.mul(transaction.factor!);
-          avgPrice = avgPrice.div(transaction.factor!);
+          if (transaction.factor === undefined || transaction.factor === null) continue;
+          current.sharesAmount = current.sharesAmount.mul(transaction.factor);
+          avgPrice = avgPrice.div(transaction.factor);
           break;
         case 'inplit':
-          current.sharesAmount = current.sharesAmount.div(transaction.factor!);
-          avgPrice = avgPrice.mul(transaction.factor!);
+          if (transaction.factor === undefined || transaction.factor === null) continue;
+          current.sharesAmount = current.sharesAmount.div(transaction.factor);
+          avgPrice = avgPrice.mul(transaction.factor);
           break;
         case 'dividend':
-          doneProfit = doneProfit.add(transaction.value!).add(transaction.costs!);
+          if (transaction.value === undefined || transaction.value === null) continue;
+          doneProfit = doneProfit.add(transaction.value).add(transaction.costs ?? 0);
           break;
         default:
           break;

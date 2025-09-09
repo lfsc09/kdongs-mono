@@ -105,13 +105,15 @@ export default class AssetBrlPublicBond extends BaseModel {
       )
       .orderBy('dateUtc', 'asc');
 
-    return transactions.map((transaction) => ({
-      type: transaction.type as 'buy' | 'sell',
-      dateUtc: DateTime.fromJSDate(transaction.dateUtc),
-      sharesAmount: new Big(transaction.sharesAmount),
-      unitPrice: new Big(transaction.unitPrice),
-      costs: new Big(transaction.costs),
-    }));
+    return (
+      transactions?.map((transaction) => ({
+        type: transaction.type as 'buy' | 'sell',
+        dateUtc: DateTime.fromJSDate(transaction.dateUtc),
+        sharesAmount: new Big(transaction.sharesAmount),
+        unitPrice: new Big(transaction.unitPrice),
+        costs: new Big(transaction.costs),
+      })) ?? []
+    );
   }
 
   /**
@@ -122,7 +124,7 @@ export default class AssetBrlPublicBond extends BaseModel {
 
     let currentUnitPrice = new Big(0);
 
-    const lastTransactionAt = transactions.length > 0 ? transactions.at(-1)!.dateUtc : undefined;
+    const lastTransactionAt = transactions.length > 0 ? transactions.at(-1)?.dateUtc : undefined;
     const current = {
       sharesAmount: new Big(0),
       value: new Big(0),
@@ -132,19 +134,23 @@ export default class AssetBrlPublicBond extends BaseModel {
     let avgPrice = new Big(0);
 
     for (const transaction of transactions) {
+      if (transaction.sharesAmount === undefined || transaction.unitPrice === undefined) continue;
       switch (transaction.type) {
         case 'buy':
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount!);
+          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount);
           current.value = current.value
-            .add(transaction.sharesAmount!.mul(transaction.unitPrice!))
-            .add(transaction.costs!);
+            .add(transaction.sharesAmount.mul(transaction.unitPrice))
+            .add(transaction.costs ?? 0);
           avgPrice = current.value.div(current.sharesAmount);
           break;
         case 'sell':
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount!);
+          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount);
           current.value = current.sharesAmount.mul(avgPrice);
           doneProfit = doneProfit.add(
-            transaction.sharesAmount!.abs().mul(transaction.unitPrice!).add(transaction.costs!),
+            transaction.sharesAmount
+              .abs()
+              .mul(transaction.unitPrice)
+              .add(transaction.costs ?? 0),
           );
           break;
       }
@@ -158,7 +164,7 @@ export default class AssetBrlPublicBond extends BaseModel {
     return {
       lastTransactionAt,
       doneProfit,
-      currentProfit: new Big(0),
+      currentProfit,
     };
   }
 }
