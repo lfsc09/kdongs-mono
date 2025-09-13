@@ -1,0 +1,88 @@
+x-env: &env
+  HOST: 0.0.0.0
+  LOG_LEVEL: info
+  NODE_ENV: production
+  DB_HOST: api-postgres
+  DB_PORT: 5432
+  DB_USER: adonisjs
+  DB_DATABASE: app
+
+services:
+  api-build:
+    build:
+      context: ../
+      dockerfile: docker/dockerfile.test
+    image: kdongs-api-test
+    container_name: kdongs-api-test
+    restart: unless-stopped
+    depends_on:
+      api-postgres:
+        condition: service_healthy
+    environment:
+      <<: *env
+    secrets:
+      - root_pass
+    ports:
+      - '8000:3333'
+    networks:
+      - api-network
+    volumes:
+      - api-build:/app/build
+    profiles:
+      - build
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.4G'
+
+  api-postgres:
+    image: postgres:16-alpine
+    container_name: api-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: adonisjs
+      POSTGRES_PASSWORD_FILE: /run/secrets/root_pass
+    secrets:
+      - root_pass
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', '${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - '8001:5432'
+    networks:
+      - api-network
+    volumes:
+      - ./init/postgres:/docker-entrypoint-initdb.d
+      - api-postgres:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c pg_stat_statements.max=10000
+      -c track_activity_query_size=2048
+    profiles:
+      - local
+      - build
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: '1G'
+
+secrets:
+  root_pass:
+    file: ./secrets/postgres_root_pass.txt
+
+networks:
+  api-network:
+    driver: bridge
+
+volumes:
+  api-build:
+    driver: local
+  api-postgres:
+    driver: local
