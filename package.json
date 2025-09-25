@@ -10,7 +10,9 @@
     "dev:frontend": "cd packages/frontend && npm start",
     "dev:backend": "cd packages/backend && npm run dev",
     "dev:backend:migrate": "cd packages/backend && node ace migration:fresh --seed --force",
+    "dev:backend:format": "cd packages/backend && npm run biome:check",
     "test:frontend": "cd packages/frontend && npm run test",
+    "test:frontend:format": "cd packages/frontend && npm run format",
     "test:backend": "cd packages/backend && npm run test",
     "test:backend:migrate": "cd packages/backend && NODE_ENV=test node ace migration:fresh --force"
   },
