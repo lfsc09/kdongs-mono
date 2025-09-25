@@ -26,14 +26,26 @@ git clone https://github.com/lfsc09/kdongs-mono.git
 cd kdongs-mono
 ```
 
+2. Install dependencies
+
+```bash
+npm install
+```
+
 #### Backend
 
-2. Run the `setup-backend.sh` to:
+3. Run the `setup-backend.sh`
 
-- Create the project `.env` and `.env.test` file if they don't exist.
-- Generate an `APP_KEY` in both files.
-- Create a random `root` DB user password, for the Docker Postgres container to use and fill it in `.env` and `.env.test`.
-- Fill the created password in `.env` and `.env.test` at `DB_PASSWORD`.
+```bash
+npm run dev:setup
+```
+
+> This will:
+> 
+> - Create the project `.env` and `.env.test` file if they don't exist.
+> - Generate an `APP_KEY` in both files.
+> - Create a random `root` DB user password, for the Docker Postgres container to use and fill it in `.env` and `.env.test`.
+> - Fill the created password in `.env` and `.env.test` at `DB_PASSWORD`.
 
 #### Frontend
 

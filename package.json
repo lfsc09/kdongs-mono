@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prepare": "husky install",
+    "dev:setup": "cd packages/backend && ./setup-backend.sh",
     "dev:mono": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd packages/frontend && npm start",
     "dev:backend": "cd packages/backend && npm run dev",
@@ -36,5 +37,8 @@
     "packages/backend/**/*.{ts,js,json,env,md}": [
       "npm --prefix packages/backend run biome:check"
     ]
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
