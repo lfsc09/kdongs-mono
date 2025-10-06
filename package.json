@@ -10,11 +10,11 @@
     "dev:frontend": "npm start --workspace frontend",
     "dev:frontend:format": "npm run format --workspace frontend",
     "dev:backend": "npm run dev --workspace backend",
-    "dev:backend:migrate": "npm run migration:fresh --workspace backend --seed --force",
+    "dev:backend:migrate": "npm run migration:fresh --workspace backend",
     "dev:backend:format": "npm run biome:check --workspace backend",
     "test:frontend": "npm run test --workspace frontend",
     "test:backend": "npm run test --workspace backend",
-    "test:backend:migrate": "cd packages/backend && NODE_ENV=test node ace migration:fresh --force"
+    "test:backend:migrate": "npm run test:migration:force --workspace backend"
   },
   "repository": {
     "type": "git",
