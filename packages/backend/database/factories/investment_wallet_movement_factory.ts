@@ -6,7 +6,7 @@ import WalletMovement from '#models/investment/wallet_movement';
 import {
   acceptedCurrencyCodes,
   type CurrencyCode,
-} from '../../contracts/model/investment/currencies.js';
+} from '../../app/core/types/investment/currencies.js';
 
 const movementGenerator = (
   type: 'deposit' | 'withdraw',

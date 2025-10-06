@@ -1,6 +1,6 @@
 import factory from '@adonisjs/lucid/factories';
 import User from '#models/user/user';
-import { acceptedUserRoles, type UserRole } from '../../contracts/model/user/user_roles.js';
+import { UserRole } from '../../app/core/types/user/user_roles.js';
 
 export const UserFactory = factory
   .define(User, async ({ faker }) => {
@@ -8,10 +8,10 @@ export const UserFactory = factory
       name: faker.internet.displayName(),
       email: faker.internet.email(),
       password: faker.internet.password({ length: 8 }),
-      role: faker.helpers.arrayElement(acceptedUserRoles as UserRole[]),
+      role: faker.helpers.arrayElement(Object.values(UserRole) as UserRole[]),
     };
   })
   .state('admin', (u) => {
-    u.role = 'admin';
+    u.role = UserRole.ADMIN;
   })
   .build();

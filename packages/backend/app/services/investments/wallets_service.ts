@@ -62,10 +62,11 @@ export class WalletsService {
             (acc, bond) => acc.add(bond.netAmount ?? 0),
             new Big(0),
           );
-          const brl_public_bonds = wallet.assetBrlPublicBonds.reduce(async (acc, bond) => {
-            const { doneProfit } = await bond.getPerformance();
-            return acc.add(doneProfit);
-          }, new Big(0));
+          // const brl_public_bonds = wallet.assetBrlPublicBonds.reduce(async (acc, bond) => {
+          //   const { doneProfit } = await bond.getPerformance();
+          //   return acc.add(doneProfit);
+          // }, new Big(0));
+          const brl_public_bonds = new Big(0);
 
           const profit_in_curncy = brl_private_bonds.add(brl_public_bonds);
 

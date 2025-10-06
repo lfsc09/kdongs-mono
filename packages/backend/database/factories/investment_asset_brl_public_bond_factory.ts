@@ -6,7 +6,7 @@ import {
   acceptedIndexTypes,
   acceptedInterestTypes,
   type InterestType,
-} from '../../contracts/model/investment/brl_public_bonds.js';
+} from '../../app/core/types/investment/brl_public_bonds.js';
 import { AssetBrlPublicBondBuyFactory } from './investment_asset_brl_public_bond_buy_factory.js';
 import { AssetBrlPublicBondSellFactory } from './investment_asset_brl_public_bond_sell_factory.js';
 

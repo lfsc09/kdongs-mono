@@ -9,7 +9,7 @@ import {
   acceptedInterestTypes,
   type BondType,
   type InterestType,
-} from '../../contracts/model/investment/brl_private_bonds.js';
+} from '../../app/core/types/investment/brl_private_bonds.js';
 
 const BUSINESS_DAYS_PER_YEAR = 252;
 const CALENDAR_DAYS_PER_YEAR = 365;

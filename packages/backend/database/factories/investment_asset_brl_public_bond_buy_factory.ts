@@ -3,7 +3,7 @@ import type { Faker } from '@faker-js/faker';
 import Big from 'big.js';
 import { DateTime } from 'luxon';
 import AssetBrlPublicBondBuy from '#models/investment/asset_brl_public_bond_buy';
-import type { BondType } from '../../contracts/model/investment/brl_public_bonds.js';
+import type { BondType } from '../../app/core/types/investment/brl_public_bonds.js';
 
 const getFees = (
   bondType: BondType | undefined,

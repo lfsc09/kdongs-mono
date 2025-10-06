@@ -5,7 +5,8 @@ import { WalletFactory } from '#database/factories/investment_wallet_factory';
 import { UserFactory } from '#database/factories/user_factory';
 import Wallet from '#models/investment/wallet';
 import User from '#models/user/user';
-import { acceptedCurrencyCodes } from '../../contracts/model/investment/currencies.js';
+import { acceptedCurrencyCodes } from '../../app/core/types/investment/currencies.js';
+import { UserRole } from '../../app/core/types/user/user_roles.js';
 
 export default class extends BaseSeeder {
   async run() {
@@ -15,7 +16,7 @@ export default class extends BaseSeeder {
     if (!userId) {
       userId = (
         await UserFactory.merge([
-          { email: 'admin@gmail.com', password: '12345678', role: 'admin' },
+          { email: 'admin@gmail.com', password: '12345678', role: UserRole.ADMIN },
         ]).create()
       ).id;
     }

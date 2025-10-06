@@ -3,7 +3,7 @@ import Wallet from '#models/investment/wallet';
 import {
   acceptedCurrencyCodes,
   type CurrencyCode,
-} from '../../contracts/model/investment/currencies.js';
+} from '../../app/core/types/investment/currencies.js';
 import { AssetBrlPrivateBondFactory } from './investment_asset_brl_private_bond_factory.js';
 import { AssetBrlPublicBondFactory } from './investment_asset_brl_public_bond_factory.js';
 import { WalletMovementFactory } from './investment_wallet_movement_factory.js';

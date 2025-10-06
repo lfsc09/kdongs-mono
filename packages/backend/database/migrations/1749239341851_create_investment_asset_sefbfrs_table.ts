@@ -1,5 +1,5 @@
 import { BaseSchema } from '@adonisjs/lucid/schema';
-import { acceptedDoneStates } from '../../contracts/model/investment/sefbfr.js';
+import { acceptedDoneStates } from '../../app/core/types/investment/sefbfr.js';
 
 export default class extends BaseSchema {
   protected tableName = 'investment_asset_sefbfrs';
