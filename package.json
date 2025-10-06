@@ -7,13 +7,13 @@
     "prepare": "husky install",
     "dev:setup": "cd packages/backend && ./setup-backend.sh",
     "dev:mono": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "dev:frontend": "cd packages/frontend && npm start",
-    "dev:backend": "cd packages/backend && npm run dev",
-    "dev:backend:migrate": "cd packages/backend && node ace migration:fresh --seed --force",
-    "dev:backend:format": "cd packages/backend && npm run biome:check",
-    "test:frontend": "cd packages/frontend && npm run test",
-    "test:frontend:format": "cd packages/frontend && npm run format",
-    "test:backend": "cd packages/backend && npm run test",
+    "dev:frontend": "npm start --workspace frontend",
+    "dev:frontend:format": "npm run format --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:backend:migrate": "npm run migration:fresh --workspace backend --seed --force",
+    "dev:backend:format": "npm run biome:check --workspace backend",
+    "test:frontend": "npm run test --workspace frontend",
+    "test:backend": "npm run test --workspace backend",
     "test:backend:migrate": "cd packages/backend && NODE_ENV=test node ace migration:fresh --force"
   },
   "repository": {
@@ -34,10 +34,10 @@
   },
   "lint-staged": {
     "packages/frontend/src/**/*.{ts,js,json,css,scss,html,md}": [
-      "npm --prefix packages/frontend run format"
+      "npm run dev:frontend:format"
     ],
     "packages/backend/**/*.{ts,js,json,env,md}": [
-      "npm --prefix packages/backend run biome:check"
+      "npm run dev:backend:format"
     ]
   },
   "workspaces": [
