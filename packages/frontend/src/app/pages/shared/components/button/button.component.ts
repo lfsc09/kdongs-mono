@@ -1,4 +1,4 @@
-import { ClassValue } from 'clsx';
+import type { ClassValue } from 'clsx';
 
 import {
   ChangeDetectionStrategy,
