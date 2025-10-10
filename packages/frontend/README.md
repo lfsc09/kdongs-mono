@@ -1,59 +1,68 @@
-# Frontend
+## Main Packages
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.6.
+### [Angular](https://angular.dev/overview)
 
-## Development server
+#### Update
 
-To start a local development server, run:
+Check [Angular update schedule](https://angular.dev/reference/releases).
 
-```bash
-ng serve
-```
+Also check the [update guide](https://angular.dev/update-guide), for upgrading between major versions.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+**Before updating, check if the corresponding version of PrimeNG has been released.**
 
 ```bash
-ng generate component component-name
+npx --workspace frontend ng update @angular/core@<version> @angular/cli@<version>
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+</br>
+
+### [Tailwindcss](https://tailwindcss.com/docs/installation/using-vite)
+
+#### Update
 
 ```bash
-ng generate --help
+npm install --workspace frontend tailwindcss@latest @tailwindcss/postcss@latest postcss@latest
 ```
 
-## Building
+</br>
 
-To build the project run:
+### [ZardUi](https://zardui.com/docs/installation)
+
+#### Update
+
+Delete:
+
+1. `src/app/pages/shared/components` and `src/app/pages/shared/utils`
+2. Most of code in `src/styles.css`
+3. `components.json`
+
+Re-run the installation process, and:
+
+1. Choose to install components and utils at `src/app/pages/shared/`
+2. Check if `components.json` will point to correct location above
+3. Check if `tsconfig.json` will have `@shared` path to correct location above
 
 ```bash
-ng build
+npx --workspace frontend @ngzard/ui init
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+After setup install the used components:
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+> This script will install all used components in the project
 
 ```bash
-ng test
+npm run zardui:reinstall-components --workspace frontend
 ```
 
-## Running end-to-end tests
+</br>
 
-For end-to-end (e2e) testing, run:
+### [FontAwesome](https://fontawesome.com/search?ic=free&o=r)
+
+</br>
+
+### [Zod](https://zod.dev/basics)
 
 ```bash
-ng e2e
+npm install --workspace frontend zod
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
