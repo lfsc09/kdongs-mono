@@ -1,23 +1,22 @@
-import { Observable } from 'rxjs';
-import { AdonisJSError } from '../shared/default-gateway.model';
+import { AdonisJSErrorSchema } from '../shared/default-gateway.model';
 import { ModulePermissions } from '../../services/identity/identity.model';
+import { z } from 'zod';
 
-export interface LoginGateway {
-  authenticate(request: AuthenticateRequest): Observable<boolean>;
-}
+export const AuthenticatedUserDTOSchema = z.object({
+  userName: z.string(),
+  userEmail: z.string(),
+  allowedIn: z.array(z.enum(ModulePermissions)),
+  tokenExp: z.number(),
+});
+export const AuthenticateRequestSchema = z.object({
+  email: z.optional(z.email()),
+  password: z.optional(z.string()),
+});
+export const AuthenticateResponseSchema = z.object({
+  data: AuthenticatedUserDTOSchema,
+  errors: AdonisJSErrorSchema.optional(),
+});
 
-export type AuthenticateRequest = {
-  email: string | null | undefined;
-  password: string | null | undefined;
-};
-export type AuthenticateResponse = {
-  data: AuthenticatedUser;
-  errors?: AdonisJSError;
-} | null;
-
-export type AuthenticatedUser = {
-  userName: string;
-  userEmail: string;
-  allowedIn: ModulePermissions[];
-  tokenExp: number;
-};
+export type AuthenticatedUserDTO = z.infer<typeof AuthenticatedUserDTOSchema>;
+export type AuthenticateRequest = z.infer<typeof AuthenticateRequestSchema>;
+export type AuthenticateResponse = z.infer<typeof AuthenticateResponseSchema>;

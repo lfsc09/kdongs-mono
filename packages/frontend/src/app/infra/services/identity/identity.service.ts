@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { AuthenticatedUser } from '../../gateways/login/login-gateway.model';
+import { AuthenticatedUserDTO } from '../../gateways/login/login-gateway.model';
 import { ModulePermissions, UserIdentity } from './identity.model';
 
 @Injectable({
@@ -23,7 +23,7 @@ export class IdentityService {
   /**
    * Processes the user identity, either from the local storage or from the provided user data.
    */
-  processIdentity(user: AuthenticatedUser | null = null): boolean {
+  processIdentity(user: AuthenticatedUserDTO | null = null): boolean {
     // In-memory user data
     if (user === null && this._identity() !== null) {
       if (!this._isValid(this._identity()?.tokenExp ?? 0)) {
