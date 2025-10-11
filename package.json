@@ -6,7 +6,7 @@
   "scripts": {
     "prepare": "husky install",
     "dev:setup": "cd packages/backend && ./setup-backend.sh",
-    "dev:mono": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:mono": "mprocs \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "npm start --workspace frontend",
     "dev:frontend:format": "npm run format --workspace frontend",
     "dev:backend": "npm run dev --workspace backend",
@@ -28,9 +28,9 @@
   },
   "homepage": "https://github.com/lfsc09/kdongs-mono#readme",
   "devDependencies": {
-    "concurrently": "^9.2.1",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.6"
+    "lint-staged": "^16.1.6",
+    "mprocs": "^0.7.3"
   },
   "lint-staged": {
     "packages/frontend/src/**/*.{ts,js,json,css,scss,html,md}": [
