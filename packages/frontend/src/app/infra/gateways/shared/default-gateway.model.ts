@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-export const AdonisJSErrorSchema = z.array(z.object({ message: z.string() }));
+export const AdonisJSErrorSchema = z.object({
+  errors: z.array(z.object({ message: z.string() })),
+});
 export type AdonisJSError = z.infer<typeof AdonisJSErrorSchema>;
 
 export class GatewayError extends Error {

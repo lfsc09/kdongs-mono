@@ -21,7 +21,6 @@ export class LoginGatewayService extends DefaultGatewayService {
       })
       .pipe(
         map((response) => {
-          // Validate response structure with Zod (only executes on 2xx responses)
           const validationResult = AuthenticateResponseSchema.safeParse(response.body);
 
           if (!validationResult.success) {
@@ -34,7 +33,6 @@ export class LoginGatewayService extends DefaultGatewayService {
 
           const { data, errors } = validationResult.data;
 
-          // Check for errors in the response body (200 with errors edge case)
           if (errors && errors.length > 0) {
             throw new GatewayError(
               response.status,
@@ -43,12 +41,10 @@ export class LoginGatewayService extends DefaultGatewayService {
             );
           }
 
-          // data is already validated by AuthenticateResponseSchema
           return this._identityService.processIdentity(data);
         }),
         catchError((error) => {
-          this.handleHttpError(error, AuthenticateResponseSchema);
-          return throwError(() => error);
+          return throwError(() => this.handleHttpError(error));
         }),
       );
   }

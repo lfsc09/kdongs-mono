@@ -1,8 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { AdonisJSError, GatewayError } from './default-gateway.model';
-import { z } from 'zod';
+import { AdonisJSError, AdonisJSErrorSchema, GatewayError } from './default-gateway.model';
 
 export class DefaultGatewayService {
   /**
@@ -18,7 +17,7 @@ export class DefaultGatewayService {
   /**
    * FUNCTIONS
    */
-  protected handleHttpError<T extends z.ZodTypeAny>(error: unknown, responseSchema: T): void {
+  protected handleHttpError(error: unknown): void {
     let message = '';
     let description = '';
     let status: number | undefined;
@@ -26,36 +25,31 @@ export class DefaultGatewayService {
     // Check if it's an HTTP error from backend
     if (error instanceof HttpErrorResponse) {
       status = error.status;
-      const result = responseSchema.safeParse(error.error);
+      const errorParsed = AdonisJSErrorSchema.safeParse(error.error);
+      let errorsFound = 0;
 
-      if (
-        status === 422 &&
-        result.success &&
-        result.data &&
-        typeof result.data === 'object' &&
-        'errors' in result.data &&
-        result.data.errors
-      ) {
-        message = `Validation Error${(result.data.errors as AdonisJSError).length > 1 ? 's' : ''}`;
-        (result.data.errors as AdonisJSError).forEach((err, idx) => {
-          description += `  [${idx + 1}] ${err.message}\n`;
-        });
-      } else if (
-        status === 500 &&
-        result.success &&
-        result.data &&
-        typeof result.data === 'object' &&
-        'errors' in result.data &&
-        result.data.errors
-      ) {
-        message = 'Server Error';
-        description = (result.data.errors as AdonisJSError).map((err) => err.message).join('\n');
-      } else if (status >= 400 && status < 600) {
-        message = `Backend Error (${status})`;
+      if (!errorParsed.success) {
         description = error.message;
+        errorsFound = 1;
+      } else {
+        errorsFound = errorParsed.data.errors.length;
+        if (errorParsed.data.errors.length === 1) {
+          description = errorParsed.data.errors[0].message;
+        } else {
+          errorParsed.data.errors.forEach((err, idx) => {
+            description += `  [${idx + 1}] ${err.message}\n`;
+          });
+        }
+      }
+
+      if (status === 422) {
+        message = `Validation Error${errorsFound > 1 ? 's' : ''}`;
+      } else if (status === 500) {
+        message = `Server Error${errorsFound > 1 ? 's' : ''}`;
+      } else if (status >= 400 && status < 600) {
+        message = `Backend Error${errorsFound > 1 ? 's' : ''} (${status})`;
       } else {
         message = `Unexpected Backend Response (${status})`;
-        description = error.message;
       }
     } else {
       message = 'Network/Client Error';

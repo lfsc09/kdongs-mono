@@ -76,7 +76,7 @@ export class Landing {
           submittedForm.resetForm();
           if (error instanceof GatewayError) {
             console.error(`[Authentication](${error.status}): ${error.message}`, error.description);
-            toast.error(error.name, {
+            toast.error(error.message, {
               description: error.description,
               position: 'bottom-center',
             });
