@@ -29,7 +29,8 @@
     "rules": {
       "recommended": true,
       "style": {
-        "noNonNullAssertion": "error"
+        "noNonNullAssertion": "error",
+        "useImportType": "off"
       }
     }
   },
