@@ -17,7 +17,7 @@ import {
   type CurrencyCode,
 } from '../../core/types/investment/currencies.js';
 
-export class WalletsService {
+export default class WalletsService {
   async index(input: IndexWalletsRequest): Promise<IndexWalletsResponse> {
     const page = Number(input.page) ?? 1;
     const limit = Number(input.limit) ?? 10;

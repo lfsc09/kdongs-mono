@@ -1,7 +1,7 @@
 import { inject } from '@adonisjs/core';
 import type { HttpContext } from '@adonisjs/core/http';
 import { anyUser } from '#abilities/main';
-import type { WalletsService } from '#services/investments/wallets_service';
+import type WalletsService from '#services/investments/wallets_service';
 import { deleteWalletValidator } from '#validators/investment/wallet/delete';
 import { editWalletValidator } from '#validators/investment/wallet/edit';
 import { indexWalletsValidator } from '#validators/investment/wallet/index';

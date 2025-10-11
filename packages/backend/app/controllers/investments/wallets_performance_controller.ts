@@ -1,7 +1,7 @@
 import { inject } from '@adonisjs/core';
 import type { HttpContext } from '@adonisjs/core/http';
 import { anyUser } from '#abilities/main';
-import type { WalletsPerformanceService } from '#services/investments/wallets_performance_service';
+import type WalletsPerformanceService from '#services/investments/wallets_performance_service';
 import { showSelectedWalletsPerformanceValidator } from '#validators/investment/wallet_performance/show';
 
 @inject()

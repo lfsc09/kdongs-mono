@@ -4,7 +4,7 @@ import type {
   ShowSelectedWalletsPerformanceResponse,
 } from '../../core/dto/investment/wallet_performance/show_dto.js';
 
-export class WalletsPerformanceService {
+export default class WalletsPerformanceService {
   async show(
     input: ShowSelectedWalletsPerformanceRequest,
   ): Promise<ShowSelectedWalletsPerformanceResponse> {
