@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { AdonisJSError, AdonisJSErrorSchema, GatewayError } from './default-gateway.model';
+import { AdonisJSErrorSchema, GatewayError } from './default-gateway.model';
 
 export class DefaultGatewayService {
   /**
