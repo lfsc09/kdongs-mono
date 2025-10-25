@@ -19,8 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'r!',
-    loadComponent: () =>
-      import('./pages/private/landing-layout').then((module) => module.LandingLayout),
+    loadComponent: () => import('./pages/private/landing').then((module) => module.Landing),
     canMatch: [gatekeeperGuard],
     children: [
       {

@@ -9,7 +9,7 @@
     "test": "ng test",
     "format": "prettier --write \"src/**/*.{ts,js,json,css,scss,html,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json,css,scss,html,md}\"",
-    "zardui:reinstall-components": "sh -c 'read -p \"Did you erase components and reinstalled ngzard? (y/n): \" answer && if [ \"$answer\" = \"y\" ]; then npx @ngzard/ui add alert alert-dialog avatar breadcrumb button card combobox dialog divider empty form input input-group layout menu pagination popover progress-bar segmented select switch table tabs toast tooltip; fi'"
+    "zardui:reinstall-components": "sh -c 'read -p \"Did you erase components and reinstalled ngzard? (y/n): \" answer && if [ \"$answer\" = \"y\" ]; then npx @ngzard/ui add alert alert-dialog avatar breadcrumb button card combobox command dialog divider empty form input input-group layout menu pagination popover progress-bar segmented select switch table tabs toast tooltip; fi'"
   },
   "prettier": {
     "printWidth": 100,

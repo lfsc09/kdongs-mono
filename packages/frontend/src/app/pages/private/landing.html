@@ -1,0 +1,69 @@
+<z-layout class="border rounded-md overflow-hidden">
+  <z-sidebar
+    [zWidth]="250"
+    [zCollapsible]="true"
+    [zCollapsed]="landingService.sidebarCollapsed()"
+    [zCollapsedWidth]="70"
+    (zCollapsedChange)="onCollapsedChange($event)"
+    class="!p-0"
+  >
+    <nav
+      [class]="
+        'flex flex-col h-full overflow-hidden ' +
+        (landingService.sidebarCollapsed() ? 'gap-1 p-1 pt-4' : 'gap-4 p-4')
+      "
+    >
+      <z-sidebar-group>
+        @if (!landingService.sidebarCollapsed()) {
+          <z-sidebar-group-label>Main</z-sidebar-group-label>
+        }
+        @for (item of landingService.modules(); track item.label) {
+          <button
+            z-button
+            zType="ghost"
+            [class]="landingService.sidebarCollapsed() ? 'justify-center' : 'justify-start'"
+            [zTooltip]="landingService.sidebarCollapsed() ? item.label : ''"
+            zPosition="right"
+            [routerLink]="item.url"
+          >
+            <i [class]="landingService.sidebarCollapsed() ? item.icon : item.icon + ' mr-2'"></i>
+            @if (!landingService.sidebarCollapsed()) {
+              <span>{{ item.label }}</span>
+            }
+          </button>
+        }
+      </z-sidebar-group>
+
+      <div class="mt-auto">
+        <z-avatar
+          zSize="sm"
+          zType="secondary"
+          [zImage]="landingService.userInfo().avatar"
+          zPopover
+          [zContent]="userPopoverContent"
+        />
+        <ng-template #userPopoverContent>
+          <z-popover>
+            <div class="space-y-2">
+              <h4 class="font-medium leading-none">{{ landingService.userInfo().userName }}</h4>
+              <p class="text-sm text-muted-foreground">{{ landingService.userInfo().userName }}</p>
+            </div>
+          </z-popover>
+        </ng-template>
+      </div>
+    </nav>
+  </z-sidebar>
+
+  <z-content class="min-h-[200px]">
+    <div class="flex items-center">
+      <button z-button zType="ghost" zSize="sm" class="-ml-2" (click)="toggleSidebar()">
+        <i class="fa-regular fa-square-caret-left"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4 py-4">
+      <div class="h-80 w-full"></div>
+      <div class="h-16 w-full"></div>
+    </div>
+  </z-content>
+</z-layout>
