@@ -1,4 +1,4 @@
-import { BaseModel, beforeCreate, belongsTo, column, computed } from '@adonisjs/lucid/orm';
+import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm';
 import type { BelongsTo } from '@adonisjs/lucid/types/relations';
 import Big from 'big.js';
 import type { DateTime } from 'luxon';
@@ -95,10 +95,4 @@ export default class AssetBrlPrivateBond extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null;
-
-  @computed()
-  get netAmount(): Big | null {
-    if (!this.grossAmount) return null;
-    return this.grossAmount.add(this.fees ?? 0).add(this.taxes ?? 0);
-  }
 }

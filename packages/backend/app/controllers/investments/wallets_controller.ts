@@ -21,7 +21,7 @@ export default class WalletsController {
       ...request.qs(),
       userId: auth.user?.id ?? '',
     });
-    const output = await this.walletsService.index(input);
+    const output = await this.walletsService.walletsList(input);
     return response.status(200).json(output);
   }
 
@@ -30,7 +30,7 @@ export default class WalletsController {
    */
   async create({ response, bouncer }: HttpContext) {
     if (await bouncer.denies(anyUser)) return response.forbidden();
-    const output = await this.walletsService.create();
+    const output = await this.walletsService.walletCreate();
     return response.status(200).json(output);
   }
 
@@ -43,7 +43,7 @@ export default class WalletsController {
       ...request.body(),
       userId: auth.user?.id ?? '',
     });
-    const output = await this.walletsService.store(input);
+    const output = await this.walletsService.walletStore(input);
     return response.status(201).json(output);
   }
 
@@ -53,10 +53,10 @@ export default class WalletsController {
   async show({ params, response, auth, bouncer }: HttpContext) {
     if (await bouncer.denies(anyUser)) return response.forbidden();
     const input = await showWalletValidator.validate({
-      walletId: params.walletId,
+      walletId: params.id,
       userId: auth.user?.id ?? '',
     });
-    const output = await this.walletsService.show(input);
+    const output = await this.walletsService.walletShow(input);
     return response.status(200).json(output);
   }
 
@@ -67,17 +67,19 @@ export default class WalletsController {
     if (await bouncer.denies(anyUser)) return response.forbidden();
     const input = await editWalletValidator.validate({
       ...request.body(),
-      walletId: params.walletId,
+      walletId: params.id,
       userId: auth.user?.id ?? '',
     });
-    const output = await this.walletsService.edit(input);
+    const output = await this.walletsService.walletEdit(input);
     return response.status(200).json(output);
   }
 
   /**
    * Handle form submission for the edit action
    */
-  // async update({}: HttpContext) {}
+  async update({ response }: HttpContext) {
+    return response.status(204);
+  }
 
   /**
    * Delete record
@@ -85,10 +87,10 @@ export default class WalletsController {
   async destroy({ params, response, auth, bouncer }: HttpContext) {
     if (await bouncer.denies(anyUser)) return response.forbidden();
     const input = await deleteWalletValidator.validate({
-      walletId: params.walletId,
+      walletId: params.id,
       userId: auth.user?.id ?? '',
     });
-    await this.walletsService.delete(input);
+    await this.walletsService.walletDelete(input);
     return response.status(204);
   }
 }

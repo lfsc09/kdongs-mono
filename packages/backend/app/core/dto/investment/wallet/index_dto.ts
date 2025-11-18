@@ -11,10 +11,10 @@ export type IndexWalletsResponse = {
       name: string;
       currencyCode: string;
       trend: 'up' | 'down' | 'stable';
-      initial_balance: number;
-      current_balance: number;
-      profit_in_curncy: number;
-      profit_in_perc: number;
+      initialBalance: number;
+      currentBalance: number;
+      profitInCurncy: number;
+      profitInPerc: number;
       createdAt?: string;
       updatedAt?: string;
     }[];

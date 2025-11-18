@@ -64,6 +64,6 @@ test.group('Get a user wallet', (group) => {
     expect(output.status()).toBe(200);
     const body = output.body();
     expect(body).toHaveProperty('data');
-    expect(body.data).toHaveProperty('walletId');
+    expect(body.data).toStrictEqual(expect.objectContaining({ walletId: expect.any(String) }));
   });
 });

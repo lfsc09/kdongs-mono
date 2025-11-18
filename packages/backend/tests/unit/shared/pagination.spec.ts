@@ -39,8 +39,16 @@ test.group('Pagination validator', () => {
       expect(output).toBeDefined();
       expect(output.page).toBe(input.page);
       expect(output.limit).toBe(input.limit);
-      expect(output.sortBy).toBe(input.sortBy);
-      expect(output.sortOrder).toBe(input.sortOrder);
+      if (input.sortBy === undefined || input.sortBy === null) {
+        expect(output.sortBy).toBeUndefined();
+      } else {
+        expect(output.sortBy).toBe(input.sortBy);
+      }
+      if (input.sortOrder === undefined || input.sortOrder === null) {
+        expect(output.sortOrder).toBeUndefined();
+      } else {
+        expect(output.sortOrder).toBe(input.sortOrder);
+      }
     });
 
   test("should fail [invalid page]['{$self}']")

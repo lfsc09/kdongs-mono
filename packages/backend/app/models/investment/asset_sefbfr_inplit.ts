@@ -6,7 +6,7 @@ import { v7 as uuidv7 } from 'uuid';
 import AssetSefbfr from '#models/investment/asset_sefbfr';
 
 export default class AssetSefbfrInplit extends BaseModel {
-  static table = 'investment_asset_sefbfr_inplit';
+  static table = 'investment_asset_sefbfr_inplits';
   static selfAssignPrimaryKey = true;
 
   @beforeCreate()

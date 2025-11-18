@@ -13,12 +13,19 @@ import type {
 } from '../../core/dto/investment/wallet/show_dto.js';
 import type { StoreWalletRequest } from '../../core/dto/investment/wallet/store_dto.js';
 import {
+  HandleSelectedWalletsPerformanceRequest,
+  HandleSelectedWalletsPerformanceResponse,
+} from '../../core/dto/investment/wallet_performance/handle_dto.js';
+import {
   acceptedCurrencyCodes,
   type CurrencyCode,
 } from '../../core/types/investment/currencies.js';
+import AssetBrlPrivateBondUtils from './util/asset_brl_private_bond.js';
+import AssetBrlPublicBondUtils from './util/asset_brl_public_bond.js';
+import AssetSefbfrUtils from './util/asset_sefbfr.js';
 
 export default class WalletsService {
-  async index(input: IndexWalletsRequest): Promise<IndexWalletsResponse> {
+  async walletsList(input: IndexWalletsRequest): Promise<IndexWalletsResponse> {
     const page = Number(input.page) ?? 1;
     const limit = Number(input.limit) ?? 10;
     const sortOrder = input.sortOrder ?? 'desc';
@@ -46,50 +53,63 @@ export default class WalletsService {
       .where('userId', input.userId)
       .orderBy(sortBy, sortOrder)
       .preload('movements')
-      .preload('assetBrlPrivateBonds')
-      .preload('assetBrlPublicBonds')
       .paginate(page, limit);
 
     return {
       data: {
-        wallets: wallets.all().map((wallet: Wallet) => {
-          // Submission balance is the balance of the wallet considering only the movements (submissions)
-          const submissionBalance = wallet.movements.reduce(
-            (acc, movement) => acc.add(movement.resultAmount),
-            new Big(0),
-          );
-          const brl_private_bonds = wallet.assetBrlPrivateBonds.reduce(
-            (acc, bond) => acc.add(bond.netAmount ?? 0),
-            new Big(0),
-          );
-          // const brl_public_bonds = wallet.assetBrlPublicBonds.reduce(async (acc, bond) => {
-          //   const { doneProfit } = await bond.getPerformance();
-          //   return acc.add(doneProfit);
-          // }, new Big(0));
-          const brl_public_bonds = new Big(0);
+        wallets: await Promise.all(
+          wallets.all().map(async (wallet: Wallet) => {
+            // Submission balance is the balance of the wallet considering only the movements (submissions)
+            const submissionBalance = wallet.movements.reduce(
+              (acc, movement) => acc.add(movement.resultAmount),
+              new Big(0),
+            );
 
-          const profit_in_curncy = brl_private_bonds.add(brl_public_bonds);
+            const [brlPrivateBonds, brlPublicBonds, sefbfrAssets] = await Promise.all([
+              AssetBrlPrivateBondUtils.getBondsPerformance(wallet.id),
+              AssetBrlPublicBondUtils.getBondsPerformance(wallet.id),
+              AssetSefbfrUtils.getAssetsPerformance(wallet.id),
+            ]);
 
-          // Current balance is the balance of the wallet considering the submissions and the investments done in the wallet
-          const currentBalance = submissionBalance.add(profit_in_curncy);
+            const brlPrivateBondsProfit = Array.from(brlPrivateBonds.values()).reduce(
+              (acc, bond) => acc.add(bond.doneProfit ?? 0),
+              new Big(0),
+            );
+            const brlPublicBondsProfit = Array.from(brlPublicBonds.values()).reduce(
+              (acc, bond) => acc.add(bond.doneProfit ?? 0),
+              new Big(0),
+            );
+            const sefbfrAssetsProfit = Array.from(sefbfrAssets.values()).reduce(
+              (acc, asset) => acc.add(asset.doneProfit ?? 0),
+              new Big(0),
+            );
 
-          const profit_in_perc = submissionBalance.eq(0)
-            ? submissionBalance
-            : currentBalance.div(submissionBalance).minus(1);
+            const profitInCurncy = brlPrivateBondsProfit
+              .add(brlPublicBondsProfit)
+              .add(sefbfrAssetsProfit);
 
-          return {
-            id: wallet.id,
-            name: wallet.name,
-            currencyCode: wallet.currencyCode,
-            trend: 'up',
-            initial_balance: submissionBalance.round(2, Big.roundHalfEven).toNumber(),
-            current_balance: currentBalance.round(2, Big.roundHalfEven).toNumber(),
-            profit_in_curncy: profit_in_curncy.round(2, Big.roundHalfEven).toNumber(),
-            profit_in_perc: profit_in_perc.round(2, Big.roundHalfEven).toNumber(),
-            createdAt: wallet.createdAt.toISO() ?? undefined,
-            updatedAt: wallet.updatedAt?.toISO() ?? undefined,
-          };
-        }),
+            // Current balance is the balance of the wallet considering the submissions and the investments done in the wallet
+            const currentBalance = submissionBalance.add(profitInCurncy);
+
+            const profitInPerc = submissionBalance.eq(0)
+              ? submissionBalance
+              : currentBalance.div(submissionBalance).minus(1);
+
+            return {
+              id: wallet.id,
+              name: wallet.name,
+              currencyCode: wallet.currencyCode,
+              // FIXME: fix trend calculation
+              trend: 'up',
+              initialBalance: submissionBalance.round(2, Big.roundHalfEven).toNumber(),
+              currentBalance: currentBalance.round(2, Big.roundHalfEven).toNumber(),
+              profitInCurncy: profitInCurncy.round(2, Big.roundHalfEven).toNumber(),
+              profitInPerc: profitInPerc.round(2, Big.roundHalfEven).toNumber(),
+              createdAt: wallet.createdAt.toISO() ?? undefined,
+              updatedAt: wallet.updatedAt?.toISO() ?? undefined,
+            };
+          }),
+        ),
       },
       metadata: {
         totalCount: wallets.total,
@@ -102,7 +122,73 @@ export default class WalletsService {
     };
   }
 
-  async create(): Promise<CreateWalletResponse> {
+  async walletsPerformance(
+    input: HandleSelectedWalletsPerformanceRequest,
+  ): Promise<HandleSelectedWalletsPerformanceResponse> {
+    const _wallets = await Wallet.query()
+      .whereIn('id', input.walletIds)
+      .where('userId', input.userId)
+      .preload('movements')
+      .preload('assetBrlPrivateBonds')
+      .preload('assetBrlPublicBonds', (query) => {
+        query.preload('assetBrlPublicBondSells');
+      })
+      .preload('assetSefbfrs', (query) => {
+        query.preload('assetSefbfrSells');
+        query.preload('assetSefbfrTransfers');
+        query.preload('assetSefbfrBonusShares');
+        query.preload('assetSefbfrSplits');
+        query.preload('assetSefbfrInplits');
+        query.preload('assetSefbfrDividends');
+      });
+    return {
+      data: {
+        indicators: {
+          resultingBalanceInCurncy: 0,
+          resultingProfitInCurncy: 0,
+          resultingProfitInPerc: 0,
+          dateStartUtc: '',
+          dateEndUtc: '',
+          avgDaysByAsset: 0,
+          numberOfAssets: 0,
+          numberOfAssetsProfit: 0,
+          numberOfAssetsLoss: 0,
+          numberOfActiveAssets: 0,
+          numberOfActiveAssetsProfit: 0,
+          numberOfActiveAssetsLoss: 0,
+          expectancyByAsset: 0,
+          expectancyByDay: 0,
+          expectancyByMonth: 0,
+          expectancyByQuarter: 0,
+          expectancyByYear: 0,
+          avgCostByAsset: 0,
+          avgCostByDay: 0,
+          avgCostByMonth: 0,
+          avgCostByQuarter: 0,
+          avgCostByYear: 0,
+          avgTaxByAsset: 0,
+          avgTaxByDay: 0,
+          avgTaxByMonth: 0,
+          avgTaxByQuarter: 0,
+          avgTaxByYear: 0,
+          breakeven: 0,
+          edge: 0,
+          profitSum: 0,
+          profitAvg: 0,
+          profitMax: 0,
+          lossSum: 0,
+          lossAvg: 0,
+          lossMax: 0,
+          historyHigh: 0,
+          historyLow: 0,
+        },
+        wallets: [],
+        series: [],
+      },
+    };
+  }
+
+  async walletCreate(): Promise<CreateWalletResponse> {
     return {
       data: {
         currencyCodes: acceptedCurrencyCodes as CurrencyCode[],
@@ -110,7 +196,7 @@ export default class WalletsService {
     };
   }
 
-  async store(input: StoreWalletRequest): Promise<void> {
+  async walletStore(input: StoreWalletRequest): Promise<void> {
     await Wallet.create({
       userId: input.userId,
       name: input.name,
@@ -118,7 +204,7 @@ export default class WalletsService {
     });
   }
 
-  async show(input: ShowWalletRequest): Promise<ShowWalletResponse> {
+  async walletShow(input: ShowWalletRequest): Promise<ShowWalletResponse> {
     const wallet = await Wallet.query()
       .where('id', input.walletId)
       .where('userId', input.userId)
@@ -130,7 +216,7 @@ export default class WalletsService {
     };
   }
 
-  async edit(input: EditWalletRequest): Promise<void> {
+  async walletEdit(input: EditWalletRequest): Promise<void> {
     const wallet = await Wallet.query()
       .where('id', input.walletId)
       .where('userId', input.userId)
@@ -144,7 +230,7 @@ export default class WalletsService {
     await wallet.save();
   }
 
-  async delete(input: DeleteWalletRequest): Promise<void> {
+  async walletDelete(input: DeleteWalletRequest): Promise<void> {
     const wallet = await Wallet.query()
       .where('id', input.walletId)
       .where('userId', input.userId)
