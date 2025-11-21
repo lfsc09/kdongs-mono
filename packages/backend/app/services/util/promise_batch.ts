@@ -1,3 +1,18 @@
+/**
+ * Processes a list of promises in sliding window batches, yielding results as they complete, and not waiting for the entire batch to finish.
+ *
+ * This is useful for controlling concurrency when dealing with a large number of asynchronous operations.
+ *
+ * @template T The type of the resolved value of the promises.
+ * @example
+ * const promises = [promise1, promise2, promise3, ...];
+ * const batchSize = 2;
+ * const promiseBatch = new PromiseBatch(promises, batchSize);
+ *
+ * for await (const result of promiseBatch.process()) {
+ *   console.log(result);
+ * }
+ */
 export class PromiseBatch<T> {
   private activePromises = new Set<Promise<T>>()
 
