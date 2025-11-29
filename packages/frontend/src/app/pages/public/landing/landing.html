@@ -1,79 +1,125 @@
-<main class="bg-background flex justify-end min-h-screen">
-  <z-card class="w-full max-w-sm m-6 p-8">
-    <div class="flex items-center justify-center gap-4">
-      <img class="h-32 drop-shadow-md" src="kdongs-icon-circle.png" alt="logo" />
-      <div class="flex flex-col select-none">
-        <span class="text-2xl">Welcome to</span>
-        <span class="text-primary-600 text-3xl font-semibold">Kdongs</span>
-      </div>
+<main class="my-32 mx-16 space-y-16">
+  <header class="w-full md:w-[48em] flex flex-col gap-6 text-center mx-auto space-y-4">
+    <h1 class="text-6xl font-semibold text-green-400">Kdongs</h1>
+    <div class="flex justify-center gap-2">
+      <a href="https://linkedin.com/in/lucasfscastro" target="_blank" class="btn space-x-2">
+        <i class="fa-brands fa-linkedin"></i>
+        <span class="uppercase">Linkedin</span>
+      </a>
+      <a href="https://github.com/lfsc09" target="_blank" class="btn space-x-2">
+        <i class="fa-brands fa-github"></i>
+        <span class="uppercase">Github</span>
+      </a>
     </div>
-    <z-divider></z-divider>
-    <div class="flex flex-col gap-4 py-4">
-      <p class="text-sm/6 font-medium">
-        If you have credentials you may continue, otherwise feel free to reach me out.
-      </p>
-      <div class="flex justify-end gap-1">
-        <a
-          href="https://www.linkedin.com/in/lucasfscastro/"
-          target="_blank"
-          z-button
-          zType="secondary"
-          zSize="icon"
+  </header>
+  <section class="flex justify-center *:h-[8em] *:w-full *:md:max-w-[40em]">
+    @switch (currentSliderContent()) {
+      @case (0) {
+        <div
+          class="flex flex-col items-center justify-center gap-2"
+          animate.enter="animate-slide-up-fade"
         >
-          <i class="fa-brands fa-linkedin"></i>
-        </a>
-        <a href="https://github.com/lfsc09" target="_blank" z-button zType="secondary" zSize="icon">
-          <i class="fa-brands fa-github"></i>
-        </a>
-      </div>
-    </div>
-    <z-divider></z-divider>
-    <div class="my-6">
+          <p>
+            Try <span class="text-indigo-500 font-semibold dark:text-indigo-600">Ubudongs</span> in
+            a fresh Ubuntu 24.04+ installation
+          </p>
+          <div
+            class="code-block"
+            (click)="
+              copyToClipboard(
+                'wget -qO- https://raw.githubusercontent.com/lfsc09/ubudongs/main/boot.sh | bash'
+              )
+            "
+          >
+            <pre><code>wget -qO- https://raw.githubusercontent.com/lfsc09/ubudongs/main/boot.sh | bash</code></pre>
+            <div class="code-copy">
+              <i class="fa-regular fa-copy text-xl"></i>
+            </div>
+          </div>
+        </div>
+      }
+      @case (1) {
+        <div
+          class="flex flex-col items-center justify-center gap-2"
+          animate.enter="animate-slide-up-fade"
+        >
+          <p>Check my documentation on studies of various software engineering topics</p>
+          <a href="https://kdongs.gitbook.io/kdocs" target="_blank" class="btn space-x-2">
+            <i class="fa-solid fa-book"></i>
+            <span class="uppercase">Go to Kdocs</span>
+          </a>
+        </div>
+      }
+    }
+  </section>
+  <section class="flex justify-center">
+    <div class="w-full md:w-[32em] min-h-[18em] card space-y-4">
       @if (loading()) {
-        <div class="px-8 py-6">
-          <z-progress-bar [progress]="50" [zIndeterminate]="true" />
+        <div class="flex justify-center items-center h-full">
+          <kdongs-cp-loading-spinner size="xl" />
         </div>
       } @else {
+        <h2 class="text-xl">Login</h2>
         <form
           [formGroup]="formGroup"
-          class="flex flex-col gap-6 py-4"
+          class="space-y-4"
           #formGroupRef="ngForm"
           (ngSubmit)="handleFormSubmit(formGroupRef)"
         >
-          <z-form-field>
-            <label z-form-label>Email</label>
-            <z-form-control>
-              <input z-input type="text" placeholder="Enter your email" formControlName="email" />
-            </z-form-control>
+          <div class="form-field rtl">
+            <label for="email">Email</label>
+            <input type="text" id="email" placeholder="Enter your email" formControlName="email" />
             @if (
               formGroup.controls.email.invalid &&
               formGroup.controls.email.dirty &&
               formGroupRef.submitted
             ) {
-              <z-form-message class="text-xs" zType="error">Invalid email</z-form-message>
+              <small class="text-red-600 dark:text-red-400">Invalid email</small>
             }
-          </z-form-field>
-          <z-form-field>
-            <label z-form-label>Password</label>
-            <z-form-control>
-              <input
-                z-input
-                type="password"
-                placeholder="Enter your password"
-                formControlName="password"
-              />
-            </z-form-control>
+          </div>
+          <div class="form-field rtl">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              formControlName="password"
+            />
             @if (
               formGroup.controls.password.invalid &&
               formGroup.controls.password.dirty &&
               formGroupRef.submitted
             ) {
-              <z-form-message class="text-xs" zType="error">Invalid password</z-form-message>
+              <small class="text-red-600 dark:text-red-400">Must fill dumbass</small>
             }
-          </z-form-field>
-          <button type="submit" z-button>Login</button>
+          </div>
+          <div class="mt-6 flex justify-end">
+            <button type="submit" class="btn">Submit</button>
+          </div>
+          @if (currentMessage()) {
+            <kdongs-cp-message
+              [title]="currentMessage()!.title"
+              [message]="currentMessage()!.message"
+              [severity]="currentMessage()!.severity"
+              animate.enter="animate-slide-left-fade"
+            />
+          }
         </form>
       }
     </div>
-  </z-card>
+  </section>
+  <footer>
+    <p class="text-center text-sm text-foreground-400">&copy; 2024 Kdongs. All rights reserved.</p>
+    <div class="flex justify-center select-none">
+      <picture>
+        <source src="kdongs-icon-round.png" />
+        <img
+          class="h-40 mx-auto"
+          src="kdongs-icon-round.png"
+          alt="Kdongs Logo"
+          class="m-2 size-10"
+        />
+      </picture>
+    </div>
+  </footer>
 </main>

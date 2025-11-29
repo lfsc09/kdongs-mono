@@ -1,5 +1,5 @@
-import { AdonisJSErrorSchema } from '../shared/default-gateway.model';
 import { ModulePermissions } from '../../services/identity/identity.model';
+import { AdonisJSErrorSchema } from '../shared/default-gateway.model';
 import { z } from 'zod';
 
 export const AuthenticatedUserDTOSchema = z.object({
@@ -9,7 +9,7 @@ export const AuthenticatedUserDTOSchema = z.object({
   tokenExp: z.number(),
 });
 export const AuthenticateRequestSchema = z.object({
-  email: z.optional(z.email()),
+  email: z.optional(z.string().email()),
   password: z.optional(z.string()),
 });
 export const AuthenticateResponseSchema = z.object({

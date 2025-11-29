@@ -1,15 +1,11 @@
 import { Component, DOCUMENT, effect, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeManagerService } from './infra/services/theme/theme-manager.service';
-import { ZardToastComponent } from '@shared/components/toast/toast.component';
 
 @Component({
-  selector: 'app-root',
-  imports: [RouterOutlet, ZardToastComponent],
-  template: `
-    <router-outlet />
-    <z-toaster />
-  `,
+  selector: 'kdongs-root',
+  imports: [RouterOutlet],
+  template: ` <router-outlet /> `,
 })
 export class App {
   /**
