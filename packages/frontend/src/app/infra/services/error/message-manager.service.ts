@@ -33,16 +33,11 @@ export class MessageManagerService {
   private _lastLocalMessage: Map<MessageDetail['channelId'], Subject<MessageDetail>> = new Map();
   private _lastGlobalMessage: Map<MessageDetail['channelId'], Subject<MessageDetail>> = new Map();
 
-  constructor() {
-    // Auto register the global message channel
-    this.registerChannel(GlobalChannel.DEFAULT, 'Global Default Channel', MessageRegion.GLOBAL);
-  }
-
   /**
    * FUNCTIONS
    */
   /**
-   * Sends a new message to a channel in the specified region.
+   * Sends a new message to a channel in the specified region. If no channelId is provided, the message is sent to the default global channel.
    * @param message The message detail to register.
    * @param channelId The channelId to which the message belongs.
    * @param region The region where to register the message ({@link MessageRegion}).
@@ -65,8 +60,8 @@ export class MessageManagerService {
    */
   sendMessage(
     messageData: Pick<MessageDetail, 'title' | 'message' | 'severity'>,
-    channelId: NonNullable<MessageDetail['channelId']>,
-    region: MessageRegion,
+    channelId?: NonNullable<MessageDetail['channelId']>,
+    region?: MessageRegion,
     afterAction?: {
       timeAlive: number;
       shouldDelete?: boolean;
@@ -74,7 +69,7 @@ export class MessageManagerService {
   ): void {
     let message: MessageDetail = {
       id: crypto.randomUUID(),
-      channelId,
+      channelId: channelId ?? GlobalChannel.DEFAULT,
       createdAt: new Date(),
       ...messageData,
     };
@@ -83,17 +78,17 @@ export class MessageManagerService {
       message.aliveUntil = new Date(Date.now() + afterAction.timeAlive);
       if (afterAction.shouldDelete) {
         setTimeout(() => {
-          this.deleteMessage(message.id!, region);
+          this.deleteMessage(message.id!, region ?? MessageRegion.GLOBAL);
         }, afterAction.timeAlive);
       }
     }
 
-    if (region === 'local') {
-      this._localMessages.update((messages) => new Map(messages).set(message.id!, message));
-      this._lastLocalMessage.get(channelId)?.next(message);
-    } else if (region === 'global') {
-      this._globalMessages.update((messages) => new Map(messages).set(message.id!, message));
-      this._lastGlobalMessage.get(channelId)?.next(message);
+    if (!region || region === MessageRegion.GLOBAL) {
+      this._globalMessages.update((messages) => new Map(messages).set(message.id, message));
+      this._lastGlobalMessage.get(message.channelId)?.next(message);
+    } else if (region === MessageRegion.LOCAL) {
+      this._localMessages.update((messages) => new Map(messages).set(message.id, message));
+      this._lastLocalMessage.get(message.channelId)?.next(message);
     }
   }
 
@@ -107,7 +102,7 @@ export class MessageManagerService {
    * messageManagerService.delete('message-id-123', MessageRegion.LOCAL);
    */
   deleteMessage(messageId: string, region: MessageRegion): void {
-    if (region === 'local') {
+    if (region === MessageRegion.LOCAL) {
       if (!this._localMessages().has(messageId)) {
         return;
       }
@@ -118,7 +113,7 @@ export class MessageManagerService {
         updatedMessages.delete(messageId);
         return updatedMessages;
       });
-    } else if (region === 'global') {
+    } else if (region === MessageRegion.GLOBAL) {
       if (!this._globalMessages().has(messageId)) {
         return;
       }
@@ -168,7 +163,7 @@ export class MessageManagerService {
     let messages: MessageDetail[] = [];
 
     // Add local messages to results
-    if (region === 'local' || region === 'all') {
+    if (region === MessageRegion.LOCAL || region === 'all') {
       messages = messages.concat(
         Array.from(this._localMessages().values()).filter((message) => {
           if (filter?.channelId && message.channelId !== filter.channelId) {
@@ -191,7 +186,7 @@ export class MessageManagerService {
     }
 
     // Add global messages to results
-    if (region === 'global' || region === 'all') {
+    if (region === MessageRegion.GLOBAL || region === 'all') {
       messages = messages.concat(
         Array.from(this._globalMessages().values()).filter((message) => {
           if (filter?.channelId && message.channelId !== filter.channelId) {
@@ -238,12 +233,45 @@ export class MessageManagerService {
     return messages;
   }
 
+  /**
+   * Get the Subject Observable for a specific channel in the specified region.
+   * @param channelId The ID of the channel.
+   * @param region The region of the channel ({@link MessageRegion}).
+   * @returns The Subject Observable for the specified channel, or undefined if the channel does not exist.
+   *
+   * @example
+   * // Get the Subject for a global channel
+   * const globalChannelSubject = messageManagerService.getChannel('channel-1', MessageRegion.GLOBAL);
+   */
+  getChannel(
+    channelId: MessageChannel['id'],
+    region: MessageRegion,
+  ): Subject<MessageDetail> | undefined {
+    if (region === MessageRegion.LOCAL) {
+      return this._lastLocalMessage.get(channelId);
+    } else if (region === MessageRegion.GLOBAL) {
+      return this._lastGlobalMessage.get(channelId);
+    }
+    return undefined;
+  }
+
+  /**
+   * Register a new channel in the specified region or return the existing one if it already exists.
+   * @param channelId The ID of the channel.
+   * @param channelName The name of the channel.
+   * @param region The region where to register the channel ({@link MessageRegion}).
+   * @returns The Subject Observable for the registered channel.
+   *
+   * @example
+   * // Register a new local channel
+   * const localChannelSubject = messageManagerService.registerChannel('local-chn', 'Local Channel', MessageRegion.LOCAL);
+   */
   registerChannel(
     channelId: MessageChannel['id'],
     channelName: MessageChannel['name'],
-    region: 'local' | 'global',
+    region: MessageRegion,
   ): Subject<MessageDetail> {
-    if (region === 'local') {
+    if (region === MessageRegion.LOCAL) {
       // Register the new channel info if it doesn't exist
       if (!this._activeLocalChannelsInfo().has(channelId)) {
         this._activeLocalChannelsInfo.update((channels) =>
@@ -257,7 +285,7 @@ export class MessageManagerService {
       }
 
       return this._lastLocalMessage.get(channelId)!;
-    } else if (region === 'global') {
+    } else if (region === MessageRegion.GLOBAL) {
       // Register the new channel info if it doesn't exist
       if (!this._activeGlobalChannelsInfo().has(channelId)) {
         this._activeGlobalChannelsInfo.update((channels) =>
@@ -275,6 +303,14 @@ export class MessageManagerService {
     throw new Error(`Invalid region: ${region}`);
   }
 
+  /**
+   * Unregister a channel from the specified region, cleaning up its messages and observables.
+   * @param channelId The ID of the channel to unregister.
+   *
+   * @example
+   * // Unregister a global channel
+   * messageManagerService.unregisterChannel('global-chn');
+   */
   unregisterChannel(channelId: MessageChannel['id']): void {
     // Cleanup local messages - find messages from the channel and delete them
     this._localMessages.update((messages) => {
