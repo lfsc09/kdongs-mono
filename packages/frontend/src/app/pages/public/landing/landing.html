@@ -17,7 +17,7 @@
       @case (0) {
         <div
           class="flex flex-col items-center justify-center gap-2"
-          animate.enter="animate-slide-up-fade"
+          animate.enter="animate-slide-up-in"
         >
           <p>
             Try <span class="text-indigo-500 font-semibold dark:text-indigo-600">Ubudongs</span> in
@@ -41,7 +41,7 @@
       @case (1) {
         <div
           class="flex flex-col items-center justify-center gap-2"
-          animate.enter="animate-slide-up-fade"
+          animate.enter="animate-slide-up-in"
         >
           <p>Check my documentation on studies of various software engineering topics</p>
           <a href="https://kdongs.gitbook.io/kdocs" target="_blank" class="btn space-x-2">
@@ -52,7 +52,7 @@
       }
     }
   </section>
-  <section class="flex justify-center">
+  <section class="flex flex-col justify-center items-center gap-4">
     <div class="w-full md:w-[32em] min-h-[18em] card space-y-4">
       @if (loading()) {
         <div class="flex justify-center items-center h-full">
@@ -96,17 +96,18 @@
           <div class="mt-6 flex justify-end">
             <button type="submit" class="btn">Submit</button>
           </div>
-          @if (currentMessage()) {
-            <kdongs-cp-message
-              [title]="currentMessage()!.title"
-              [message]="currentMessage()!.message"
-              [severity]="currentMessage()!.severity"
-              animate.enter="animate-slide-left-fade"
-            />
-          }
         </form>
       }
     </div>
+    @if (currentMessage()) {
+      <kdongs-cp-message
+        class="w-full md:w-[32em]"
+        [title]="currentMessage()!.title"
+        [message]="currentMessage()!.message"
+        [severity]="currentMessage()!.severity"
+        [animate]="'up'"
+      />
+    }
   </section>
   <footer>
     <p class="text-center text-sm text-foreground-400">&copy; 2024 Kdongs. All rights reserved.</p>

@@ -88,39 +88,28 @@ export class Landing {
         this.messageManagerService.sendMessage(
           {
             title: 'Copied to clipboard',
-            message: `The text "${text}" has been copied to your clipboard.`,
-            severity: MessageSeverity.SUCCESS,
+            severity: MessageSeverity.INFO,
           },
-          this.messageChannel.id,
-          this.messageChannel.region,
+          undefined,
+          undefined,
           { timeAlive: 3000, shouldDelete: true },
         );
       })
-      .catch((err) => {
+      .catch((_err) => {
         this.messageManagerService.sendMessage(
           {
             title: 'Copy failed',
-            message: `Failed to copy text to clipboard: ${err}`,
+            message: '(╯°□°)╯︵ ┻━┻ Please try again later.',
             severity: MessageSeverity.ERROR,
           },
-          this.messageChannel.id,
-          this.messageChannel.region,
-          { timeAlive: 5000, shouldDelete: true },
+          undefined,
+          undefined,
+          { timeAlive: 3000, shouldDelete: true },
         );
       });
   }
 
   protected handleFormSubmit(submittedForm: any): void {
-    this.messageManagerService.sendMessage(
-      {
-        title: 'Come',
-        message: 'Suck my dick!!',
-        severity: MessageSeverity.SUCCESS,
-      },
-      this.messageChannel.id,
-      this.messageChannel.region,
-      { timeAlive: 7000, shouldDelete: false },
-    );
     if (!this.formGroup.valid) {
       this.formGroup.markAllAsTouched();
       return;
@@ -152,10 +141,16 @@ export class Landing {
             );
           } else {
             console.error('[Authentication]:', error.message);
-            // toast.error('Something went wrong!', {
-            //   description: 'Please try again later.',
-            //   position: 'bottom-center',
-            // });
+            this.messageManagerService.sendMessage(
+              {
+                title: 'Something went wrong',
+                message: '(╯°□°)╯︵ ┻━┻ Please try again later.',
+                severity: MessageSeverity.ERROR,
+              },
+              this.messageChannel.id,
+              this.messageChannel.region,
+              { timeAlive: 7000, shouldDelete: true },
+            );
           }
           this.loading.set(false);
         },

@@ -1,11 +1,15 @@
 import { Component, DOCUMENT, effect, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeManagerService } from './infra/services/theme/theme-manager.service';
+import { MessageDocker } from './pages/components/message-manager/message-docker/message-docker';
 
 @Component({
   selector: 'kdongs-root',
-  imports: [RouterOutlet],
-  template: ` <router-outlet /> `,
+  imports: [RouterOutlet, MessageDocker],
+  template: `
+    <kdongs-cp-message-docker />
+    <router-outlet />
+  `,
 })
 export class App {
   /**
