@@ -1,10 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { MessageManagerService } from '../../../../infra/services/error/message-manager.service';
+import { MessageManagerService } from '../../../../infra/services/message/message-manager.service';
 import {
   GlobalChannel,
   MessageDetail,
   MessageRegion,
-} from '../../../../infra/services/error/message-manager.model';
+} from '../../../../infra/services/message/message-manager.model';
 import { Subscription } from 'rxjs';
 import { Message } from '../message/message';
 

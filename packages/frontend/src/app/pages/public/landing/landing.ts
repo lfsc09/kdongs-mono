@@ -4,14 +4,14 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway.service';
 import { GatewayError } from '../../../infra/gateways/shared/default-gateway.model';
-import { MessageManagerService } from '../../../infra/services/error/message-manager.service';
+import { MessageManagerService } from '../../../infra/services/message/message-manager.service';
 import { Message } from '../../components/message-manager/message/message';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import {
   MessageDetail,
   MessageRegion,
   MessageSeverity,
-} from '../../../infra/services/error/message-manager.model';
+} from '../../../infra/services/message/message-manager.model';
 
 @Component({
   selector: 'kdongs-landing',

@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 import {
   MessageDetail,
   MessageSeverity,
-} from '../../../../infra/services/error/message-manager.model';
+} from '../../../../infra/services/message/message-manager.model';
 
 @Component({
   selector: 'kdongs-cp-message',
