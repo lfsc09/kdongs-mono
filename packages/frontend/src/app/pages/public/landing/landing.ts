@@ -6,7 +6,7 @@ import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway
 import { GatewayError } from '../../../infra/gateways/shared/default-gateway.model';
 import { MessageManagerService } from '../../../infra/services/error/message-manager.service';
 import { Message } from '../../components/message-manager/message/message';
-import { LoadingSpinner } from '../../components/message-manager/loading-spinner/loading-spinner';
+import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import {
   MessageDetail,
   MessageRegion,
