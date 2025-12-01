@@ -12,7 +12,12 @@ import {
         colors[severity()]
       }}"
     >
-      <h3 class="font-semibold" [class.underline]="message()">{{ title() }}</h3>
+      <div class="flex items-center gap-2">
+        @if (icon()) {
+          <i class="{{ icon() }}"></i>
+        }
+        <h3 class="font-semibold" [class.underline]="message()">{{ title() }}</h3>
+      </div>
       @if (message()) {
         <p>{{ message() }}</p>
       }
@@ -29,6 +34,7 @@ export class Message {
    */
   title = input<MessageDetail['title']>();
   message = input<MessageDetail['message']>();
+  icon = input<MessageDetail['icon']>();
   severity = input<MessageDetail['severity']>(MessageSeverity.INFO);
   animate = input<'up' | 'down' | 'left' | 'right'>('left');
 
@@ -39,7 +45,7 @@ export class Message {
     [MessageSeverity.ERROR]: 'border-red-400 bg-red-50',
     [MessageSeverity.WARNING]: 'border-yellow-400 bg-yellow-50',
     [MessageSeverity.SUCCESS]: 'border-green-400 bg-green-50',
-    [MessageSeverity.INFO]: 'border-blue-400 bg-blue-50',
+    [MessageSeverity.INFO]: 'border-cyan-400 bg-cyan-50',
   };
 
   protected animation = {

@@ -16,6 +16,7 @@ import { Message } from '../message/message';
       <kdongs-cp-message
         [title]="currentMessage()!.title"
         [message]="currentMessage()!.message"
+        [icon]="currentMessage()!.icon"
         [severity]="currentMessage()!.severity"
       />
     }

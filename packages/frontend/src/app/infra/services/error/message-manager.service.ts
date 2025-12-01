@@ -59,7 +59,7 @@ export class MessageManagerService {
    * );
    */
   sendMessage(
-    messageData: Pick<MessageDetail, 'title' | 'message' | 'severity'>,
+    messageData: Pick<MessageDetail, 'title' | 'message' | 'icon' | 'severity'>,
     channelId?: NonNullable<MessageDetail['channelId']>,
     region?: MessageRegion,
     afterAction?: {

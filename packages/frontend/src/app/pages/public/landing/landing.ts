@@ -89,6 +89,7 @@ export class Landing {
           {
             title: 'Copied to clipboard',
             severity: MessageSeverity.INFO,
+            icon: 'fa-regular fa-copy',
           },
           undefined,
           undefined,

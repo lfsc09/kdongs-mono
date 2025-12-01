@@ -8,6 +8,7 @@ export interface MessageDetail {
   severity: MessageSeverity;
   title: string;
   message?: string;
+  icon?: string;
   channelId: MessageChannel['id'];
   createdAt?: Date;
   aliveUntil?: Date;
