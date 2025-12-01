@@ -171,8 +171,9 @@
   --color-foreground-4: var(--foreground-4);
   --color-foreground-5: var(--foreground-5);
 
-  --animate-slide-up-fade: slide-up-fade 0.3s ease-out;
-  @keyframes slide-up-fade {
+  --animate-slide-up-in: slide-up-in 0.3s ease-out;
+  --animate-slide-up-out: slide-up-out 0.3s ease-in;
+  @keyframes slide-up-in {
     from {
       opacity: 0;
       transform: translateY(0.5rem);
@@ -182,9 +183,43 @@
       transform: translateY(0);
     }
   }
+  @keyframes slide-up-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+  }
 
-  --animate-slide-left-fade: slide-left-fade 0.3s ease-out;
-  @keyframes slide-left-fade {
+  --animate-slide-down-in: slide-down-in 0.3s ease-out;
+  --animate-slide-down-out: slide-down-out 0.3s ease-in;
+  @keyframes slide-down-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes slide-down-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+
+  --animate-slide-left-in: slide-left-in 0.3s ease-out;
+  --animate-slide-left-out: slide-left-out 0.3s ease-in;
+  @keyframes slide-left-in {
     from {
       opacity: 0;
       transform: translateX(0.5rem);
@@ -192,6 +227,39 @@
     to {
       opacity: 1;
       transform: translateX(0);
+    }
+  }
+  @keyframes slide-left-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-0.5rem);
+    }
+  }
+
+  --animate-slide-right-in: slide-right-in 0.3s ease-out;
+  --animate-slide-right-out: slide-right-out 0.3s ease-in;
+  @keyframes slide-right-in {
+    from {
+      opacity: 0;
+      transform: translateX(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-right-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(0.5rem);
     }
   }
 
@@ -207,7 +275,6 @@
       transform: rotate(360deg);
     }
   }
-
   @keyframes loading-circular-linear {
     0% {
       stroke-dasharray: 1px, 200px;
