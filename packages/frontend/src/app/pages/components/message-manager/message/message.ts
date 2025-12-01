@@ -8,14 +8,20 @@ import {
   selector: 'kdongs-cp-message',
   template: `
     <div
-      class="py-2 px-3 flex flex-col gap-1 border rounded-md text-mirage-500 dark:text-mirage-400 {{
+      class="py-2 px-3 flex flex-col gap-3 border rounded-md text-sm text-mirage-500 dark:text-mirage-400 {{
         colors[severity()]
       }}"
     >
-      <h3 class="font-semibold underline">{{ title() }}</h3>
-      <p>{{ message() }}</p>
+      <h3 class="font-semibold" [class.underline]="message()">{{ title() }}</h3>
+      @if (message()) {
+        <p>{{ message() }}</p>
+      }
     </div>
   `,
+  host: {
+    '[animate.enter]': 'animation[animate()].enter',
+    '[animate.leave]': 'animation[animate()].leave',
+  },
 })
 export class Message {
   /**
@@ -24,6 +30,7 @@ export class Message {
   title = input<MessageDetail['title']>();
   message = input<MessageDetail['message']>();
   severity = input<MessageDetail['severity']>(MessageSeverity.INFO);
+  animate = input<'up' | 'down' | 'left' | 'right'>('left');
 
   /**
    * VARS
@@ -33,5 +40,24 @@ export class Message {
     [MessageSeverity.WARNING]: 'border-yellow-400 bg-yellow-50',
     [MessageSeverity.SUCCESS]: 'border-green-400 bg-green-50',
     [MessageSeverity.INFO]: 'border-blue-400 bg-blue-50',
+  };
+
+  protected animation = {
+    up: {
+      enter: 'animate-slide-up-in',
+      leave: 'animate-slide-up-out',
+    },
+    down: {
+      enter: 'animate-slide-down-in',
+      leave: 'animate-slide-down-out',
+    },
+    left: {
+      enter: 'animate-slide-left-in',
+      leave: 'animate-slide-left-out',
+    },
+    right: {
+      enter: 'animate-slide-right-in',
+      leave: 'animate-slide-right-out',
+    },
   };
 }
