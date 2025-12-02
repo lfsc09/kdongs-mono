@@ -1,0 +1,71 @@
+<section
+  class="fixed bottom-0 left-0 right-0 top-0 z-[1000] backdrop-blur-[2px] bg-slate-200/40 dark:bg-neutral-900/80"
+  (click)="landingService.handleCollapse()"
+></section>
+<section
+  class="bg-background-1 z-[1001] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 w-full md:w-[350px] rounded shadow-md space-y-5"
+  animate.enter="animate-slide-down-in"
+  animate.leave="animate-slide-up-out"
+>
+  <div class="flex select-none flex-row items-center justify-start gap-3">
+    <div class="flex flex-col justify-center gap-0.5">
+      <span class="text-sm font-semibold text-green-500">{{
+        identityService.identity()?.userName ?? 'unknown'
+      }}</span>
+      <span class="text-xs text-indigo-400">{{
+        identityService.identity()?.userEmail ?? 'unknown'
+      }}</span>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2">
+    <div class="relative">
+      <i class="fa-solid fa-terminal absolute left-3 top-1/2 -translate-y-1/2"></i>
+      <input
+        type="text"
+        class="input w-full text-xs pl-10 leading-7"
+        placeholder="Run"
+        (keyup.Enter)="handleEnter()"
+        [formControl]="runInput"
+        #runInputRef
+      />
+    </div>
+    @if (runError()) {
+      <span class="self-end text-xs text-red-400">{{ runError() }}</span>
+    }
+  </div>
+  @let nextTheme = themeManagerService.getNextThemeInfo();
+  <ul class="flex cursor-pointer flex-col gap-2">
+    <li
+      class="btn btn-ghost flex items-center justify-between gap-3 text-mirage-900 dark:text-mirage-100"
+      (click)="themeManagerService.cycleThrough()"
+    >
+      <span class="flex flex-col items-start text-xs">
+        Change Theme
+        <span class="font-mono text-[.70rem]">{{ nextTheme.name }}</span>
+      </span>
+      <i class="{{ nextTheme.icon }}"></i>
+    </li>
+    <li
+      class="btn btn-ghost flex items-center justify-between gap-3 text-mirage-900 dark:text-mirage-100"
+      (click)="identityService.clearAll()"
+    >
+      <span class="text-xs">Logout</span>
+      <i class="fa-solid fa-right-from-bracket"></i>
+    </li>
+    @for (module of landingService.modules(); track module?.url) {
+      <a
+        class="btn btn-ghost flex items-center justify-between gap-3 text-mirage-900 dark:text-mirage-100"
+        routerLink="{{ module!.url }}"
+        routerLinkActive="navleft-router-link-active"
+        (click)="landingService.handleCollapse()"
+      >
+        <span class="text-xs">{{ module!.label }}</span>
+        @if (module?.icon) {
+          <i class="{{ module!.icon }}"></i>
+        }
+      </a>
+    } @empty {
+      <li class="text-xs text-center text-mirage-500 dark:text-mirage-400">No modules available</li>
+    }
+  </ul>
+</section>

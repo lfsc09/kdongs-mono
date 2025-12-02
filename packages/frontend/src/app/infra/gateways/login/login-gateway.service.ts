@@ -43,8 +43,8 @@ export class LoginGatewayService extends DefaultGatewayService {
 
           return this._identityService.processIdentity(data);
         }),
-        catchError((error) => {
-          return throwError(() => this.handleHttpError(error));
+        catchError((_error) => {
+          return throwError(() => new GatewayError(500, '┬┴┬┴┤ʕ•ᴥ├┬┴┬┴', 'Something wrong..'));
         }),
       );
   }

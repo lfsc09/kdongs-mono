@@ -16,8 +16,8 @@ export class ThemeManagerService {
    * VARS
    */
   private readonly _themesAvailable: ThemeInfo[] = [
-    { name: 'light', icon: 'pi pi-sun' },
-    { name: 'dark', icon: 'pi pi-moon' },
+    { name: 'light', icon: 'fa-solid fa-lightbulb' },
+    { name: 'dark', icon: 'fa-regular fa-lightbulb' },
   ];
 
   constructor() {
