@@ -1,5 +1,5 @@
-import { DecimalPipe } from '@angular/common';
-import { Component, computed, input } from '@angular/core';
+import { DecimalPipe } from '@angular/common'
+import { Component, computed, input } from '@angular/core'
 
 @Component({
   selector: 'kdongs-cp-circular-progress',
@@ -49,18 +49,18 @@ export class CircularProgress {
   /**
    * SIGNALS
    */
-  size = input<'xs' | 'sm' | 'md' | 'lg'>('md');
+  size = input<'xs' | 'sm' | 'md' | 'lg'>('md')
   percentage = input<number, unknown>(0, {
     // Keep values between 0 and 100
     transform: (value: number | unknown) =>
       typeof value === 'number' ? (value < 0 ? 0 : value > 100 ? 100 : value) : 0,
-  });
-  warn = input<boolean>(false);
-  showText = input(true);
-  protected strokeDasharray = computed(() => 2 * 3.14 * this.svgSizes[this.size()].r);
+  })
+  warn = input<boolean>(false)
+  showText = input(true)
+  protected strokeDasharray = computed(() => 2 * 3.14 * this.svgSizes[this.size()].r)
   protected strokeDashOffset = computed(
-    () => this.strokeDasharray() * ((100 - this.percentage()) / 100),
-  );
+    () => this.strokeDasharray() * ((100 - this.percentage()) / 100)
+  )
 
   /**
    * VARS
@@ -107,5 +107,5 @@ export class CircularProgress {
       percentTextClass: 'text-[1rem]',
       textFix: '-translate-x-1 translate-y-[0.85rem]',
     },
-  };
+  }
 }

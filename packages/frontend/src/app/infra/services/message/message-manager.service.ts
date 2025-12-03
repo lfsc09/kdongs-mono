@@ -1,11 +1,11 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core'
+import { Subject } from 'rxjs'
 import {
-  MessageDetail,
-  MessageChannel,
   GlobalChannel,
+  MessageChannel,
+  MessageDetail,
   MessageRegion,
-} from './message-manager.model';
-import { Subject } from 'rxjs';
+} from './message-manager.model'
 
 @Injectable({
   providedIn: 'root',
@@ -15,23 +15,23 @@ export class MessageManagerService {
    * SIGNALS
    */
   // Messages shown inside components or specific places
-  private _localMessages = signal<Map<MessageDetail['id'], MessageDetail>>(new Map());
-  localMessages = this._localMessages.asReadonly();
+  private _localMessages = signal<Map<MessageDetail['id'], MessageDetail>>(new Map())
+  localMessages = this._localMessages.asReadonly()
 
   // Messages shown globally in the notification area
-  private _globalMessages = signal<Map<MessageDetail['id'], MessageDetail>>(new Map());
-  globalMessages = this._globalMessages.asReadonly();
+  private _globalMessages = signal<Map<MessageDetail['id'], MessageDetail>>(new Map())
+  globalMessages = this._globalMessages.asReadonly()
 
-  private _activeLocalChannelsInfo = signal<Map<string, MessageChannel>>(new Map());
-  activeLocalChannelsInfo = this._activeLocalChannelsInfo.asReadonly();
+  private _activeLocalChannelsInfo = signal<Map<string, MessageChannel>>(new Map())
+  activeLocalChannelsInfo = this._activeLocalChannelsInfo.asReadonly()
 
-  private _activeGlobalChannelsInfo = signal<Map<string, MessageChannel>>(new Map());
-  activeGlobalChannelsInfo = this._activeGlobalChannelsInfo.asReadonly();
+  private _activeGlobalChannelsInfo = signal<Map<string, MessageChannel>>(new Map())
+  activeGlobalChannelsInfo = this._activeGlobalChannelsInfo.asReadonly()
   /**
    * VARS
    */
-  private _lastLocalMessage: Map<MessageDetail['channelId'], Subject<MessageDetail>> = new Map();
-  private _lastGlobalMessage: Map<MessageDetail['channelId'], Subject<MessageDetail>> = new Map();
+  private _lastLocalMessage: Map<MessageDetail['channelId'], Subject<MessageDetail>> = new Map()
+  private _lastGlobalMessage: Map<MessageDetail['channelId'], Subject<MessageDetail>> = new Map()
 
   /**
    * FUNCTIONS
@@ -63,32 +63,32 @@ export class MessageManagerService {
     channelId?: NonNullable<MessageDetail['channelId']>,
     region?: MessageRegion,
     afterAction?: {
-      timeAlive: number;
-      shouldDelete?: boolean;
-    },
+      timeAlive: number
+      shouldDelete?: boolean
+    }
   ): void {
     let message: MessageDetail = {
       id: crypto.randomUUID(),
       channelId: channelId ?? GlobalChannel.DEFAULT,
       createdAt: new Date(),
       ...messageData,
-    };
+    }
 
     if (afterAction && afterAction.timeAlive > 0) {
-      message.aliveUntil = new Date(Date.now() + afterAction.timeAlive);
+      message.aliveUntil = new Date(Date.now() + afterAction.timeAlive)
       if (afterAction.shouldDelete) {
         setTimeout(() => {
-          this.deleteMessage(message.id!, region ?? MessageRegion.GLOBAL);
-        }, afterAction.timeAlive);
+          this.deleteMessage(message.id!, region ?? MessageRegion.GLOBAL)
+        }, afterAction.timeAlive)
       }
     }
 
     if (!region || region === MessageRegion.GLOBAL) {
-      this._globalMessages.update((messages) => new Map(messages).set(message.id, message));
-      this._lastGlobalMessage.get(message.channelId)?.next(message);
+      this._globalMessages.update(messages => new Map(messages).set(message.id, message))
+      this._lastGlobalMessage.get(message.channelId)?.next(message)
     } else if (region === MessageRegion.LOCAL) {
-      this._localMessages.update((messages) => new Map(messages).set(message.id, message));
-      this._lastLocalMessage.get(message.channelId)?.next(message);
+      this._localMessages.update(messages => new Map(messages).set(message.id, message))
+      this._lastLocalMessage.get(message.channelId)?.next(message)
     }
   }
 
@@ -104,26 +104,26 @@ export class MessageManagerService {
   deleteMessage(messageId: string, region: MessageRegion): void {
     if (region === MessageRegion.LOCAL) {
       if (!this._localMessages().has(messageId)) {
-        return;
+        return
       }
 
       // Remove the message from local messages
-      this._localMessages.update((messages) => {
-        const updatedMessages = new Map(messages);
-        updatedMessages.delete(messageId);
-        return updatedMessages;
-      });
+      this._localMessages.update(messages => {
+        const updatedMessages = new Map(messages)
+        updatedMessages.delete(messageId)
+        return updatedMessages
+      })
     } else if (region === MessageRegion.GLOBAL) {
       if (!this._globalMessages().has(messageId)) {
-        return;
+        return
       }
 
       // Remove the message from global messages
-      this._globalMessages.update((messages) => {
-        const updatedMessages = new Map(messages);
-        updatedMessages.delete(messageId);
-        return updatedMessages;
-      });
+      this._globalMessages.update(messages => {
+        const updatedMessages = new Map(messages)
+        updatedMessages.delete(messageId)
+        return updatedMessages
+      })
     }
   }
 
@@ -148,74 +148,74 @@ export class MessageManagerService {
   getMessagesSortedBy(
     region: MessageRegion | 'all',
     filter?: {
-      channelId?: MessageDetail['channelId'];
+      channelId?: MessageDetail['channelId']
       createdAt?: {
-        from?: MessageDetail['createdAt'];
-        to?: MessageDetail['createdAt'];
-      };
-      severity?: MessageDetail['severity'];
+        from?: MessageDetail['createdAt']
+        to?: MessageDetail['createdAt']
+      }
+      severity?: MessageDetail['severity']
     },
     sort?: {
-      by: 'date' | 'severity';
-      direction: 'asc' | 'desc';
-    },
+      by: 'date' | 'severity'
+      direction: 'asc' | 'desc'
+    }
   ): MessageDetail[] {
-    let messages: MessageDetail[] = [];
+    let messages: MessageDetail[] = []
 
     // Add local messages to results
     if (region === MessageRegion.LOCAL || region === 'all') {
       messages = messages.concat(
-        Array.from(this._localMessages().values()).filter((message) => {
+        Array.from(this._localMessages().values()).filter(message => {
           if (filter?.channelId && message.channelId !== filter.channelId) {
-            return false;
+            return false
           }
           if (filter?.createdAt) {
             if (filter.createdAt.from && message.createdAt! < filter.createdAt.from) {
-              return false;
+              return false
             }
             if (filter.createdAt.to && message.createdAt! > filter.createdAt.to) {
-              return false;
+              return false
             }
           }
           if (filter?.severity && message.severity !== filter.severity) {
-            return false;
+            return false
           }
-          return true;
-        }),
-      );
+          return true
+        })
+      )
     }
 
     // Add global messages to results
     if (region === MessageRegion.GLOBAL || region === 'all') {
       messages = messages.concat(
-        Array.from(this._globalMessages().values()).filter((message) => {
+        Array.from(this._globalMessages().values()).filter(message => {
           if (filter?.channelId && message.channelId !== filter.channelId) {
-            return false;
+            return false
           }
           if (filter?.createdAt) {
             if (filter.createdAt.from && message.createdAt! < filter.createdAt.from) {
-              return false;
+              return false
             }
             if (filter.createdAt.to && message.createdAt! > filter.createdAt.to) {
-              return false;
+              return false
             }
           }
           if (filter?.severity && message.severity !== filter.severity) {
-            return false;
+            return false
           }
-          return true;
-        }),
-      );
+          return true
+        })
+      )
     }
 
     // Sort messages
-    const sortBy = sort?.by || 'date';
-    const sortDirection = sort?.direction || 'desc';
+    const sortBy = sort?.by || 'date'
+    const sortDirection = sort?.direction || 'desc'
     if (sortBy === 'date') {
       return messages.sort((a, b) => {
-        const comparison = b.createdAt!.getTime() - a.createdAt!.getTime();
-        return sortDirection === 'asc' ? -comparison : comparison;
-      });
+        const comparison = b.createdAt!.getTime() - a.createdAt!.getTime()
+        return sortDirection === 'asc' ? -comparison : comparison
+      })
     } else if (sortBy === 'severity') {
       // Define severity levels
       const severityLevels: { [key: string]: number } = {
@@ -223,14 +223,14 @@ export class MessageManagerService {
         warning: 3,
         success: 2,
         info: 1,
-      };
+      }
       return messages.sort((a, b) => {
-        const comparison = severityLevels[b.severity] - severityLevels[a.severity];
-        return sortDirection === 'asc' ? -comparison : comparison;
-      });
+        const comparison = severityLevels[b.severity] - severityLevels[a.severity]
+        return sortDirection === 'asc' ? -comparison : comparison
+      })
     }
 
-    return messages;
+    return messages
   }
 
   /**
@@ -245,14 +245,14 @@ export class MessageManagerService {
    */
   getChannel(
     channelId: MessageChannel['id'],
-    region: MessageRegion,
+    region: MessageRegion
   ): Subject<MessageDetail> | undefined {
     if (region === MessageRegion.LOCAL) {
-      return this._lastLocalMessage.get(channelId);
+      return this._lastLocalMessage.get(channelId)
     } else if (region === MessageRegion.GLOBAL) {
-      return this._lastGlobalMessage.get(channelId);
+      return this._lastGlobalMessage.get(channelId)
     }
-    return undefined;
+    return undefined
   }
 
   /**
@@ -269,38 +269,38 @@ export class MessageManagerService {
   registerChannel(
     channelId: MessageChannel['id'],
     channelName: MessageChannel['name'],
-    region: MessageRegion,
+    region: MessageRegion
   ): Subject<MessageDetail> {
     if (region === MessageRegion.LOCAL) {
       // Register the new channel info if it doesn't exist
       if (!this._activeLocalChannelsInfo().has(channelId)) {
-        this._activeLocalChannelsInfo.update((channels) =>
-          new Map(channels).set(channelId, { id: channelId, name: channelName }),
-        );
+        this._activeLocalChannelsInfo.update(channels =>
+          new Map(channels).set(channelId, { id: channelId, name: channelName })
+        )
       }
 
       // Create a new Subject Observable for the channel if it doesn't exist
       if (!this._lastLocalMessage.has(channelId)) {
-        this._lastLocalMessage.set(channelId, new Subject<MessageDetail>());
+        this._lastLocalMessage.set(channelId, new Subject<MessageDetail>())
       }
 
-      return this._lastLocalMessage.get(channelId)!;
+      return this._lastLocalMessage.get(channelId)!
     } else if (region === MessageRegion.GLOBAL) {
       // Register the new channel info if it doesn't exist
       if (!this._activeGlobalChannelsInfo().has(channelId)) {
-        this._activeGlobalChannelsInfo.update((channels) =>
-          new Map(channels).set(channelId, { id: channelId, name: channelName }),
-        );
+        this._activeGlobalChannelsInfo.update(channels =>
+          new Map(channels).set(channelId, { id: channelId, name: channelName })
+        )
       }
 
       // Create a new Subject Observable for the channel if it doesn't exist
       if (!this._lastGlobalMessage.has(channelId)) {
-        this._lastGlobalMessage.set(channelId, new Subject<MessageDetail>());
+        this._lastGlobalMessage.set(channelId, new Subject<MessageDetail>())
       }
 
-      return this._lastGlobalMessage.get(channelId)!;
+      return this._lastGlobalMessage.get(channelId)!
     }
-    throw new Error(`Invalid region: ${region}`);
+    throw new Error(`Invalid region: ${region}`)
   }
 
   /**
@@ -313,51 +313,51 @@ export class MessageManagerService {
    */
   unregisterChannel(channelId: MessageChannel['id']): void {
     // Cleanup local messages - find messages from the channel and delete them
-    this._localMessages.update((messages) => {
-      const updatedMessages = new Map(messages);
+    this._localMessages.update(messages => {
+      const updatedMessages = new Map(messages)
       for (const [messageId, message] of updatedMessages.entries()) {
         if (message.channelId === channelId) {
-          updatedMessages.delete(messageId);
+          updatedMessages.delete(messageId)
         }
       }
-      return updatedMessages;
-    });
+      return updatedMessages
+    })
 
     // Cleanup global messages - find messages from the channel and delete them
-    this._globalMessages.update((messages) => {
-      const updatedMessages = new Map(messages);
+    this._globalMessages.update(messages => {
+      const updatedMessages = new Map(messages)
       for (const [messageId, message] of updatedMessages.entries()) {
         if (message.channelId === channelId) {
-          updatedMessages.delete(messageId);
+          updatedMessages.delete(messageId)
         }
       }
-      return updatedMessages;
-    });
+      return updatedMessages
+    })
 
     // Cleanup local channel subject observable
     if (this._lastLocalMessage.has(channelId)) {
-      this._lastLocalMessage.get(channelId)!.complete();
-      this._lastLocalMessage.delete(channelId);
+      this._lastLocalMessage.get(channelId)!.complete()
+      this._lastLocalMessage.delete(channelId)
     }
 
     // Cleanup global channel subject observable
     if (this._lastGlobalMessage.has(channelId)) {
-      this._lastGlobalMessage.get(channelId)!.complete();
-      this._lastGlobalMessage.delete(channelId);
+      this._lastGlobalMessage.get(channelId)!.complete()
+      this._lastGlobalMessage.delete(channelId)
     }
 
     // Delete info of local channel
-    this._activeLocalChannelsInfo.update((channels) => {
-      const updatedChannels = new Map(channels);
-      updatedChannels.delete(channelId);
-      return updatedChannels;
-    });
+    this._activeLocalChannelsInfo.update(channels => {
+      const updatedChannels = new Map(channels)
+      updatedChannels.delete(channelId)
+      return updatedChannels
+    })
 
     // Delete info of global channel
-    this._activeGlobalChannelsInfo.update((channels) => {
-      const updatedChannels = new Map(channels);
-      updatedChannels.delete(channelId);
-      return updatedChannels;
-    });
+    this._activeGlobalChannelsInfo.update(channels => {
+      const updatedChannels = new Map(channels)
+      updatedChannels.delete(channelId)
+      return updatedChannels
+    })
   }
 }

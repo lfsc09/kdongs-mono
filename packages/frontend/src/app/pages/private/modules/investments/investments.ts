@@ -1,8 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { WalletService } from './wallet/wallet.service';
-import { Wallet } from './wallet/wallet';
-import { InvestmentsGatewayService } from '../../../../infra/gateways/investments/investments-gateway.service';
+import { Component, inject } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
+import { InvestmentsGatewayService } from '../../../../infra/gateways/investments/investments-gateway.service'
+import { Wallet } from './wallet/wallet'
+import { WalletService } from './wallet/wallet.service'
 
 @Component({
   selector: 'kdongs-investments',
@@ -14,5 +14,5 @@ export class Investments {
   /**
    * SERVICES
    */
-  protected readonly walletService = inject(WalletService);
+  protected readonly walletService = inject(WalletService)
 }

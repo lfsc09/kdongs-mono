@@ -1,16 +1,16 @@
 <section
-  class="fixed bottom-0 left-0 right-0 top-0 z-[1000] backdrop-blur-[2px] bg-gray-200/40 dark:bg-neutral-900/80"
+  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-gray-200/40 backdrop-blur-[2px] dark:bg-neutral-900/80"
   (click)="walletService.handleCollapse()"
 ></section>
 <section
-  class="bg-background-1 z-[1001] fixed top-1/2 left-6 right-6 -translate-y-1/2 p-6 md:w-[400px] rounded shadow-md space-y-5"
+  class="bg-background-1 fixed top-1/2 right-6 left-6 z-[1001] -translate-y-1/2 space-y-5 rounded p-6 shadow-md md:w-[400px]"
   animate.enter="animate-slide-right-in"
   animate.leave="animate-slide-right-out"
 >
   <h2>Your wallets ({{ walletService.possibleSelectedWallets().size }} selected)</h2>
   <div class="flex flex-col gap-6 py-2">
     @if (loading()) {
-      <div class="flex justify-center items-center h-full">
+      <div class="flex h-full items-center justify-center">
         <kdongs-cp-loading-spinner size="lg" />
       </div>
     } @else if (wallets() === null) {
@@ -21,7 +21,7 @@
     } @else {
       @for (item of wallets(); track item.id) {
         <div
-          class="card px-4 py-2 space-y-4 cursor-pointer select-none border border-mirage-200 dark:border-mirage-700"
+          class="card border-mirage-200 dark:border-mirage-700 cursor-pointer space-y-4 border px-4 py-2 select-none"
           [class]="{
             'ring-2': walletService.possibleSelectedWallets().has(item.id),
             'ring-portage-400': walletService.possibleSelectedWallets().has(item.id),
@@ -42,13 +42,13 @@
             <div class="flex flex-col justify-center gap-1">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-sm font-semibold">Submission Balance</span>
-                <span class="text-sm font-semibold text-mirage-900 dark:text-mirage-100">
+                <span class="text-mirage-900 dark:text-mirage-100 text-sm font-semibold">
                   {{ item.initialBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
                 </span>
               </div>
               <div class="flex items-center justify-between gap-2">
                 <span class="text-sm font-semibold">Current Balance</span>
-                <span class="text-sm font-semibold text-mirage-900 dark:text-mirage-100">
+                <span class="text-mirage-900 dark:text-mirage-100 text-sm font-semibold">
                   {{ item.currentBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
                 </span>
               </div>

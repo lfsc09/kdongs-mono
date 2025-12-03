@@ -1,3 +1,4 @@
+import { AsyncPipe, CommonModule } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,14 +6,13 @@ import {
   OnDestroy,
   OnInit,
   signal,
-} from '@angular/core';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { LandingService } from '../../landing.service';
-import { IdentityService } from '../../../../infra/services/identity/identity.service';
-import { filter, map, Subscription } from 'rxjs';
-import { environment } from '../../../../../environments/environment.development';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { CircularProgress } from '../../../components/circular-progress/circular-progress';
+} from '@angular/core'
+import { NavigationEnd, Router, RouterLink } from '@angular/router'
+import { filter, map, Subscription } from 'rxjs'
+import { environment } from '../../../../../environments/environment.development'
+import { IdentityService } from '../../../../infra/services/identity/identity.service'
+import { CircularProgress } from '../../../components/circular-progress/circular-progress'
+import { LandingService } from '../../landing.service'
 
 @Component({
   selector: 'kdongs-cp-topbar',
@@ -24,36 +24,34 @@ export class Topbar implements OnInit, OnDestroy {
   /**
    * SERVICES
    */
-  protected readonly identityService = inject(IdentityService);
-  protected readonly landingService = inject(LandingService);
-  private readonly _routerService = inject(Router);
+  protected readonly identityService = inject(IdentityService)
+  protected readonly landingService = inject(LandingService)
+  private readonly _routerService = inject(Router)
 
   /**
    * SIGNALS AND OBSERVABLES
    */
   protected tokenExpLeftPercentage$ = this.identityService.tokenExpLeft$.pipe(
-    map((value: number) => (value / environment.token.lifespan) * 100),
-  );
-  private routerEventSubscription: Subscription | undefined;
-  protected breadcrumbs = signal<string[]>(this.urlToBreadcrumbs(this._routerService.url));
+    map((value: number) => (value / environment.token.lifespan) * 100)
+  )
+  private routerEventSubscription: Subscription | undefined
+  protected breadcrumbs = signal<string[]>(this.urlToBreadcrumbs(this._routerService.url))
 
   ngOnInit(): void {
     this.routerEventSubscription = this._routerService.events
-      .pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe((navigation) => {
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(navigation => {
         if (navigation instanceof NavigationEnd) {
-          let segments = this.urlToBreadcrumbs(navigation.urlAfterRedirects);
+          let segments = this.urlToBreadcrumbs(navigation.urlAfterRedirects)
           this.breadcrumbs.set(
-            segments.length > 2
-              ? [segments.at(0) ?? '??', '..', segments.at(-1) ?? '??']
-              : segments,
-          );
+            segments.length > 2 ? [segments.at(0) ?? '??', '..', segments.at(-1) ?? '??'] : segments
+          )
         }
-      });
+      })
   }
 
   ngOnDestroy(): void {
-    this.routerEventSubscription?.unsubscribe();
+    this.routerEventSubscription?.unsubscribe()
   }
 
   /**
@@ -63,6 +61,6 @@ export class Topbar implements OnInit, OnDestroy {
     return url
       .split('/')
       .splice(2)
-      .filter((v) => v !== 'home');
+      .filter(v => v !== 'home')
   }
 }

@@ -1,8 +1,8 @@
-import { Component, input } from '@angular/core';
+import { Component, input } from '@angular/core'
 import {
   MessageDetail,
   MessageSeverity,
-} from '../../../../infra/services/message/message-manager.model';
+} from '../../../../infra/services/message/message-manager.model'
 
 @Component({
   selector: 'kdongs-cp-message',
@@ -32,11 +32,11 @@ export class Message {
   /**
    * SIGNALS
    */
-  title = input<MessageDetail['title']>();
-  message = input<MessageDetail['message']>();
-  icon = input<MessageDetail['icon']>();
-  severity = input<MessageDetail['severity']>(MessageSeverity.INFO);
-  animate = input<'up' | 'down' | 'left' | 'right'>('left');
+  title = input<MessageDetail['title']>()
+  message = input<MessageDetail['message']>()
+  icon = input<MessageDetail['icon']>()
+  severity = input<MessageDetail['severity']>(MessageSeverity.INFO)
+  animate = input<'up' | 'down' | 'left' | 'right'>('left')
 
   /**
    * VARS
@@ -46,7 +46,7 @@ export class Message {
     [MessageSeverity.WARNING]: 'border-yellow-400 bg-yellow-50',
     [MessageSeverity.SUCCESS]: 'border-green-400 bg-green-50',
     [MessageSeverity.INFO]: 'border-cyan-400 bg-cyan-50',
-  };
+  }
 
   protected animation = {
     up: {
@@ -65,5 +65,5 @@ export class Message {
       enter: 'animate-slide-right-in',
       leave: 'animate-slide-right-out',
     },
-  };
+  }
 }

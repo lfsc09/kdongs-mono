@@ -1,17 +1,17 @@
 export interface MessageChannel {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 export interface MessageDetail {
-  id: string;
-  severity: MessageSeverity;
-  title: string;
-  message?: string;
-  icon?: string;
-  channelId: MessageChannel['id'];
-  createdAt?: Date;
-  aliveUntil?: Date;
+  id: string
+  severity: MessageSeverity
+  title: string
+  message?: string
+  icon?: string
+  channelId: MessageChannel['id']
+  createdAt?: Date
+  aliveUntil?: Date
 }
 
 export enum MessageSeverity {

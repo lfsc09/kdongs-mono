@@ -9,4 +9,4 @@ export const environment = {
     // re-process token interval (miliseconds) (5 min)
     interval: 5 * 60 * 1000,
   },
-};
+}

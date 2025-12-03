@@ -1,10 +1,10 @@
 <section
-  class="sticky left-0 right-0 top-0 z-[100] flex h-20 flex-row items-center border-b border-mirage-900/10 bg-background-0 px-6 py-3 dark:border-mirage-50/10"
+  class="border-mirage-900/10 bg-background-0 dark:border-mirage-50/10 sticky top-0 right-0 left-0 z-[100] flex h-20 flex-row items-center border-b px-6 py-3"
 >
   <div class="flex w-dvw items-center gap-4">
     <img class="h-10 w-10" src="kdongs-icon-round.png" alt="logo" />
     <div class="flex flex-row items-end">
-      <span class="stroke cursor-pointer select-none text-xl text-green-500" routerLink="/r!">
+      <span class="stroke cursor-pointer text-xl text-green-500 select-none" routerLink="/r!">
         Kdongs
       </span>
       @if (breadcrumbs().length > 0) {
@@ -21,20 +21,20 @@
     <div class="relative flex flex-row items-center">
       <button
         type="button"
-        class="group/menu pl-3 pr-1 cursor-pointer"
+        class="group/menu cursor-pointer pr-1 pl-3"
         (click)="landingService.handleCollapse()"
       >
-        <div class="flex select-none flex-row items-center gap-1">
+        <div class="flex flex-row items-center gap-1 select-none">
           <ng-container *ngIf="tokenExpLeftPercentage$ | async as percent">
             <div class="flex flex-col items-end gap-1">
               <code
-                class="rounded bg-background-2 px-2 py-0.5 text-[.60rem] font-semibold text-foreground-1"
+                class="bg-background-2 text-foreground-1 rounded px-2 py-0.5 text-[.60rem] font-semibold"
                 >Ctrl + ;</code
               >
             </div>
             <div class="relative">
               <i
-                class="fa-solid fa-bars-staggered absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                class="fa-solid fa-bars-staggered absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
               ></i>
               <kdongs-cp-circular-progress size="sm" [percentage]="percent" [warn]="percent < 25" />
             </div>

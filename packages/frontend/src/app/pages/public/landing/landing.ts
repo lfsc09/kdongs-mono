@@ -1,17 +1,17 @@
-import { Component, inject, signal } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway.service';
-import { GatewayError } from '../../../infra/gateways/shared/default-gateway.model';
-import { MessageManagerService } from '../../../infra/services/message/message-manager.service';
-import { Message } from '../../components/message-manager/message/message';
-import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
+import { Component, inject, signal } from '@angular/core'
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
+import { Router } from '@angular/router'
+import { Subscription } from 'rxjs'
+import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway.service'
+import { GatewayError } from '../../../infra/gateways/shared/default-gateway.model'
 import {
   MessageDetail,
   MessageRegion,
   MessageSeverity,
-} from '../../../infra/services/message/message-manager.model';
+} from '../../../infra/services/message/message-manager.model'
+import { MessageManagerService } from '../../../infra/services/message/message-manager.service'
+import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner'
+import { Message } from '../../components/message-manager/message/message'
 
 @Component({
   selector: 'kdongs-landing',
@@ -23,17 +23,17 @@ export class Landing {
   /**
    * SERVICES
    */
-  protected readonly messageManagerService = inject(MessageManagerService);
-  private readonly _routerService = inject(Router);
-  private readonly _formBuilderService = inject(NonNullableFormBuilder);
-  private readonly _loginService = inject(LoginGatewayService);
+  protected readonly messageManagerService = inject(MessageManagerService)
+  private readonly _routerService = inject(Router)
+  private readonly _formBuilderService = inject(NonNullableFormBuilder)
+  private readonly _loginService = inject(LoginGatewayService)
 
   /**
    * SIGNALS
    */
-  protected loading = signal<boolean>(false);
-  protected currentSliderContent = signal<number>(0);
-  protected currentMessage = signal<MessageDetail | null>(null);
+  protected loading = signal<boolean>(false)
+  protected currentSliderContent = signal<number>(0)
+  protected currentMessage = signal<MessageDetail | null>(null)
 
   /**
    * VARS
@@ -41,40 +41,40 @@ export class Landing {
   protected formGroup = this._formBuilderService.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
-  });
+  })
   private readonly messageChannel = {
     id: crypto.randomUUID(),
     name: 'landing-chn',
     region: MessageRegion.LOCAL,
-  };
-  private _authenticationSubscription: Subscription | undefined;
-  private _messageChannelSubscription: Subscription | undefined;
-  private _messageTimeAliveInterval: ReturnType<typeof setInterval> | undefined;
-  private _carouselInterval: ReturnType<typeof setInterval> | undefined;
+  }
+  private _authenticationSubscription: Subscription | undefined
+  private _messageChannelSubscription: Subscription | undefined
+  private _messageTimeAliveInterval: ReturnType<typeof setInterval> | undefined
+  private _carouselInterval: ReturnType<typeof setInterval> | undefined
 
   ngOnInit(): void {
     this._messageChannelSubscription = this.messageManagerService
       .registerChannel(this.messageChannel.id, this.messageChannel.name, this.messageChannel.region)
       .subscribe((message: MessageDetail) => {
-        this.currentMessage.set(message);
+        this.currentMessage.set(message)
         // Schedule removal of message after its aliveUntil time
         if (message.aliveUntil) {
-          const timeToLive = message.aliveUntil.getTime() - new Date().getTime();
+          const timeToLive = message.aliveUntil.getTime() - new Date().getTime()
           this._messageTimeAliveInterval = setTimeout(() => {
-            this.currentMessage.set(null);
-          }, timeToLive);
+            this.currentMessage.set(null)
+          }, timeToLive)
         }
-      });
-    this._startCarousel();
+      })
+    this._startCarousel()
   }
 
   ngOnDestroy(): void {
-    this._authenticationSubscription?.unsubscribe();
-    this._messageChannelSubscription?.unsubscribe();
-    this.messageManagerService.unregisterChannel(this.messageChannel.id);
-    this._stopCarousel();
+    this._authenticationSubscription?.unsubscribe()
+    this._messageChannelSubscription?.unsubscribe()
+    this.messageManagerService.unregisterChannel(this.messageChannel.id)
+    this._stopCarousel()
     if (this._messageTimeAliveInterval) {
-      clearTimeout(this._messageTimeAliveInterval);
+      clearTimeout(this._messageTimeAliveInterval)
     }
   }
 
@@ -93,10 +93,10 @@ export class Landing {
           },
           undefined,
           undefined,
-          { timeAlive: 3000, shouldDelete: true },
-        );
+          { timeAlive: 3000, shouldDelete: true }
+        )
       })
-      .catch((_err) => {
+      .catch(_err => {
         this.messageManagerService.sendMessage(
           {
             title: 'Copy failed',
@@ -105,31 +105,31 @@ export class Landing {
           },
           undefined,
           undefined,
-          { timeAlive: 3000, shouldDelete: true },
-        );
-      });
+          { timeAlive: 3000, shouldDelete: true }
+        )
+      })
   }
 
   protected handleFormSubmit(submittedForm: any): void {
     if (!this.formGroup.valid) {
-      this.formGroup.markAllAsTouched();
-      return;
+      this.formGroup.markAllAsTouched()
+      return
     }
-    this.loading.set(true);
+    this.loading.set(true)
     this._authenticationSubscription = this._loginService
       .authenticate({ email: this.formGroup.value.email, password: this.formGroup.value.password })
       .subscribe({
         next: (response: boolean) => {
           if (!response) {
-            throw new Error("Something doesn't feel right");
+            throw new Error("Something doesn't feel right")
           }
-          this._routerService.navigate(['/r!/home'], { replaceUrl: true });
+          this._routerService.navigate(['/r!/home'], { replaceUrl: true })
         },
         error: (error: Error | GatewayError) => {
-          this.formGroup.reset();
-          submittedForm.resetForm();
+          this.formGroup.reset()
+          submittedForm.resetForm()
           if (error instanceof GatewayError) {
-            console.error(`[Authentication](${error.status}): ${error.message}`, error.description);
+            console.error(`[Authentication](${error.status}): ${error.message}`, error.description)
             this.messageManagerService.sendMessage(
               {
                 title: error.message,
@@ -138,10 +138,10 @@ export class Landing {
               },
               this.messageChannel.id,
               this.messageChannel.region,
-              { timeAlive: 7000, shouldDelete: true },
-            );
+              { timeAlive: 7000, shouldDelete: true }
+            )
           } else {
-            console.error('[Authentication]:', error.message);
+            console.error('[Authentication]:', error.message)
             this.messageManagerService.sendMessage(
               {
                 title: 'Something went wrong',
@@ -150,23 +150,23 @@ export class Landing {
               },
               this.messageChannel.id,
               this.messageChannel.region,
-              { timeAlive: 7000, shouldDelete: true },
-            );
+              { timeAlive: 7000, shouldDelete: true }
+            )
           }
-          this.loading.set(false);
+          this.loading.set(false)
         },
-      });
+      })
   }
 
   private _startCarousel(): void {
     this._carouselInterval = setInterval(() => {
-      this.currentSliderContent.update((current) => (current + 1) % 2);
-    }, 7500);
+      this.currentSliderContent.update(current => (current + 1) % 2)
+    }, 7500)
   }
 
   private _stopCarousel(): void {
     if (this._carouselInterval) {
-      clearInterval(this._carouselInterval);
+      clearInterval(this._carouselInterval)
     }
   }
 }

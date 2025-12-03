@@ -1,12 +1,12 @@
-import { Injectable } from '@angular/core';
-import { DefaultGatewayService } from '../shared/default-gateway.service';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { Injectable } from '@angular/core'
+import { catchError, map, Observable, throwError } from 'rxjs'
+import { GatewayError } from '../shared/default-gateway.model'
+import { DefaultGatewayService } from '../shared/default-gateway.service'
 import {
   ListUserWalletRequestDTO,
   ListUserWalletResponseDTO,
   ListUserWalletResponseDTOSchema,
-} from './investments-gateway.model';
-import { GatewayError } from '../shared/default-gateway.model';
+} from './investments-gateway.model'
 
 @Injectable()
 export class InvestmentsGatewayService extends DefaultGatewayService {
@@ -18,22 +18,22 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
         params: request,
       })
       .pipe(
-        map((response) => {
-          const validationResult = ListUserWalletResponseDTOSchema.safeParse(response.body);
+        map(response => {
+          const validationResult = ListUserWalletResponseDTOSchema.safeParse(response.body)
 
           if (!validationResult.success) {
             throw new GatewayError(
               response.status,
-              validationResult.error.issues.map((e) => e.message).join(', '),
-              'Invalid authentication response structure',
-            );
+              validationResult.error.issues.map(e => e.message).join(', '),
+              'Invalid authentication response structure'
+            )
           }
 
-          return validationResult.data;
+          return validationResult.data
         }),
-        catchError((error) => {
-          return throwError(() => this.handleHttpError(error));
-        }),
-      );
+        catchError(error => {
+          return throwError(() => this.handleHttpError(error))
+        })
+      )
   }
 }

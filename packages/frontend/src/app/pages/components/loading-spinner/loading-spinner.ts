@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input } from '@angular/core'
 
 @Component({
   selector: 'kdongs-cp-loading-spinner',
@@ -30,8 +30,8 @@ export class LoadingSpinner {
   /**
    * SIGNALS
    */
-  size = input<'sm' | 'md' | 'lg' | 'xl'>('sm');
-  color = input<'white' | 'neutral' | 'green'>('green');
+  size = input<'sm' | 'md' | 'lg' | 'xl'>('sm')
+  color = input<'white' | 'neutral' | 'green'>('green')
 
   /**
    * VARS
@@ -41,10 +41,10 @@ export class LoadingSpinner {
     md: 'h-6 w-6',
     lg: 'h-10 w-10',
     xl: 'h-16 w-16',
-  };
+  }
   protected colors = {
     white: 'stroke-white',
     neutral: 'stroke-neutral-300 dark:stroke-neutral-600',
     green: 'stroke-green-400 dark:stroke-green-400',
-  };
+  }
 }

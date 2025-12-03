@@ -1,12 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { MessageManagerService } from '../../../../infra/services/message/message-manager.service';
+import { Component, inject, OnInit, signal } from '@angular/core'
+import { Subscription } from 'rxjs'
 import {
   GlobalChannel,
   MessageDetail,
   MessageRegion,
-} from '../../../../infra/services/message/message-manager.model';
-import { Subscription } from 'rxjs';
-import { Message } from '../message/message';
+} from '../../../../infra/services/message/message-manager.model'
+import { MessageManagerService } from '../../../../infra/services/message/message-manager.service'
+import { Message } from '../message/message'
 
 @Component({
   selector: 'kdongs-cp-message-docker',
@@ -39,39 +39,39 @@ export class MessageDocker implements OnInit {
   /**
    * SERVICES
    */
-  private readonly _messageManagerService = inject(MessageManagerService);
+  private readonly _messageManagerService = inject(MessageManagerService)
 
   /**
    * SIGNALS
    */
-  protected currentMessage = signal<MessageDetail | null>(null);
+  protected currentMessage = signal<MessageDetail | null>(null)
 
   /**
    * VARS
    */
-  private _messageChannelSubscription: Subscription | undefined;
-  private _messageTimeAliveInterval: ReturnType<typeof setInterval> | undefined;
+  private _messageChannelSubscription: Subscription | undefined
+  private _messageTimeAliveInterval: ReturnType<typeof setInterval> | undefined
 
   ngOnInit(): void {
     this._messageChannelSubscription = this._messageManagerService
       .registerChannel(GlobalChannel.DEFAULT, 'Global Default Channel', MessageRegion.GLOBAL)
       .subscribe((message: MessageDetail) => {
-        this.currentMessage.set(message);
+        this.currentMessage.set(message)
         // Schedule removal of message after its aliveUntil time
         if (message.aliveUntil) {
-          const timeToLive = message.aliveUntil.getTime() - new Date().getTime();
+          const timeToLive = message.aliveUntil.getTime() - new Date().getTime()
           this._messageTimeAliveInterval = setTimeout(() => {
-            this.currentMessage.set(null);
-          }, timeToLive);
+            this.currentMessage.set(null)
+          }, timeToLive)
         }
-      });
+      })
   }
 
   ngOnDestroy(): void {
-    this._messageChannelSubscription?.unsubscribe();
-    this._messageManagerService.unregisterChannel(GlobalChannel.DEFAULT);
+    this._messageChannelSubscription?.unsubscribe()
+    this._messageManagerService.unregisterChannel(GlobalChannel.DEFAULT)
     if (this._messageTimeAliveInterval) {
-      clearInterval(this._messageTimeAliveInterval);
+      clearInterval(this._messageTimeAliveInterval)
     }
   }
 }

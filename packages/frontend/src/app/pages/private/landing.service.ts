@@ -1,25 +1,25 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { Router, Routes } from '@angular/router';
-import { IdentityService } from '../../infra/services/identity/identity.service';
-import { ModulePermissions, UserAllowedIn } from '../../infra/services/identity/identity.model';
+import { computed, inject, Injectable, signal } from '@angular/core'
+import { Router, Routes } from '@angular/router'
+import { ModulePermissions, UserAllowedIn } from '../../infra/services/identity/identity.model'
+import { IdentityService } from '../../infra/services/identity/identity.service'
 
 @Injectable()
 export class LandingService {
   /**
    * SERVICES
    */
-  protected readonly identityService = inject(IdentityService);
-  private readonly _router = inject(Router);
+  protected readonly identityService = inject(IdentityService)
+  private readonly _router = inject(Router)
 
   /**
    * SIGNALS
    */
-  sidebarCollapsed = signal<boolean>(true);
+  sidebarCollapsed = signal<boolean>(true)
   userInfo = computed(() => ({
     userName: this.identityService.identity()?.userName ?? '?',
     userEmail: this.identityService.identity()?.userEmail ?? '?',
     avatar: this.generateAvatar(this.identityService.identity()?.userName ?? '?'),
-  }));
+  }))
 
   // Available routes for the user to navigate
   modules = computed(() =>
@@ -37,8 +37,8 @@ export class LandingService {
             url: '/r!/investments',
           }
         : null,
-    ].filter((v) => !!v),
-  );
+    ].filter(v => !!v)
+  )
 
   // TODO: Build the Routes tree for suggestions. MUST NOT suggest routes that user have no permission
   // TODO: When running Routes maybe use `:` prefix to specify a route `:param`, and `?` for specifying queryParams.
@@ -50,15 +50,15 @@ export class LandingService {
     return this.buildRoutesRegexp(
       '',
       this._router.config,
-      this.identityService.identity()?.allowedIn ?? new Map<ModulePermissions, null>(),
-    ) as RegExp[];
-  });
+      this.identityService.identity()?.allowedIn ?? new Map<ModulePermissions, null>()
+    ) as RegExp[]
+  })
 
   /**
    * FUNCTIONS
    */
   handleCollapse(): void {
-    this.sidebarCollapsed.update((curr) => !curr);
+    this.sidebarCollapsed.update(curr => !curr)
   }
 
   /**
@@ -67,43 +67,40 @@ export class LandingService {
    * @returns true if route is executable, false otherwise
    */
   isExecutableRoute(route: string): boolean {
-    return this._routesRegexp().some((rRegExp) => rRegExp.test(route));
+    return this._routesRegexp().some(rRegExp => rRegExp.test(route))
   }
 
   private buildRoutesRegexp(
     currRegExp: string,
     routes: Routes,
-    userAllowedIn: UserAllowedIn,
+    userAllowedIn: UserAllowedIn
   ): RegExp[] {
-    let regExps: RegExp[] = [];
+    let regExps: RegExp[] = []
     for (let route of routes) {
       // Check if route should be used in ExecutableRoutes
-      let considerThisRoute = route.data?.['shouldRouteExec'] ?? false;
+      let considerThisRoute = route.data?.['shouldRouteExec'] ?? false
 
       // TODO: Test this code to see if it works as expected
       // If route uses `authorizationGuard`, check if users have permissions
-      if (
-        considerThisRoute &&
-        (route.canMatch?.some((cM) => cM === 'authorizationGuard') ?? false)
-      ) {
-        considerThisRoute &&= userAllowedIn.has(route.data?.['modulePermission']) ?? false;
+      if (considerThisRoute && (route.canMatch?.some(cM => cM === 'authorizationGuard') ?? false)) {
+        considerThisRoute &&= userAllowedIn.has(route.data?.['modulePermission']) ?? false
       }
 
       // build currRegExp with default `path` or `routeExecRegExp`
-      let regExp: string = currRegExp;
+      let regExp: string = currRegExp
       if (route.data && 'routeExecRegExp' in route.data) {
-        regExp += route.data['routeExecRegExp'];
-      } else regExp += route.path !== '' ? `/${route.path}` : '';
+        regExp += route.data['routeExecRegExp']
+      } else regExp += route.path !== '' ? `/${route.path}` : ''
 
-      if (considerThisRoute) regExps.push(new RegExp(`^${regExp}$`));
+      if (considerThisRoute) regExps.push(new RegExp(`^${regExp}$`))
 
       // look at its children
       if (route.children?.length ?? 0) {
-        const childrenRegExps = this.buildRoutesRegexp(regExp, route.children!, userAllowedIn);
-        regExps.push(...childrenRegExps);
+        const childrenRegExps = this.buildRoutesRegexp(regExp, route.children!, userAllowedIn)
+        regExps.push(...childrenRegExps)
       }
     }
-    return regExps;
+    return regExps
   }
 
   /**
@@ -114,6 +111,6 @@ export class LandingService {
   private generateAvatar(userName: string): { fallback: string } {
     return {
       fallback: userName.charAt(0).toUpperCase(),
-    };
+    }
   }
 }

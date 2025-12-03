@@ -1,6 +1,6 @@
-import { Routes } from '@angular/router';
-import { titleResolver } from '../../../../app.routes';
-import { authorizationGuard } from '../../../../infra/guards/authorization.guard';
+import { Routes } from '@angular/router'
+import { titleResolver } from '../../../../app.routes'
+import { authorizationGuard } from '../../../../infra/guards/authorization.guard'
 
 export const investmentsRoutes: Routes = [
   {
@@ -11,7 +11,7 @@ export const investmentsRoutes: Routes = [
       modulePermission: 'INVESTMENTS_ACCESS',
     },
     title: titleResolver,
-    loadComponent: () => import('./investments').then((module) => module.Investments),
+    loadComponent: () => import('./investments').then(module => module.Investments),
     canMatch: [authorizationGuard],
     // children: [
     //   {
@@ -26,4 +26,4 @@ export const investmentsRoutes: Routes = [
     // ],
   },
   { path: '**', redirectTo: '', pathMatch: 'full' },
-];
+]
