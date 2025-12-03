@@ -1,0 +1,98 @@
+<section
+  class="fixed bottom-0 left-0 right-0 top-0 z-[1000] backdrop-blur-[2px] bg-gray-200/40 dark:bg-neutral-900/80"
+  (click)="walletService.handleCollapse()"
+></section>
+<section
+  class="bg-background-1 z-[1001] fixed top-1/2 left-6 right-6 -translate-y-1/2 p-6 md:w-[400px] rounded shadow-md space-y-5"
+  animate.enter="animate-slide-right-in"
+  animate.leave="animate-slide-right-out"
+>
+  <h2>Your wallets ({{ walletService.possibleSelectedWallets().size }} selected)</h2>
+  <div class="flex flex-col gap-6 py-2">
+    @if (loading()) {
+      <div class="flex justify-center items-center h-full">
+        <kdongs-cp-loading-spinner size="lg" />
+      </div>
+    } @else if (wallets() === null) {
+      <div class="flex flex-col gap-2 select-none *:text-gray-400 dark:*:text-gray-500">
+        <span>(╯°□°)╯︵ ┻━┻</span>
+        <span>Error loading your wallets</span>
+      </div>
+    } @else {
+      @for (item of wallets(); track item.id) {
+        <div
+          class="card px-4 py-2 space-y-4 cursor-pointer select-none border border-mirage-200 dark:border-mirage-700"
+          [class]="{
+            'ring-2': walletService.possibleSelectedWallets().has(item.id),
+            'ring-portage-400': walletService.possibleSelectedWallets().has(item.id),
+          }"
+          (click)="handleSelectMoreWallets($event, item.id)"
+        >
+          <div class="flex flex-row items-center justify-between">
+            <div class="flex flex-col items-start gap-1">
+              <span class="font-semibold">{{ item.name }}</span>
+              <div class="flex flex-row items-center gap-2 text-gray-400 *:text-xs">
+                <i class="fa-solid fa-rotate"></i>
+                <span>{{ item.updatedAt | date: 'dd/MM/yy HH:mm' }}</span>
+              </div>
+            </div>
+            <span class="chip font-bold">{{ item.currencyCode }}</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col justify-center gap-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-semibold">Submission Balance</span>
+                <span class="text-sm font-semibold text-mirage-900 dark:text-mirage-100">
+                  {{ item.initialBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-semibold">Current Balance</span>
+                <span class="text-sm font-semibold text-mirage-900 dark:text-mirage-100">
+                  {{ item.currentBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
+                </span>
+              </div>
+            </div>
+            <div class="flex flex-row items-center justify-end gap-2">
+              <i
+                class="fa-solid text-sm"
+                [class]="{
+                  'fa-arrow-trend-up': item.trend === 'up',
+                  'text-green-500': item.trend === 'up',
+                  'fa-arrow-trend-down': item.trend === 'down',
+                  'text-red-500': item.trend === 'down',
+                  'fa-equals': item.trend === 'stable',
+                }"
+              ></i>
+              <span
+                class="chip font-semibold"
+                [class]="{
+                  'text-green-500': item.profitInCurncy > 0,
+                  'text-red-500': item.profitInCurncy < 0,
+                  'text-gray-400': item.profitInCurncy === 0,
+                }"
+              >
+                {{ item.profitInCurncy | currency: item.currencyCode : 'symbol' : '0.0-2' }}
+              </span>
+              <span
+                class="chip font-semibold"
+                [class]="{
+                  'text-green-500': item.profitInPerc > 0,
+                  'text-red-500': item.profitInPerc < 0,
+                  'text-gray-400': item.profitInPerc === 0,
+                }"
+              >
+                {{ item.profitInPerc | percent: '0.0-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="flex flex-col gap-2 select-none *:text-gray-400 dark:*:text-gray-500">
+          <span>¬_¬</span>
+          <span>No wallets found</span>
+        </div>
+      }
+    }
+  </div>
+</section>

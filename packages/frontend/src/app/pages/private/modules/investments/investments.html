@@ -1,0 +1,24 @@
+@if (!walletService.sidebarCollapsed()) {
+  <kdongs-wallet />
+}
+<section
+  class="sticky left-0 right-0 top-0 z-[100] flex flex-row items-center gap-2 overflow-x-auto border-b border-mirage-900/10 bg-background-1 px-6 py-3 dark:border-mirage-50/10"
+>
+  <button type="button" class="btn btn-outline btn-sm" (click)="walletService.handleCollapse()">
+    <i class="fa-solid fa-angles-left"></i>
+    <i class="fa-solid fa-wallet ml-2"></i>
+  </button>
+  <button type="button" class="btn btn-sm">
+    <i class="fa-solid fa-chart-line"></i>
+    <span class="ml-2">Performance</span>
+  </button>
+  <button type="button" class="btn btn-sm">
+    <i class="fa-solid fa-timeline"></i>
+    <span class="ml-2">Balance History</span>
+  </button>
+  <button type="button" class="btn btn-sm">
+    <i class="fa-solid fa-database"></i>
+    <span class="ml-2">Assets</span>
+  </button>
+</section>
+<router-outlet />

@@ -17,13 +17,7 @@ import { CircularProgress } from '../../../components/circular-progress/circular
 @Component({
   selector: 'kdongs-cp-topbar',
   templateUrl: './topbar.html',
-  imports: [
-    RouterLink,
-    AsyncPipe,
-    CommonModule,
-    CircularProgress,
-    // ViewportMatchDirective,
-  ],
+  imports: [RouterLink, AsyncPipe, CommonModule, CircularProgress],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Topbar implements OnInit, OnDestroy {
