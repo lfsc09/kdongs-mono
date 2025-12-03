@@ -34,8 +34,8 @@ async function getBondsChronologically(walletId?: string, bondId?: string): Prom
     .select()
     .if(
       bondId !== undefined,
-      (query) => query.where('id', bondId!),
-      (query) => query.where('wallet_id', walletId!),
+      query => query.where('id', bondId!),
+      query => query.where('wallet_id', walletId!),
     )
     .orderBy('enter_date_utc', 'asc')
     .orderBy('exit_date_utc', 'asc')
@@ -67,10 +67,10 @@ async function getBondsPerformance(walletId?: string, bondId?: string): Promise<
       : null
 
     bondsPerformance.set(bondId, {
-      id: bondId,
       bondName: bondInfo.bondName,
       doneAt: bondInfo.exitDateUtc ? bondInfo.exitDateUtc : undefined,
       doneProfit: doneProfit ?? new Big(0),
+      id: bondId,
     })
   }
 

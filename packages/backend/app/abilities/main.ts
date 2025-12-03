@@ -12,18 +12,18 @@
 |
 */
 
-import { Bouncer } from '@adonisjs/bouncer';
-import type User from '#models/user/user';
-import { UserRole } from '../core/types/user/user_roles.js';
+import { Bouncer } from '@adonisjs/bouncer'
+import type User from '#models/user/user'
+import { UserRole } from '../core/types/user/user_roles.js'
 
 export const onlyAdmin = Bouncer.ability((user: User) => {
-  return user.role === UserRole.ADMIN;
-});
+  return user.role === UserRole.ADMIN
+})
 
 export const onlyUser = Bouncer.ability((user: User) => {
-  return user.role === UserRole.USER;
-});
+  return user.role === UserRole.USER
+})
 
 export const anyUser = Bouncer.ability((user: User) => {
-  return user.role === UserRole.USER || user.role === UserRole.ADMIN;
-});
+  return user.role === UserRole.USER || user.role === UserRole.ADMIN
+})

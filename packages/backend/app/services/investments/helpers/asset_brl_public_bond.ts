@@ -59,10 +59,10 @@ async function getBondsChronologically(
       )
       .if(
         walletId !== undefined,
-        (query) => query.where('wallet_id', walletId!),
-        (query) => query.where('id', bondId!),
+        query => query.where('wallet_id', walletId!),
+        query => query.where('id', bondId!),
       )
-  const bondsIds = bonds.map((bond) => bond.id)
+  const bondsIds = bonds.map(bond => bond.id)
 
   const bondsInfos = objToMap<BondInfo, 'id'>('id', bonds)
 
@@ -79,8 +79,8 @@ async function getBondsChronologically(
       )
       .if(
         bondId !== undefined,
-        (query) => query.where('investment_asset_brl_public_bond_id', bondId!),
-        (query) => query.whereIn('investment_asset_brl_public_bond_id', bondsIds),
+        query => query.where('investment_asset_brl_public_bond_id', bondId!),
+        query => query.whereIn('investment_asset_brl_public_bond_id', bondsIds),
       )
       .unionAll(
         db
@@ -95,8 +95,8 @@ async function getBondsChronologically(
           )
           .if(
             bondId !== undefined,
-            (query) => query.where('investment_asset_brl_public_bond_id', bondId!),
-            (query) => query.whereIn('investment_asset_brl_public_bond_id', bondsIds),
+            query => query.where('investment_asset_brl_public_bond_id', bondId!),
+            query => query.whereIn('investment_asset_brl_public_bond_id', bondsIds),
           ),
       )
       .orderBy('dateUtc', 'asc'),
@@ -122,14 +122,14 @@ async function getBondsChronologically(
     }
 
     bondData.transactions.push({
-      type: transaction.type as 'buy' | 'sell',
-      dateUtc: DateTime.fromJSDate(transaction.dateUtc),
-      sharesAmount: transaction.sharesAmount ? new Big(transaction.sharesAmount) : undefined,
-      unitPrice: transaction.unitPrice ? new Big(transaction.unitPrice) : undefined,
       costs:
         transaction.costs !== null && transaction.costs !== undefined
           ? new Big(transaction.costs)
           : null,
+      dateUtc: DateTime.fromJSDate(transaction.dateUtc),
+      sharesAmount: transaction.sharesAmount ? new Big(transaction.sharesAmount) : undefined,
+      type: transaction.type as 'buy' | 'sell',
+      unitPrice: transaction.unitPrice ? new Big(transaction.unitPrice) : undefined,
     })
   }
 
@@ -192,11 +192,11 @@ async function getBondsPerformance(walletId?: string, bondId?: string): Promise<
     currentProfit = doneProfit.add(current.sharesAmount.mul(currentUnitPrice.sub(avgPrice)))
 
     bondsPerformance.set(bondId, {
+      bondName: bondInfo.bondName,
+      currentProfit,
+      doneProfit,
       id: bondInfo.id,
       isDone: bondInfo.isDone,
-      bondName: bondInfo.bondName,
-      doneProfit,
-      currentProfit,
       lastTransactionAt: bondInfo.lastTransactionAt!,
     })
   }

@@ -23,65 +23,65 @@ export default class extends BaseSeeder {
 
     // BRL wallet
     await WalletFactory.merge({
+      currencyCode: acceptedCurrencyCodes.find(c => c === 'BRL'),
       userId,
-      currencyCode: acceptedCurrencyCodes.find((c) => c === 'BRL'),
     })
-      .with('movements', 1, (m) =>
+      .with('movements', 1, m =>
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-01-01'),
-            originAmount: new Big(20000),
             movementType: 'deposit',
+            originAmount: new Big(20000),
             originCurrencyCode: 'BRL',
             resultCurrencyCode: 'BRL',
           })
           .apply('recalculate'),
       )
-      .with('movements', 1, (m) =>
+      .with('movements', 1, m =>
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-02-01'),
-            originAmount: new Big(3500),
             movementType: 'withdraw',
+            originAmount: new Big(3500),
             originCurrencyCode: 'BRL',
             resultCurrencyCode: 'BRL',
           })
           .apply('recalculate'),
       )
-      .with('movements', 1, (m) =>
+      .with('movements', 1, m =>
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-03-01'),
-            originAmount: new Big(15000),
             movementType: 'deposit',
+            originAmount: new Big(15000),
             originCurrencyCode: 'BRL',
             resultCurrencyCode: 'BRL',
           })
           .apply('recalculate'),
       )
       .with('assetBrlPrivateBonds', 5)
-      .with('assetBrlPublicBonds', 2, (pb) =>
+      .with('assetBrlPublicBonds', 2, pb =>
         pb.with('assetBrlPublicBondBuys', 2).with('assetBrlPublicBondSells', 1),
       )
       .create()
 
     await WalletFactory.merge({
+      currencyCode: acceptedCurrencyCodes.find(c => c === 'BRL'),
       userId,
-      currencyCode: acceptedCurrencyCodes.find((c) => c === 'BRL'),
     })
-      .with('movements', 1, (m) =>
+      .with('movements', 1, m =>
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-01-01'),
-            originAmount: new Big(175000),
             movementType: 'deposit',
+            originAmount: new Big(175000),
             originCurrencyCode: 'BRL',
             resultCurrencyCode: 'BRL',
           })
           .apply('recalculate'),
       )
       .with('assetBrlPrivateBonds', 10)
-      .with('assetBrlPublicBonds', 2, (pb) =>
+      .with('assetBrlPublicBonds', 2, pb =>
         pb.with('assetBrlPublicBondBuys', 2).with('assetBrlPublicBondSells', 1),
       )
       .create()

@@ -95,27 +95,27 @@ export default class WalletsService {
               : currentBalance.div(submissionBalance).minus(1)
 
             return {
-              id: wallet.id,
-              name: wallet.name,
+              createdAt: wallet.createdAt.toISO() ?? undefined,
               currencyCode: wallet.currencyCode,
-              // FIXME: fix trend calculation
-              trend: 'up',
-              initialBalance: submissionBalance.round(2, Big.roundHalfEven).toNumber(),
               currentBalance: currentBalance.round(2, Big.roundHalfEven).toNumber(),
+              id: wallet.id,
+              initialBalance: submissionBalance.round(2, Big.roundHalfEven).toNumber(),
+              name: wallet.name,
               profitInCurncy: profitInCurncy.round(2, Big.roundHalfEven).toNumber(),
               profitInPerc: profitInPerc.round(2, Big.roundHalfEven).toNumber(),
-              createdAt: wallet.createdAt.toISO() ?? undefined,
+              // FIXME: fix trend calculation
+              trend: 'up',
               updatedAt: wallet.updatedAt?.toISO() ?? undefined,
             }
           }),
         ),
       },
       metadata: {
-        totalCount: wallets.total,
-        page: wallets.currentPage,
         limit: wallets.perPage,
         nextPage: wallets.hasMorePages ? wallets.currentPage + 1 : undefined,
+        page: wallets.currentPage,
         previousPage: wallets.currentPage > 1 ? wallets.currentPage - 1 : undefined,
+        totalCount: wallets.total,
         totalPages: wallets.lastPage,
       },
     }
@@ -127,12 +127,12 @@ export default class WalletsService {
     const wallets = await Wallet.query()
       .whereIn('id', input.walletIds)
       .where('userId', input.userId)
-      .preload('movements', (movementQuery) => {
+      .preload('movements', movementQuery => {
         movementQuery.orderBy('dateUtc', 'asc')
       })
 
     const walletsIterator = new PromiseBatch(
-      wallets.map(async (wallet) => {
+      wallets.map(async wallet => {
         const [brlPrivateBonds, brlPublicBonds, sefbfrAssets] = await Promise.all([
           AssetBrlPrivateBondUtils.getBondsPerformance(wallet.id),
           AssetBrlPublicBondUtils.getBondsPerformance(wallet.id),
@@ -140,32 +140,31 @@ export default class WalletsService {
         ])
 
         return {
-          wallet,
           brlPrivateBonds,
           brlPublicBonds,
           sefbfrAssets,
+          wallet,
         }
       }),
       10,
     )
 
     const globalAnalytics = {
-      // First and last Asset/Movement dates
-      dateStartUtcAsset: undefined as DateTime | undefined,
-      dateEndUtcAsset: undefined as DateTime | undefined,
-      dateStartUtcMovement: undefined as DateTime | undefined,
-      dateEndUtcMovement: undefined as DateTime | undefined,
-
       // Avg amount of days an Asset is held (until done)
       avgDaysByAsset: 0,
+      dateEndUtcAsset: undefined as DateTime | undefined,
+      dateEndUtcMovement: undefined as DateTime | undefined,
+      // First and last Asset/Movement dates
+      dateStartUtcAsset: undefined as DateTime | undefined,
+      dateStartUtcMovement: undefined as DateTime | undefined,
+      numberOfActiveAssets: 0,
+      numberOfActiveAssetsLoss: 0,
+      numberOfActiveAssetsProfit: 0,
 
       // Asset counters
       numberOfAssets: 0,
-      numberOfAssetsProfit: 0,
       numberOfAssetsLoss: 0,
-      numberOfActiveAssets: 0,
-      numberOfActiveAssetsProfit: 0,
-      numberOfActiveAssetsLoss: 0,
+      numberOfAssetsProfit: 0,
 
       // Submissions + Assets profit/loss
       resultingBalanceInCurncy: new Big(0),
@@ -234,46 +233,46 @@ export default class WalletsService {
     return {
       data: {
         indicators: {
-          resultingBalanceInCurncy: 0,
-          resultingProfitInCurncy: 0,
-          resultingProfitInPerc: 0,
-          dateStartUtc: '',
-          dateEndUtc: '',
-          avgDaysByAsset: 0,
-          numberOfAssets: 0,
-          numberOfAssetsProfit: 0,
-          numberOfAssetsLoss: 0,
-          numberOfActiveAssets: 0,
-          numberOfActiveAssetsProfit: 0,
-          numberOfActiveAssetsLoss: 0,
-          expectancyByAsset: 0,
-          expectancyByDay: 0,
-          expectancyByMonth: 0,
-          expectancyByQuarter: 0,
-          expectancyByYear: 0,
           avgCostByAsset: 0,
           avgCostByDay: 0,
           avgCostByMonth: 0,
           avgCostByQuarter: 0,
           avgCostByYear: 0,
+          avgDaysByAsset: 0,
           avgTaxByAsset: 0,
           avgTaxByDay: 0,
           avgTaxByMonth: 0,
           avgTaxByQuarter: 0,
           avgTaxByYear: 0,
           breakeven: 0,
+          dateEndUtc: '',
+          dateStartUtc: '',
           edge: 0,
-          profitSum: 0,
-          profitAvg: 0,
-          profitMax: 0,
-          lossSum: 0,
-          lossAvg: 0,
-          lossMax: 0,
+          expectancyByAsset: 0,
+          expectancyByDay: 0,
+          expectancyByMonth: 0,
+          expectancyByQuarter: 0,
+          expectancyByYear: 0,
           historyHigh: 0,
           historyLow: 0,
+          lossAvg: 0,
+          lossMax: 0,
+          lossSum: 0,
+          numberOfActiveAssets: 0,
+          numberOfActiveAssetsLoss: 0,
+          numberOfActiveAssetsProfit: 0,
+          numberOfAssets: 0,
+          numberOfAssetsLoss: 0,
+          numberOfAssetsProfit: 0,
+          profitAvg: 0,
+          profitMax: 0,
+          profitSum: 0,
+          resultingBalanceInCurncy: 0,
+          resultingProfitInCurncy: 0,
+          resultingProfitInPerc: 0,
         },
-        wallets: [],
         series: [],
+        wallets: [],
       },
     }
   }
@@ -288,9 +287,9 @@ export default class WalletsService {
 
   async walletStore(input: StoreWalletRequest): Promise<void> {
     await Wallet.create({
-      userId: input.userId,
-      name: input.name,
       currencyCode: input.currencyCode as CurrencyCode,
+      name: input.name,
+      userId: input.userId,
     })
   }
 

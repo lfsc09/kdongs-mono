@@ -64,10 +64,10 @@ async function getAssetsChronologically(
       )
       .if(
         walletId !== undefined,
-        (query) => query.where('wallet_id', walletId!),
-        (query) => query.where('id', assetId!),
+        query => query.where('wallet_id', walletId!),
+        query => query.where('id', assetId!),
       )
-  const assetsIds = assets.map((asset) => asset.id)
+  const assetsIds = assets.map(asset => asset.id)
 
   const assetsInfo = objToMap<AssetInfo, 'id'>('id', assets)
 
@@ -86,8 +86,8 @@ async function getAssetsChronologically(
       )
       .if(
         assetId !== undefined,
-        (query) => query.where('investment_asset_sefbfr_id', assetId!),
-        (query) => query.whereIn('investment_asset_sefbfr_id', assetsIds),
+        query => query.where('investment_asset_sefbfr_id', assetId!),
+        query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
       )
       .unionAll(
         db
@@ -104,8 +104,8 @@ async function getAssetsChronologically(
           )
           .if(
             assetId !== undefined,
-            (query) => query.where('investment_asset_sefbfr_id', assetId!),
-            (query) => query.whereIn('investment_asset_sefbfr_id', assetsIds),
+            query => query.where('investment_asset_sefbfr_id', assetId!),
+            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
           ),
       )
       .unionAll(
@@ -123,8 +123,8 @@ async function getAssetsChronologically(
           )
           .if(
             assetId !== undefined,
-            (query) => query.where('investment_asset_sefbfr_id', assetId!),
-            (query) => query.whereIn('investment_asset_sefbfr_id', assetsIds),
+            query => query.where('investment_asset_sefbfr_id', assetId!),
+            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
           ),
       )
       .unionAll(
@@ -142,8 +142,8 @@ async function getAssetsChronologically(
           )
           .if(
             assetId !== undefined,
-            (query) => query.where('investment_asset_sefbfr_id', assetId!),
-            (query) => query.whereIn('investment_asset_sefbfr_id', assetsIds),
+            query => query.where('investment_asset_sefbfr_id', assetId!),
+            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
           ),
       )
       .unionAll(
@@ -161,8 +161,8 @@ async function getAssetsChronologically(
           )
           .if(
             assetId !== undefined,
-            (query) => query.where('investment_asset_sefbfr_id', assetId!),
-            (query) => query.whereIn('investment_asset_sefbfr_id', assetsIds),
+            query => query.where('investment_asset_sefbfr_id', assetId!),
+            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
           ),
       )
       .unionAll(
@@ -180,8 +180,8 @@ async function getAssetsChronologically(
           )
           .if(
             assetId !== undefined,
-            (query) => query.where('investment_asset_sefbfr_id', assetId!),
-            (query) => query.whereIn('investment_asset_sefbfr_id', assetsIds),
+            query => query.where('investment_asset_sefbfr_id', assetId!),
+            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
           ),
       )
       .unionAll(
@@ -199,8 +199,8 @@ async function getAssetsChronologically(
           )
           .if(
             assetId !== undefined,
-            (query) => query.where('investment_asset_sefbfr_id', assetId!),
-            (query) => query.whereIn('investment_asset_sefbfr_id', assetsIds),
+            query => query.where('investment_asset_sefbfr_id', assetId!),
+            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
           ),
       )
       .orderBy('dateUtc', 'asc'),
@@ -226,21 +226,21 @@ async function getAssetsChronologically(
     }
 
     assetData.transactions.push({
-      type: transaction.type as TransactionType,
-      dateUtc: DateTime.fromJSDate(transaction.dateUtc),
-      sharesAmount: transaction.sharesAmount ? new Big(transaction.sharesAmount) : undefined,
-      priceQuote: transaction.priceQuote ? new Big(transaction.priceQuote) : undefined,
       costs:
         transaction.costs !== null && transaction.costs !== undefined
           ? new Big(transaction.costs)
           : null,
-      value:
-        transaction.value !== null && transaction.value !== undefined
-          ? new Big(transaction.value)
-          : undefined,
+      dateUtc: DateTime.fromJSDate(transaction.dateUtc),
       factor:
         transaction.factor !== null && transaction.factor !== undefined
           ? new Big(transaction.factor)
+          : undefined,
+      priceQuote: transaction.priceQuote ? new Big(transaction.priceQuote) : undefined,
+      sharesAmount: transaction.sharesAmount ? new Big(transaction.sharesAmount) : undefined,
+      type: transaction.type as TransactionType,
+      value:
+        transaction.value !== null && transaction.value !== undefined
+          ? new Big(transaction.value)
           : undefined,
     })
   }
@@ -352,11 +352,11 @@ async function getAssetsPerformance(
     currentProfit = doneProfit.add(current.sharesAmount.mul(currentPriceQuote.sub(avgPrice)))
 
     assetsPerformance.set(assetId, {
-      id: assetData.id,
-      doneState: assetData.doneState,
       assetName: assetData.assetName,
-      doneProfit,
       currentProfit,
+      doneProfit,
+      doneState: assetData.doneState,
+      id: assetData.id,
       lastTransactionAt: assetData.lastTransactionAt!,
     })
   }
