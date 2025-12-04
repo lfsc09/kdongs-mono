@@ -22,7 +22,7 @@
       <button
         type="button"
         class="group/menu cursor-pointer pr-1 pl-3"
-        (click)="landingService.handleCollapse()"
+        (click)="sidebarModulesService.handleCollapse()"
       >
         <div class="flex flex-row items-center gap-1 select-none">
           <ng-container *ngIf="tokenExpLeftPercentage$ | async as percent">

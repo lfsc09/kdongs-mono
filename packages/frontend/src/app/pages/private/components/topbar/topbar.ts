@@ -11,8 +11,8 @@ import { NavigationEnd, Router, RouterLink } from '@angular/router'
 import { filter, map, Subscription } from 'rxjs'
 import { environment } from '../../../../../environments/environment.development'
 import { IdentityService } from '../../../../infra/services/identity/identity.service'
-import { LandingService } from '../../landing.service'
 import { CircularProgress } from '../circular-progress/circular-progress'
+import { SidebarModulesService } from '../sidebar-modules/sidebar-modules.service'
 
 @Component({
   selector: 'kdongs-cp-topbar',
@@ -25,7 +25,7 @@ export class Topbar implements OnInit, OnDestroy {
    * SERVICES
    */
   protected readonly identityService = inject(IdentityService)
-  protected readonly landingService = inject(LandingService)
+  protected readonly sidebarModulesService = inject(SidebarModulesService)
   private readonly _routerService = inject(Router)
 
   /**

@@ -4,29 +4,29 @@ import { Subscription } from 'rxjs'
 import { environment } from '../../../environments/environment.development'
 import { IdentityService } from '../../infra/services/identity/identity.service'
 import { SidebarModules } from './components/sidebar-modules/sidebar-modules'
+import { SidebarModulesService } from './components/sidebar-modules/sidebar-modules.service'
 import { Topbar } from './components/topbar/topbar'
-import { LandingService } from './landing.service'
 
 @Component({
   selector: 'kdongs-landing',
   imports: [RouterOutlet, SidebarModules, Topbar],
-  providers: [LandingService],
+  providers: [SidebarModulesService],
   template: `
     <kdongs-cp-topbar />
-    @if (!landingService.sidebarCollapsed()) {
+    @if (!sidebarModulesService.sidebarCollapsed()) {
       <kdongs-cp-sidebar-modules />
     }
     <router-outlet />
   `,
   host: {
-    '(document:keyup.Control.;)': 'landingService.handleCollapse()',
+    '(document:keyup.Control.;)': 'sidebarModulesService.handleCollapse()',
   },
 })
 export class Landing implements OnInit, OnDestroy {
   /**
    * SERVICES
    */
-  protected readonly landingService = inject(LandingService)
+  protected readonly sidebarModulesService = inject(SidebarModulesService)
   private readonly _identityService = inject(IdentityService)
   private readonly _routerService = inject(Router)
 

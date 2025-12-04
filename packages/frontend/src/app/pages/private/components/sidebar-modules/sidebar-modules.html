@@ -1,6 +1,6 @@
 <section
   class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-gray-200/40 backdrop-blur-[2px] dark:bg-neutral-900/80"
-  (click)="landingService.handleCollapse()"
+  (click)="sidebarModulesService.handleCollapse()"
 ></section>
 <section
   class="bg-background-1 fixed top-1/2 left-1/2 z-[1001] w-full -translate-x-1/2 -translate-y-1/2 space-y-5 rounded p-6 shadow-md md:w-[350px]"
@@ -52,12 +52,12 @@
       <span class="text-xs">Logout</span>
       <i class="fa-solid fa-right-from-bracket"></i>
     </li>
-    @for (module of landingService.modules(); track module?.url) {
+    @for (module of sidebarModulesService.modules(); track module?.url) {
       <a
         class="btn btn-ghost text-mirage-900 dark:text-mirage-100 flex items-center justify-between gap-3"
         routerLink="{{ module!.url }}"
         routerLinkActive="navleft-router-link-active"
-        (click)="landingService.handleCollapse()"
+        (click)="sidebarModulesService.handleCollapse()"
       >
         <span class="text-xs">{{ module!.label }}</span>
         @if (module?.icon) {

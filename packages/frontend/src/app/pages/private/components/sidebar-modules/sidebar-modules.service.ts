@@ -1,10 +1,13 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
 import { Router, Routes } from '@angular/router'
-import { ModulePermissions, UserAllowedIn } from '../../infra/services/identity/identity.model'
-import { IdentityService } from '../../infra/services/identity/identity.service'
+import {
+  ModulePermissions,
+  UserAllowedIn,
+} from '../../../../infra/services/identity/identity.model'
+import { IdentityService } from '../../../../infra/services/identity/identity.service'
 
 @Injectable()
-export class LandingService {
+export class SidebarModulesService {
   /**
    * SERVICES
    */

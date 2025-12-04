@@ -11,14 +11,14 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms'
 import { Router, RouterLink, RouterLinkActive } from '@angular/router'
 import { IdentityService } from '../../../../infra/services/identity/identity.service'
 import { ThemeManagerService } from '../../../../infra/services/theme/theme-manager.service'
-import { LandingService } from '../../landing.service'
+import { SidebarModulesService } from './sidebar-modules.service'
 
 @Component({
   selector: 'kdongs-cp-sidebar-modules',
   imports: [RouterLink, RouterLinkActive, ReactiveFormsModule],
   templateUrl: './sidebar-modules.html',
   host: {
-    '(document:keyup.Escape)': 'landingService.handleCollapse()',
+    '(document:keyup.Escape)': 'sidebarModulesService.handleCollapse()',
     '(document:keyup.Control.;)': 'handleInputFocus()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,7 +29,7 @@ export class SidebarModules implements AfterViewInit {
    */
   protected readonly identityService = inject(IdentityService)
   protected readonly themeManagerService = inject(ThemeManagerService)
-  protected readonly landingService = inject(LandingService)
+  protected readonly sidebarModulesService = inject(SidebarModulesService)
   private readonly _routerService = inject(Router)
 
   ngAfterViewInit(): void {
@@ -71,12 +71,12 @@ export class SidebarModules implements AfterViewInit {
     } else {
       const execRoute = ['/r!', ...segments]
       if (
-        this.landingService.isExecutableRoute(
+        this.sidebarModulesService.isExecutableRoute(
           this._routerService.createUrlTree(execRoute).toString()
         )
       ) {
         this._routerService.navigate(execRoute)
-        this.landingService.handleCollapse()
+        this.sidebarModulesService.handleCollapse()
       } else this.runError.set('Invalid Command!')
     }
   }
