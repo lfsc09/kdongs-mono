@@ -3,17 +3,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --green-50: #f3faeb;
-  --green-100: #e6f3d4;
-  --green-200: #cee9ad;
-  --green-300: #aed97d;
-  --green-400: #9ece6a;
-  --green-500: #71ac36;
-  --green-600: #568927;
-  --green-700: #436922;
-  --green-800: #385420;
-  --green-900: #31481f;
-  --green-950: #17270c;
+  --lime-50: #f3faeb;
+  --lime-100: #e6f3d4;
+  --lime-200: #cee9ad;
+  --lime-300: #aed97d;
+  --lime-400: #9ece6a;
+  --lime-500: #71ac36;
+  --lime-600: #568927;
+  --lime-700: #436922;
+  --lime-800: #385420;
+  --lime-900: #31481f;
+  --lime-950: #17270c;
 
   --mirage-50: #f6f6f9;
   --mirage-100: #ebecf3;
@@ -97,17 +97,17 @@
 @theme inline {
   --font-cascadia: 'Cascadia Code', monospace;
 
-  --color-green-50: var(--green-50);
-  --color-green-100: var(--green-100);
-  --color-green-200: var(--green-200);
-  --color-green-300: var(--green-300);
-  --color-green-400: var(--green-400);
-  --color-green-500: var(--green-500);
-  --color-green-600: var(--green-600);
-  --color-green-700: var(--green-700);
-  --color-green-800: var(--green-800);
-  --color-green-900: var(--green-900);
-  --color-green-950: var(--green-950);
+  --color-lime-50: var(--lime-50);
+  --color-lime-100: var(--lime-100);
+  --color-lime-200: var(--lime-200);
+  --color-lime-300: var(--lime-300);
+  --color-lime-400: var(--lime-400);
+  --color-lime-500: var(--lime-500);
+  --color-lime-600: var(--lime-600);
+  --color-lime-700: var(--lime-700);
+  --color-lime-800: var(--lime-800);
+  --color-lime-900: var(--lime-900);
+  --color-lime-950: var(--lime-950);
 
   --color-mirage-50: var(--mirage-50);
   --color-mirage-100: var(--mirage-100);
@@ -304,6 +304,10 @@
 
   .chip {
     @apply bg-background-2 text-foreground-2 inline-block rounded px-2 py-1 text-sm;
+
+    &.chip-xs {
+      @apply text-xs;
+    }
   }
 
   /*

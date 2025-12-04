@@ -44,7 +44,7 @@ export class Message {
   protected colors = {
     [MessageSeverity.ERROR]: 'border-red-400 bg-red-50',
     [MessageSeverity.WARNING]: 'border-yellow-400 bg-yellow-50',
-    [MessageSeverity.SUCCESS]: 'border-green-400 bg-green-50',
+    [MessageSeverity.SUCCESS]: 'border-lime-400 bg-lime-50',
     [MessageSeverity.INFO]: 'border-cyan-400 bg-cyan-50',
   }
 

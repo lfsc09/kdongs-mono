@@ -21,7 +21,7 @@ import { Component, computed, input } from '@angular/core'
         [attr.r]="svgSizes[size()].r"
         [attr.cx]="svgSizes[size()].cXcY"
         [attr.cy]="svgSizes[size()].cXcY"
-        class="fill-transparent {{ warn() ? 'stroke-red-500' : 'stroke-green-400' }} {{
+        class="fill-transparent {{ warn() ? 'stroke-red-500' : 'stroke-lime-400' }} {{
           svgSizes[size()].strokeSizeClass
         }}"
         [class.animate-pulse]="warn()"
@@ -34,7 +34,7 @@ import { Component, computed, input } from '@angular/core'
           [attr.x]="svgSizes[size()].r"
           [attr.y]="-svgSizes[size()].r"
           text-anchor="middle"
-          class="rotate-90 fill-green-400 font-bold {{ svgSizes[size()].textSizeClass }} {{
+          class="rotate-90 fill-lime-400 font-bold {{ svgSizes[size()].textSizeClass }} {{
             svgSizes[size()].textFix
           }}"
         >
