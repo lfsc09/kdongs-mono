@@ -28,13 +28,13 @@
           <ng-container *ngIf="tokenExpLeftPercentage$ | async as percent">
             <div class="flex flex-col items-end gap-1">
               <code
-                class="bg-background-2 text-foreground-1 rounded px-2 py-0.5 text-[.60rem] font-semibold"
+                class="bg-background-2 text-foreground-1 group-hover/menu:bg-background-2/80 group-hover/menu:text-foreground-2 rounded px-2 py-0.5 text-[.60rem] font-semibold transition-colors"
                 >Ctrl + ;</code
               >
             </div>
             <div class="relative">
               <i
-                class="fa-solid fa-bars-staggered absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                class="fa-solid fa-bars-staggered group-hover/menu:text-foreground-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-colors"
               ></i>
               <kdongs-cp-circular-progress size="sm" [percentage]="percent" [warn]="percent < 25" />
             </div>

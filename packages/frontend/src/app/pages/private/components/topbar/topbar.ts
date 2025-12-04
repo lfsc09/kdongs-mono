@@ -11,8 +11,8 @@ import { NavigationEnd, Router, RouterLink } from '@angular/router'
 import { filter, map, Subscription } from 'rxjs'
 import { environment } from '../../../../../environments/environment.development'
 import { IdentityService } from '../../../../infra/services/identity/identity.service'
-import { CircularProgress } from '../../../components/circular-progress/circular-progress'
 import { LandingService } from '../../landing.service'
+import { CircularProgress } from '../circular-progress/circular-progress'
 
 @Component({
   selector: 'kdongs-cp-topbar',
