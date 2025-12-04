@@ -20,6 +20,7 @@ import { SidebarModulesService } from './sidebar-modules.service'
   host: {
     '(document:keyup.Escape)': 'sidebarModulesService.handleCollapse()',
     '(document:keyup.Control.;)': 'handleInputFocus()',
+    'animate.leave': 'animate-fade-out',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

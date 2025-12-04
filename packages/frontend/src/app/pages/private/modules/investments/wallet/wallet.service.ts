@@ -11,7 +11,7 @@ export class WalletService {
   /**
    * SIGNAL
    */
-  sidebarCollapsed = signal<boolean>(false)
+  sidebarCollapsed = signal<boolean>(true)
   possibleSelectedWallets = signal<PossibleSelectableWallets>(
     new Map<SelectableWalletsMap_Key, null>()
   )

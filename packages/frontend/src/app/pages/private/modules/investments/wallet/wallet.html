@@ -5,18 +5,19 @@
 <section
   class="bg-background-1 fixed top-1/2 right-6 left-6 z-[1001] -translate-y-1/2 space-y-5 rounded p-6 shadow-md md:w-[400px]"
   animate.enter="animate-slide-right-in"
-  animate.leave="animate-slide-right-out"
 >
   <h2>Your wallets ({{ walletService.possibleSelectedWallets().size }} selected)</h2>
   <div class="flex flex-col gap-6 py-2">
     @if (loading()) {
-      <div class="flex h-full items-center justify-center">
-        <kdongs-cp-loading-spinner size="lg" />
+      <div class="loading-bar-box">
+        <kdongs-cp-loading-bar size="md" />
       </div>
     } @else if (wallets() === null) {
-      <div class="flex flex-col gap-2 select-none *:text-gray-400 dark:*:text-gray-500">
-        <span>(╯°□°)╯︵ ┻━┻</span>
-        <span>Error loading your wallets</span>
+      <div class="error-box">
+        <div class="error-content">
+          <span>(╯°□°)╯︵ ┻━┻</span>
+          <span>Error loading your wallets</span>
+        </div>
       </div>
     } @else {
       @for (item of wallets(); track item.id) {
@@ -58,16 +59,16 @@
                 class="fa-solid text-sm"
                 [class]="{
                   'fa-arrow-trend-up': item.trend === 'up',
-                  'text-green-500': item.trend === 'up',
+                  'text-green-600': item.trend === 'up',
                   'fa-arrow-trend-down': item.trend === 'down',
                   'text-red-500': item.trend === 'down',
                   'fa-equals': item.trend === 'stable',
                 }"
               ></i>
               <span
-                class="chip font-semibold"
+                class="chip chip-xs font-semibold"
                 [class]="{
-                  'text-green-500': item.profitInCurncy > 0,
+                  'text-green-600': item.profitInCurncy > 0,
                   'text-red-500': item.profitInCurncy < 0,
                   'text-gray-400': item.profitInCurncy === 0,
                 }"
@@ -75,9 +76,9 @@
                 {{ item.profitInCurncy | currency: item.currencyCode : 'symbol' : '0.0-2' }}
               </span>
               <span
-                class="chip font-semibold"
+                class="chip chip-xs font-semibold"
                 [class]="{
-                  'text-green-500': item.profitInPerc > 0,
+                  'text-green-600': item.profitInPerc > 0,
                   'text-red-500': item.profitInPerc < 0,
                   'text-gray-400': item.profitInPerc === 0,
                 }"
@@ -88,11 +89,37 @@
           </div>
         </div>
       } @empty {
-        <div class="flex flex-col gap-2 select-none *:text-gray-400 dark:*:text-gray-500">
-          <span>¬_¬</span>
-          <span>No wallets found</span>
+        <div class="error-box">
+          <div class="error-content">
+            <span>¬_¬</span>
+            <span>No wallets found</span>
+          </div>
         </div>
       }
     }
+  </div>
+  <div class="mt-6 flex w-full justify-between gap-2">
+    @if (this.walletService.possibleSelectedWallets().size === 1) {
+      <a
+        class="btn btn-outline btn-sm"
+        routerLink="wallets/{{
+          this.walletService.possibleSelectedWallets().keys().next().value
+        }}/edit"
+        (click)="walletService.sidebarCollapsed.set(false)"
+      >
+        <span>Edit Wallet</span>
+        <i class="fa-solid fa-pencil ml-2"></i>
+      </a>
+    } @else {
+      <span></span>
+    }
+    <a
+      routerLink="wallets/create"
+      class="btn btn-outline btn-sm self-end"
+      (click)="walletService.sidebarCollapsed.set(false)"
+    >
+      <span>New Wallet</span>
+      <i class="fa-solid fa-plus ml-2"></i>
+    </a>
   </div>
 </section>

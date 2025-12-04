@@ -4,14 +4,17 @@ import { RouterLink } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { ListUserWalletDTO } from '../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../infra/gateways/investments/investments-gateway.service'
-import { LoadingSpinner } from '../../../../components/loading-spinner/loading-spinner'
+import { LoadingBar } from '../../../components/loading-bar/loading-bar'
 import { SelectableWalletsMap_Key, SelectableWalletsMap_Value } from './wallet.model'
 import { WalletService } from './wallet.service'
 
 @Component({
   selector: 'kdongs-wallet',
   templateUrl: './wallet.html',
-  imports: [RouterLink, DatePipe, CurrencyPipe, PercentPipe, LoadingSpinner],
+  imports: [RouterLink, DatePipe, CurrencyPipe, PercentPipe, LoadingBar],
+  host: {
+    'animate.leave': 'animate-fade-out',
+  },
 })
 export class Wallet implements OnDestroy {
   /**
@@ -67,6 +70,10 @@ export class Wallet implements OnDestroy {
       let selectedWalletIds: string[]
       // Figure it out if must add or remove
       if (this.walletService.possibleSelectedWallets().has(selectedWalletId)) {
+        if (this.walletService.possibleSelectedWallets().size === 1) {
+          // If only one wallet was selected, do nothing on remove
+          return
+        }
         selectedWalletIds = Array.from(this.walletService.possibleSelectedWallets().keys()).filter(
           walletId => walletId !== selectedWalletId
         )
