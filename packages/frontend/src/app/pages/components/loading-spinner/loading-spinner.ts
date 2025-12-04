@@ -2,15 +2,6 @@ import { Component, input } from '@angular/core'
 
 @Component({
   selector: 'kdongs-cp-loading-spinner',
-  imports: [],
-  styles: `
-    :host {
-      display: flex;
-      transition-property: opacity;
-      transition-duration: 150ms;
-      transition-timing-function: ease-in-out;
-    }
-  `,
   template: `
     <span class="animate-loading-circular-outer {{ sizes[size()] }}">
       <svg class="block" viewBox="22 22 44 44">
@@ -25,13 +16,16 @@ import { Component, input } from '@angular/core'
       </svg>
     </span>
   `,
+  host: {
+    class: 'flex transition-opacity duration-150 ease-in-out',
+  },
 })
 export class LoadingSpinner {
   /**
    * SIGNALS
    */
   size = input<'sm' | 'md' | 'lg' | 'xl'>('sm')
-  color = input<'white' | 'neutral' | 'lime'>('lime')
+  color = input<'white' | 'gray' | 'lime'>('lime')
 
   /**
    * VARS
@@ -44,7 +38,7 @@ export class LoadingSpinner {
   }
   protected colors = {
     white: 'stroke-white',
-    neutral: 'stroke-neutral-300 dark:stroke-neutral-600',
-    lime: 'stroke-lime-400 dark:stroke-lime-400',
+    gray: 'stroke-gray-300 dark:stroke-gray-600',
+    lime: 'stroke-lime-500 dark:stroke-lime-500',
   }
 }
