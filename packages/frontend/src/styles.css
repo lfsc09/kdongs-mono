@@ -15,17 +15,17 @@
   --lime-900: #31481f;
   --lime-950: #17270c;
 
-  --mirage-50: #f6f6f9;
-  --mirage-100: #ebecf3;
-  --mirage-200: #d4d6e3;
-  --mirage-300: #aeb3cb;
-  --mirage-400: #828aae;
-  --mirage-500: #626b95;
-  --mirage-600: #4d547c;
-  --mirage-700: #404464;
-  --mirage-800: #373b55;
-  --mirage-900: #323548;
-  --mirage-950: #1a1b26;
+  --slate-50: #f6f6f9;
+  --slate-100: #ebecf3;
+  --slate-200: #d4d6e3;
+  --slate-300: #aeb3cb;
+  --slate-400: #828aae;
+  --slate-500: #626b95;
+  --slate-600: #4d547c;
+  --slate-700: #404464;
+  --slate-800: #373b55;
+  --slate-900: #323548;
+  --slate-950: #1a1b26;
 
   --portage-50: #eff4ff;
   --portage-100: #dce6fd;
@@ -63,12 +63,12 @@
   --indigo-900: #3c3877;
   --indigo-950: #232145;
 
-  --background-0: var(--mirage-50);
-  --background-1: var(--mirage-100);
-  --background-2: var(--mirage-200);
-  --background-3: var(--mirage-300);
-  --background-4: var(--mirage-400);
-  --background-5: var(--mirage-500);
+  --background-0: var(--slate-50);
+  --background-1: var(--slate-100);
+  --background-2: var(--slate-200);
+  --background-3: var(--slate-300);
+  --background-4: var(--slate-400);
+  --background-5: var(--slate-500);
 
   --foreground-0: var(--cyan-600);
   --foreground-1: var(--cyan-600);
@@ -79,12 +79,12 @@
 }
 
 .dark {
-  --background-0: var(--mirage-950);
-  --background-1: var(--mirage-900);
-  --background-2: var(--mirage-800);
-  --background-3: var(--mirage-700);
-  --background-4: var(--mirage-600);
-  --background-5: var(--mirage-500);
+  --background-0: var(--slate-950);
+  --background-1: var(--slate-900);
+  --background-2: var(--slate-800);
+  --background-3: var(--slate-700);
+  --background-4: var(--slate-600);
+  --background-5: var(--slate-500);
 
   --foreground-0: var(--cyan-400);
   --foreground-1: var(--cyan-400);
@@ -109,17 +109,17 @@
   --color-lime-900: var(--lime-900);
   --color-lime-950: var(--lime-950);
 
-  --color-mirage-50: var(--mirage-50);
-  --color-mirage-100: var(--mirage-100);
-  --color-mirage-200: var(--mirage-200);
-  --color-mirage-300: var(--mirage-300);
-  --color-mirage-400: var(--mirage-400);
-  --color-mirage-500: var(--mirage-500);
-  --color-mirage-600: var(--mirage-600);
-  --color-mirage-700: var(--mirage-700);
-  --color-mirage-800: var(--mirage-800);
-  --color-mirage-900: var(--mirage-900);
-  --color-mirage-950: var(--mirage-950);
+  --color-slate-50: var(--slate-50);
+  --color-slate-100: var(--slate-100);
+  --color-slate-200: var(--slate-200);
+  --color-slate-300: var(--slate-300);
+  --color-slate-400: var(--slate-400);
+  --color-slate-500: var(--slate-500);
+  --color-slate-600: var(--slate-600);
+  --color-slate-700: var(--slate-700);
+  --color-slate-800: var(--slate-800);
+  --color-slate-900: var(--slate-900);
+  --color-slate-950: var(--slate-950);
 
   --color-portage-50: var(--portage-50);
   --color-portage-100: var(--portage-100);
@@ -330,15 +330,29 @@
     }
   }
 
+  /**
+    @example
+    <div class="loading-bar-box">
+      <!-- Loading Indicator Here -->
+    </div>
+  */
   .loading-bar-box {
-    @apply border-mirage-300 dark:border-mirage-600 flex h-48 items-center justify-center rounded border-2 border-dashed select-none;
+    @apply flex h-48 items-center justify-center rounded border-2 border-dashed border-slate-300 select-none dark:border-slate-600;
   }
 
+  /**
+    @example
+    <div class="error-box">
+      <div class="error-content">
+        <p>Error Message</p>
+      </div>
+    </div>
+  */
   .error-box {
-    @apply border-mirage-300 dark:border-mirage-600 flex h-48 items-center justify-center rounded border-2 border-dashed select-none;
+    @apply flex h-48 items-center justify-center rounded border-2 border-dashed border-slate-300 select-none dark:border-slate-600;
 
     .error-content {
-      @apply text-mirage-300 dark:text-mirage-600 flex flex-col gap-2 font-semibold;
+      @apply flex flex-col gap-2 font-semibold text-slate-300 dark:text-slate-600;
     }
   }
 
@@ -367,14 +381,14 @@
   }
 
   .btn {
-    @apply bg-portage-300 text-mirage-900 hover:text-mirage-100 dark:bg-portage-400 dark:text-mirage-100 dark:hover:text-mirage-800 cursor-pointer rounded px-3 py-2 transition-colors;
+    @apply bg-portage-300 dark:bg-portage-400 cursor-pointer rounded px-3 py-2 text-slate-900 transition-colors hover:text-slate-100 dark:text-slate-100 dark:hover:text-slate-800;
 
     &.btn-ghost {
       @apply hover:bg-background-2 dark:hover:bg-background-3 text-foreground-1 dark:text-foreground-1 bg-transparent transition-colors;
     }
 
     &.btn-outline {
-      @apply hover:bg-portage-300 dark:hover:bg-portage-400 hover:text-mirage-900 outline-portage-300 bg-transparent outline transition-colors;
+      @apply hover:bg-portage-300 dark:hover:bg-portage-400 outline-portage-300 bg-transparent outline transition-colors hover:text-slate-900;
     }
 
     &.btn-sm {
@@ -383,7 +397,7 @@
   }
 
   .input {
-    @apply border-mirage-400 bg-background-0 text-mirage-900 dark:text-mirage-100 w-64 rounded border px-2 py-1;
+    @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
   }
 
   .form-field {
@@ -398,7 +412,7 @@
     }
 
     input {
-      @apply border-mirage-400 bg-background-0 text-mirage-900 dark:text-mirage-100 w-64 rounded border px-2 py-1;
+      @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
     }
   }
 
@@ -410,7 +424,7 @@
     }
 
     input {
-      @apply border-mirage-400 bg-background-0 text-mirage-900 dark:text-mirage-100 w-64 rounded border px-2 py-1;
+      @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
     }
   }
 }

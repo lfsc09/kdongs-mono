@@ -1,5 +1,5 @@
 <section
-  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-gray-200/40 backdrop-blur-[2px] dark:bg-neutral-900/80"
+  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-slate-200/40 backdrop-blur-[2px] dark:bg-slate-900/80"
   (click)="sidebarModulesService.handleCollapse()"
 ></section>
 <section
@@ -35,7 +35,7 @@
   @let nextTheme = themeManagerService.getNextThemeInfo();
   <ul class="flex cursor-pointer flex-col gap-2">
     <li
-      class="btn btn-ghost text-mirage-900 dark:text-mirage-100 flex items-center justify-between gap-3"
+      class="btn btn-ghost flex items-center justify-between gap-3 text-slate-900 dark:text-slate-100"
       (click)="themeManagerService.cycleThrough()"
     >
       <span class="flex flex-col items-start text-xs">
@@ -45,7 +45,7 @@
       <i class="{{ nextTheme.icon }}"></i>
     </li>
     <li
-      class="btn btn-ghost text-mirage-900 dark:text-mirage-100 flex items-center justify-between gap-3"
+      class="btn btn-ghost flex items-center justify-between gap-3 text-slate-900 dark:text-slate-100"
       (click)="identityService.clearAll()"
     >
       <span class="text-xs">Logout</span>
@@ -53,7 +53,7 @@
     </li>
     @for (module of sidebarModulesService.modules(); track module?.url) {
       <a
-        class="btn btn-ghost text-mirage-900 dark:text-mirage-100 flex items-center justify-between gap-3"
+        class="btn btn-ghost flex items-center justify-between gap-3 text-slate-900 dark:text-slate-100"
         routerLink="{{ module!.url }}"
         routerLinkActive="navleft-router-link-active"
         (click)="sidebarModulesService.handleCollapse()"
@@ -64,7 +64,7 @@
         }
       </a>
     } @empty {
-      <li class="text-mirage-500 dark:text-mirage-400 text-center text-xs">No modules available</li>
+      <li class="text-center text-xs text-slate-500 dark:text-slate-400">No modules available</li>
     }
   </ul>
 </section>

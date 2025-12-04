@@ -8,7 +8,7 @@ import {
   selector: 'kdongs-cp-message',
   template: `
     <div
-      class="py-2 px-3 flex flex-col gap-3 border rounded-md text-sm text-mirage-500 dark:text-mirage-400 {{
+      class="py-2 px-3 flex flex-col gap-3 border rounded-md text-sm text-slate-500 dark:text-slate-400 {{
         colors[severity()]
       }}"
     >

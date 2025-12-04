@@ -1,5 +1,5 @@
 <section
-  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-gray-200/40 backdrop-blur-[2px] dark:bg-neutral-900/80"
+  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-slate-200/40 backdrop-blur-[2px] dark:bg-slate-900/80"
   (click)="walletService.handleCollapse()"
 ></section>
 <section
@@ -22,7 +22,7 @@
     } @else {
       @for (item of wallets(); track item.id) {
         <div
-          class="card border-mirage-200 dark:border-mirage-700 cursor-pointer space-y-4 border px-4 py-2 select-none"
+          class="card cursor-pointer space-y-4 border border-slate-200 px-4 py-2 select-none dark:border-slate-700"
           [class]="{
             'ring-2': walletService.possibleSelectedWallets().has(item.id),
             'ring-portage-400': walletService.possibleSelectedWallets().has(item.id),
@@ -32,7 +32,7 @@
           <div class="flex flex-row items-center justify-between">
             <div class="flex flex-col items-start gap-1">
               <span class="font-semibold">{{ item.name }}</span>
-              <div class="flex flex-row items-center gap-2 text-gray-400 *:text-xs">
+              <div class="flex flex-row items-center gap-2 text-slate-400 *:text-xs">
                 <i class="fa-solid fa-rotate"></i>
                 <span>{{ item.updatedAt | date: 'dd/MM/yy HH:mm' }}</span>
               </div>
@@ -43,13 +43,13 @@
             <div class="flex flex-col justify-center gap-1">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-sm font-semibold">Submission Balance</span>
-                <span class="text-mirage-900 dark:text-mirage-100 text-sm font-semibold">
+                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {{ item.initialBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
                 </span>
               </div>
               <div class="flex items-center justify-between gap-2">
                 <span class="text-sm font-semibold">Current Balance</span>
-                <span class="text-mirage-900 dark:text-mirage-100 text-sm font-semibold">
+                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {{ item.currentBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
                 </span>
               </div>
@@ -70,7 +70,7 @@
                 [class]="{
                   'text-green-600': item.profitInCurncy > 0,
                   'text-red-500': item.profitInCurncy < 0,
-                  'text-gray-400': item.profitInCurncy === 0,
+                  'text-slate-400': item.profitInCurncy === 0,
                 }"
               >
                 {{ item.profitInCurncy | currency: item.currencyCode : 'symbol' : '0.0-2' }}
@@ -80,7 +80,7 @@
                 [class]="{
                   'text-green-600': item.profitInPerc > 0,
                   'text-red-500': item.profitInPerc < 0,
-                  'text-gray-400': item.profitInPerc === 0,
+                  'text-slate-400': item.profitInPerc === 0,
                 }"
               >
                 {{ item.profitInPerc | percent: '0.0-2' }}
