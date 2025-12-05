@@ -363,10 +363,10 @@
     </pre>
   */
   .code-block {
-    @apply bg-background-2 hover:text-foreground-2 flex w-full cursor-pointer justify-center gap-2 rounded p-4 shadow transition-colors;
+    @apply bg-background-2 hover:text-foreground-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded p-4 shadow transition-colors;
 
     pre {
-      @apply overflow-auto px-4;
+      @apply flex items-center overflow-auto px-4;
 
       &::-webkit-scrollbar {
         @apply hidden;

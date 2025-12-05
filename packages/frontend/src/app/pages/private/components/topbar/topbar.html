@@ -26,11 +26,10 @@
       >
         <div class="flex flex-row items-center gap-1 select-none">
           <ng-container *ngIf="tokenExpLeftPercentage$ | async as percent">
-            <div class="flex flex-col items-end gap-1">
-              <code
-                class="bg-background-2 text-foreground-1 group-hover/menu:bg-background-2/80 group-hover/menu:text-foreground-2 rounded px-2 py-0.5 text-[.60rem] font-semibold transition-colors"
-                >Ctrl + ;</code
-              >
+            <div
+              class="code-block group-hover/menu:bg-background-2/80 group-hover/menu:text-foreground-2 px-0 py-1.5 text-[.70rem] font-semibold"
+            >
+              <pre><code>Ctrl + ;</code></pre>
             </div>
             <div class="relative">
               <i
