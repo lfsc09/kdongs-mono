@@ -1,4 +1,4 @@
-import { defineConfig } from '@adonisjs/core/bodyparser';
+import { defineConfig } from '@adonisjs/core/bodyparser'
 
 const bodyParserConfig = defineConfig({
   /**
@@ -41,15 +41,15 @@ const bodyParserConfig = defineConfig({
      */
     autoProcess: true,
     convertEmptyStringsToNull: true,
-    processManually: [],
 
     /**
      * Maximum limit of data to parse including all files
      * and fields
      */
     limit: '20mb',
+    processManually: [],
     types: ['multipart/form-data'],
   },
-});
+})
 
-export default bodyParserConfig;
+export default bodyParserConfig

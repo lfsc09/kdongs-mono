@@ -1,5 +1,5 @@
-import type { HttpContext } from '@adonisjs/core/http';
-import type { NextFn } from '@adonisjs/core/types/http';
+import type { HttpContext } from '@adonisjs/core/http'
+import type { NextFn } from '@adonisjs/core/types/http'
 
 /**
  * Middleware to convert cookie to Authorization header
@@ -7,10 +7,10 @@ import type { NextFn } from '@adonisjs/core/types/http';
  */
 export default class CookieToAuthHeaderMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
-    const token = ctx.request.cookie('token');
+    const token = ctx.request.cookie('token')
     if (token && !ctx.request.header('authorization')) {
-      ctx.request.headers().authorization = `Bearer ${token}`;
+      ctx.request.headers().authorization = `Bearer ${token}`
     }
-    await next();
+    await next()
   }
 }

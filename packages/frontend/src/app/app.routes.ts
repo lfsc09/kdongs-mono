@@ -1,11 +1,11 @@
-import { ActivatedRouteSnapshot, ResolveFn, Routes } from '@angular/router';
-import { environment } from '../environments/environment';
-import { gatekeeperGuard } from './infra/guards/gatekeeper.guard';
-import { investmentsRoutes } from './pages/private/modules/investments/investments.routes';
+import { ActivatedRouteSnapshot, ResolveFn, Routes } from '@angular/router'
+import { environment } from '../environments/environment.development'
+import { gatekeeperGuard } from './infra/guards/gatekeeper.guard'
+import { investmentsRoutes } from './pages/private/modules/investments/investments.routes'
 
 export const titleResolver: ResolveFn<string> = (route: ActivatedRouteSnapshot) => {
-  return `${environment.title} - ${route.data['title']}`;
-};
+  return `${environment.title} - ${route.data['title']}`
+}
 
 export const routes: Routes = [
   {
@@ -14,13 +14,12 @@ export const routes: Routes = [
       title: 'Gate',
     },
     title: titleResolver,
-    loadComponent: () => import('./pages/public/landing/landing').then((m) => m.Landing),
+    loadComponent: () => import('./pages/public/landing/landing').then(m => m.Landing),
     canMatch: [gatekeeperGuard],
   },
   {
     path: 'r!',
-    loadComponent: () =>
-      import('./pages/private/landing-layout').then((module) => module.LandingLayout),
+    loadComponent: () => import('./pages/private/landing').then(module => module.Landing),
     canMatch: [gatekeeperGuard],
     children: [
       {
@@ -45,4 +44,4 @@ export const routes: Routes = [
     ],
   },
   { path: '**', redirectTo: 'gate', pathMatch: 'full' },
-];
+]

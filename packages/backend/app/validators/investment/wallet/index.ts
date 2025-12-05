@@ -1,5 +1,5 @@
-import vine from '@vinejs/vine';
-import { paginationSchema } from '#validators/shared/pagination';
+import vine from '@vinejs/vine'
+import { paginationSchema } from '#validators/shared/pagination'
 
 export const indexWalletsValidator = vine.compile(
   vine.object({
@@ -9,4 +9,4 @@ export const indexWalletsValidator = vine.compile(
       .enum(['walletName', 'walletCurrencyCode', 'walletCreatedAt', 'walletUpdatedAt'])
       .optional(),
   }),
-);
+)

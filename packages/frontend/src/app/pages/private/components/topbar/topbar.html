@@ -1,0 +1,45 @@
+<section
+  class="bg-background-0 sticky top-0 right-0 left-0 z-[100] flex h-20 flex-row items-center border-b border-slate-900/10 px-6 py-3 dark:border-slate-50/10"
+>
+  <div class="flex w-dvw items-center gap-4">
+    <img class="h-10 w-10" src="kdongs-icon-round.png" alt="logo" />
+    <div class="flex flex-row items-end">
+      <span class="stroke cursor-pointer text-xl text-lime-500 select-none" routerLink="/r!">
+        Kdongs
+      </span>
+      @if (breadcrumbs().length > 0) {
+        @for (segment of breadcrumbs(); track $index) {
+          <code class="px-1.5 text-slate-500">/</code>
+          <span class="inline-block max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">{{
+            segment
+          }}</span>
+        }
+      }
+    </div>
+  </div>
+  <div class="ml-auto flex flex-row items-center gap-2">
+    <div class="relative flex flex-row items-center">
+      <button
+        type="button"
+        class="group/menu cursor-pointer pr-1 pl-3"
+        (click)="sidebarModulesService.handleCollapse()"
+      >
+        <div class="flex flex-row items-center gap-1 select-none">
+          <ng-container *ngIf="tokenExpLeftPercentage$ | async as percent">
+            <div
+              class="code-block group-hover/menu:bg-background-2/80 group-hover/menu:text-foreground-2 px-0 py-1.5 text-[.70rem] font-semibold"
+            >
+              <pre><code>Ctrl + ;</code></pre>
+            </div>
+            <div class="relative">
+              <i
+                class="fa-solid fa-bars-staggered group-hover/menu:text-foreground-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-colors"
+              ></i>
+              <kdongs-cp-circular-progress size="sm" [percentage]="percent" [warn]="percent < 25" />
+            </div>
+          </ng-container>
+        </div>
+      </button>
+    </div>
+  </div>
+</section>

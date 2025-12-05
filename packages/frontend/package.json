@@ -8,60 +8,35 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "format": "prettier --write \"src/**/*.{ts,js,json,css,scss,html,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,js,json,css,scss,html,md}\"",
-    "zardui:reinstall-components": "sh -c 'read -p \"Did you erase components and reinstalled ngzard? (y/n): \" answer && if [ \"$answer\" = \"y\" ]; then npx @ngzard/ui add button card divider form input progress-bar; fi'"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,css,scss,html,md}\""
   },
   "private": true,
   "dependencies": {
-    "@angular/cdk": "^20.2.7",
-    "@angular/common": "^20.1.0",
-    "@angular/compiler": "^20.1.0",
-    "@angular/core": "^20.1.0",
-    "@angular/forms": "^20.1.0",
-    "@angular/platform-browser": "^20.1.0",
-    "@angular/router": "^20.1.0",
+    "@angular/cdk": "^21.0.1",
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
     "@fortawesome/fontawesome-free": "^7.0.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-angular": "^0.542.0",
-    "lucide-static": "^0.545.0",
-    "ngx-sonner": "^3.1.0",
     "rxjs": "~7.8.0",
-    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.17",
     "tslib": "^2.3.0",
-    "zod": "^4.1.12",
-    "zone.js": "~0.15.0"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@angular/build": "^20.1.6",
-    "@angular/cli": "^20.1.6",
-    "@angular/compiler-cli": "^20.1.0",
-    "@tailwindcss/postcss": "^4.1.14",
+    "@angular/build": "^21.0.1",
+    "@angular/cli": "^21.0.1",
+    "@angular/compiler-cli": "^21.0.0",
+    "@tailwindcss/postcss": "^4.1.12",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "@types/jasmine": "~5.1.0",
-    "jasmine-core": "~5.8.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "postcss": "^8.5.6",
+    "jsdom": "^27.1.0",
+    "postcss": "^8.5.3",
     "prettier-plugin-organize-imports": "^4.2.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "tailwindcss": "^4.1.14",
-    "tailwindcss-animate": "^1.0.7",
-    "typescript": "~5.8.2"
+    "tailwindcss": "^4.1.12",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
   }
 }

@@ -1,0 +1,125 @@
+<section
+  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-slate-200/40 backdrop-blur-[2px] dark:bg-slate-900/80"
+  (click)="walletService.handleCollapse()"
+></section>
+<section
+  class="bg-background-1 fixed top-1/2 right-6 left-6 z-[1001] -translate-y-1/2 space-y-5 rounded p-6 shadow-md md:w-[400px]"
+  animate.enter="animate-slide-right-in"
+>
+  <h2>Your wallets ({{ walletService.possibleSelectedWallets().size }} selected)</h2>
+  <div class="flex flex-col gap-6 py-2">
+    @if (loading()) {
+      <div class="loading-bar-box">
+        <kdongs-cp-loading-bar size="md" />
+      </div>
+    } @else if (wallets() === null) {
+      <div class="error-box">
+        <div class="error-content">
+          <span>(╯°□°)╯︵ ┻━┻</span>
+          <span>Error loading your wallets</span>
+        </div>
+      </div>
+    } @else {
+      @for (item of wallets(); track item.id) {
+        <div
+          class="card cursor-pointer space-y-4 border border-slate-200 px-4 py-2 select-none dark:border-slate-700"
+          [class]="{
+            'ring-2': walletService.possibleSelectedWallets().has(item.id),
+            'ring-portage-400': walletService.possibleSelectedWallets().has(item.id),
+          }"
+          (click)="handleSelectMoreWallets($event, item.id)"
+        >
+          <div class="flex flex-row items-center justify-between">
+            <div class="flex flex-col items-start gap-1">
+              <span class="font-semibold">{{ item.name }}</span>
+              <div class="flex flex-row items-center gap-2 text-slate-400 *:text-xs">
+                <i class="fa-solid fa-rotate"></i>
+                <span>{{ item.updatedAt | date: 'dd/MM/yy HH:mm' }}</span>
+              </div>
+            </div>
+            <span class="chip font-bold">{{ item.currencyCode }}</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col justify-center gap-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-semibold">Submission Balance</span>
+                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {{ item.initialBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-semibold">Current Balance</span>
+                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {{ item.currentBalance | currency: item.currencyCode : 'symbol' : '0.0-2' }}
+                </span>
+              </div>
+            </div>
+            <div class="flex flex-row items-center justify-end gap-2">
+              <i
+                class="fa-solid text-sm"
+                [class]="{
+                  'fa-arrow-trend-up': item.trend === 'up',
+                  'text-green-600': item.trend === 'up',
+                  'fa-arrow-trend-down': item.trend === 'down',
+                  'text-red-500': item.trend === 'down',
+                  'fa-equals': item.trend === 'stable',
+                }"
+              ></i>
+              <span
+                class="chip chip-xs font-semibold"
+                [class]="{
+                  'text-green-600': item.profitInCurncy > 0,
+                  'text-red-500': item.profitInCurncy < 0,
+                  'text-slate-400': item.profitInCurncy === 0,
+                }"
+              >
+                {{ item.profitInCurncy | currency: item.currencyCode : 'symbol' : '0.0-2' }}
+              </span>
+              <span
+                class="chip chip-xs font-semibold"
+                [class]="{
+                  'text-green-600': item.profitInPerc > 0,
+                  'text-red-500': item.profitInPerc < 0,
+                  'text-slate-400': item.profitInPerc === 0,
+                }"
+              >
+                {{ item.profitInPerc | percent: '0.0-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="error-box">
+          <div class="error-content">
+            <span>¬_¬</span>
+            <span>No wallets found</span>
+          </div>
+        </div>
+      }
+    }
+  </div>
+  <div class="mt-6 flex w-full justify-between gap-2">
+    @if (this.walletService.possibleSelectedWallets().size === 1) {
+      <a
+        class="btn btn-outline btn-sm"
+        routerLink="wallets/{{
+          this.walletService.possibleSelectedWallets().keys().next().value
+        }}/edit"
+        (click)="walletService.sidebarCollapsed.set(false)"
+      >
+        <span>Edit Wallet</span>
+        <i class="fa-solid fa-pencil ml-2"></i>
+      </a>
+    } @else {
+      <span></span>
+    }
+    <a
+      routerLink="wallets/create"
+      class="btn btn-outline btn-sm self-end"
+      (click)="walletService.sidebarCollapsed.set(false)"
+    >
+      <span>New Wallet</span>
+      <i class="fa-solid fa-plus ml-2"></i>
+    </a>
+  </div>
+</section>

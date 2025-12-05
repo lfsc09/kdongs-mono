@@ -1,154 +1,329 @@
-import Big from 'big.js';
-import Wallet from '#models/investment/wallet';
-import type { CreateWalletResponse } from '../../core/dto/investment/wallet/create_dto.js';
-import type { DeleteWalletRequest } from '../../core/dto/investment/wallet/delete_dto.js';
-import type { EditWalletRequest } from '../../core/dto/investment/wallet/edit_dto.js';
+import Big from 'big.js'
+import { DateTime } from 'luxon'
+import Wallet from '#models/investment/wallet'
+import { PromiseBatch } from '#services/util/promise_batch'
+import type { CreateWalletResponse } from '../../core/dto/investment/wallet/create_dto.js'
+import type { DeleteWalletRequest } from '../../core/dto/investment/wallet/delete_dto.js'
+import type { EditWalletRequest } from '../../core/dto/investment/wallet/edit_dto.js'
 import type {
   IndexWalletsRequest,
   IndexWalletsResponse,
-} from '../../core/dto/investment/wallet/index_dto.js';
+} from '../../core/dto/investment/wallet/index_dto.js'
 import type {
   ShowWalletRequest,
   ShowWalletResponse,
-} from '../../core/dto/investment/wallet/show_dto.js';
-import type { StoreWalletRequest } from '../../core/dto/investment/wallet/store_dto.js';
+} from '../../core/dto/investment/wallet/show_dto.js'
+import type { StoreWalletRequest } from '../../core/dto/investment/wallet/store_dto.js'
 import {
-  acceptedCurrencyCodes,
-  type CurrencyCode,
-} from '../../core/types/investment/currencies.js';
+  HandleSelectedWalletsPerformanceRequest,
+  HandleSelectedWalletsPerformanceResponse,
+} from '../../core/dto/investment/wallet_performance/handle_dto.js'
+import { acceptedCurrencyCodes, type CurrencyCode } from '../../core/types/investment/currencies.js'
+import AssetBrlPrivateBondUtils from './helpers/asset_brl_private_bond.js'
+import AssetBrlPublicBondUtils from './helpers/asset_brl_public_bond.js'
+import AssetSefbfrUtils from './helpers/asset_sefbfr.js'
 
 export default class WalletsService {
-  async index(input: IndexWalletsRequest): Promise<IndexWalletsResponse> {
-    const page = Number(input.page) ?? 1;
-    const limit = Number(input.limit) ?? 10;
-    const sortOrder = input.sortOrder ?? 'desc';
-    let sortBy: string;
+  async walletsList(input: IndexWalletsRequest): Promise<IndexWalletsResponse> {
+    const page = Number(input.page) ?? 1
+    const limit = Number(input.limit) ?? 10
+    const sortOrder = input.sortOrder ?? 'desc'
+    let sortBy: string
 
     switch (input.sortBy) {
       case 'walletName':
-        sortBy = 'name';
-        break;
+        sortBy = 'name'
+        break
       case 'walletCurrencyCode':
-        sortBy = 'currencyCode';
-        break;
+        sortBy = 'currencyCode'
+        break
       case 'walletCreatedAt':
-        sortBy = 'createdAt';
-        break;
+        sortBy = 'createdAt'
+        break
       case 'walletUpdatedAt':
-        sortBy = 'updatedAt';
-        break;
+        sortBy = 'updatedAt'
+        break
       default:
-        sortBy = 'createdAt';
-        break;
+        sortBy = 'createdAt'
+        break
     }
 
     const wallets = await Wallet.query()
       .where('userId', input.userId)
       .orderBy(sortBy, sortOrder)
       .preload('movements')
-      .preload('assetBrlPrivateBonds')
-      .preload('assetBrlPublicBonds')
-      .paginate(page, limit);
+      .paginate(page, limit)
 
     return {
       data: {
-        wallets: wallets.all().map((wallet: Wallet) => {
-          // Submission balance is the balance of the wallet considering only the movements (submissions)
-          const submissionBalance = wallet.movements.reduce(
-            (acc, movement) => acc.add(movement.resultAmount),
-            new Big(0),
-          );
-          const brl_private_bonds = wallet.assetBrlPrivateBonds.reduce(
-            (acc, bond) => acc.add(bond.netAmount ?? 0),
-            new Big(0),
-          );
-          // const brl_public_bonds = wallet.assetBrlPublicBonds.reduce(async (acc, bond) => {
-          //   const { doneProfit } = await bond.getPerformance();
-          //   return acc.add(doneProfit);
-          // }, new Big(0));
-          const brl_public_bonds = new Big(0);
+        wallets: await Promise.all(
+          wallets.all().map(async (wallet: Wallet) => {
+            // Submission balance is the balance of the wallet considering only the movements (submissions)
+            const submissionBalance = wallet.movements.reduce(
+              (acc, movement) => acc.add(movement.resultAmount),
+              new Big(0),
+            )
 
-          const profit_in_curncy = brl_private_bonds.add(brl_public_bonds);
+            const [brlPrivateBonds, brlPublicBonds, sefbfrAssets] = await Promise.all([
+              AssetBrlPrivateBondUtils.getBondsPerformance(wallet.id),
+              AssetBrlPublicBondUtils.getBondsPerformance(wallet.id),
+              AssetSefbfrUtils.getAssetsPerformance(wallet.id),
+            ])
 
-          // Current balance is the balance of the wallet considering the submissions and the investments done in the wallet
-          const currentBalance = submissionBalance.add(profit_in_curncy);
+            const brlPrivateBondsProfit = Array.from(brlPrivateBonds.values()).reduce(
+              (acc, bond) => acc.add(bond.doneProfit ?? 0),
+              new Big(0),
+            )
+            const brlPublicBondsProfit = Array.from(brlPublicBonds.values()).reduce(
+              (acc, bond) => acc.add(bond.doneProfit ?? 0),
+              new Big(0),
+            )
+            const sefbfrAssetsProfit = Array.from(sefbfrAssets.values()).reduce(
+              (acc, asset) => acc.add(asset.doneProfit ?? 0),
+              new Big(0),
+            )
 
-          const profit_in_perc = submissionBalance.eq(0)
-            ? submissionBalance
-            : currentBalance.div(submissionBalance).minus(1);
+            const profitInCurncy = brlPrivateBondsProfit
+              .add(brlPublicBondsProfit)
+              .add(sefbfrAssetsProfit)
 
-          return {
-            id: wallet.id,
-            name: wallet.name,
-            currencyCode: wallet.currencyCode,
-            trend: 'up',
-            initial_balance: submissionBalance.round(2, Big.roundHalfEven).toNumber(),
-            current_balance: currentBalance.round(2, Big.roundHalfEven).toNumber(),
-            profit_in_curncy: profit_in_curncy.round(2, Big.roundHalfEven).toNumber(),
-            profit_in_perc: profit_in_perc.round(2, Big.roundHalfEven).toNumber(),
-            createdAt: wallet.createdAt.toISO() ?? undefined,
-            updatedAt: wallet.updatedAt?.toISO() ?? undefined,
-          };
-        }),
+            // Current balance is the balance of the wallet considering the submissions and the investments done in the wallet
+            const currentBalance = submissionBalance.add(profitInCurncy)
+
+            const profitInPerc = submissionBalance.eq(0)
+              ? submissionBalance
+              : currentBalance.div(submissionBalance).minus(1)
+
+            return {
+              createdAt: wallet.createdAt.toISO() ?? undefined,
+              currencyCode: wallet.currencyCode,
+              currentBalance: currentBalance.round(2, Big.roundHalfEven).toNumber(),
+              id: wallet.id,
+              initialBalance: submissionBalance.round(2, Big.roundHalfEven).toNumber(),
+              name: wallet.name,
+              profitInCurncy: profitInCurncy.round(2, Big.roundHalfEven).toNumber(),
+              profitInPerc: profitInPerc.round(2, Big.roundHalfEven).toNumber(),
+              // FIXME: fix trend calculation
+              trend: 'up',
+              updatedAt: wallet.updatedAt?.toISO() ?? undefined,
+            }
+          }),
+        ),
       },
       metadata: {
-        totalCount: wallets.total,
-        page: wallets.currentPage,
         limit: wallets.perPage,
         nextPage: wallets.hasMorePages ? wallets.currentPage + 1 : undefined,
+        page: wallets.currentPage,
         previousPage: wallets.currentPage > 1 ? wallets.currentPage - 1 : undefined,
+        totalCount: wallets.total,
         totalPages: wallets.lastPage,
       },
-    };
+    }
   }
 
-  async create(): Promise<CreateWalletResponse> {
+  async walletsPerformance(
+    input: HandleSelectedWalletsPerformanceRequest,
+  ): Promise<HandleSelectedWalletsPerformanceResponse> {
+    const wallets = await Wallet.query()
+      .whereIn('id', input.walletIds)
+      .where('userId', input.userId)
+      .preload('movements', movementQuery => {
+        movementQuery.orderBy('dateUtc', 'asc')
+      })
+
+    const walletsIterator = new PromiseBatch(
+      wallets.map(async wallet => {
+        const [brlPrivateBonds, brlPublicBonds, sefbfrAssets] = await Promise.all([
+          AssetBrlPrivateBondUtils.getBondsPerformance(wallet.id),
+          AssetBrlPublicBondUtils.getBondsPerformance(wallet.id),
+          AssetSefbfrUtils.getAssetsPerformance(wallet.id),
+        ])
+
+        return {
+          brlPrivateBonds,
+          brlPublicBonds,
+          sefbfrAssets,
+          wallet,
+        }
+      }),
+      10,
+    )
+
+    const globalAnalytics = {
+      // Avg amount of days an Asset is held (until done)
+      avgDaysByAsset: 0,
+      dateEndUtcAsset: undefined as DateTime | undefined,
+      dateEndUtcMovement: undefined as DateTime | undefined,
+      // First and last Asset/Movement dates
+      dateStartUtcAsset: undefined as DateTime | undefined,
+      dateStartUtcMovement: undefined as DateTime | undefined,
+      numberOfActiveAssets: 0,
+      numberOfActiveAssetsLoss: 0,
+      numberOfActiveAssetsProfit: 0,
+
+      // Asset counters
+      numberOfAssets: 0,
+      numberOfAssetsLoss: 0,
+      numberOfAssetsProfit: 0,
+
+      // Submissions + Assets profit/loss
+      resultingBalanceInCurncy: new Big(0),
+
+      // Only Assets profit/loss
+      resultingProfitInCurncy: new Big(0),
+      resultingProfitInPerc: new Big(0),
+    }
+
+    for await (const walletInfo of walletsIterator.process()) {
+      // Submission balance is the balance of the wallet considering only the movements (submissions)
+      const submissionBalance = walletInfo.wallet.movements.reduce(
+        (acc, movement) => acc.add(movement.resultAmount),
+        new Big(0),
+      )
+
+      if (
+        !globalAnalytics.dateStartUtcMovement ||
+        globalAnalytics.dateStartUtcMovement > walletInfo.wallet.movements[0]?.dateUtc
+      ) {
+        globalAnalytics.dateStartUtcMovement = walletInfo.wallet.movements[0]?.dateUtc
+      }
+      if (
+        !globalAnalytics.dateEndUtcMovement ||
+        globalAnalytics.dateEndUtcMovement <
+          walletInfo.wallet.movements[walletInfo.wallet.movements.length - 1]?.dateUtc
+      ) {
+        globalAnalytics.dateEndUtcMovement =
+          walletInfo.wallet.movements[walletInfo.wallet.movements.length - 1]?.dateUtc
+      }
+
+      // Private bonds
+      for (const bond of walletInfo.brlPrivateBonds.values()) {
+        // Done bond
+        if (bond.doneAt) {
+          if (
+            globalAnalytics.dateStartUtcAsset === undefined ||
+            globalAnalytics.dateStartUtcAsset > bond.doneAt
+          ) {
+            globalAnalytics.dateStartUtcAsset = bond.doneAt
+          }
+          if (
+            globalAnalytics.dateEndUtcAsset === undefined ||
+            globalAnalytics.dateEndUtcAsset < bond.doneAt
+          ) {
+            globalAnalytics.dateEndUtcAsset = bond.doneAt
+          }
+
+          // Bond had profit
+          if (bond.doneProfit.gt(0)) {
+            globalAnalytics.numberOfAssetsProfit += 1
+          } else if (bond.doneProfit.lt(0)) {
+            globalAnalytics.numberOfAssetsLoss += 1
+          }
+        } else {
+          globalAnalytics.numberOfActiveAssets += 1
+        }
+
+        globalAnalytics.numberOfAssets += 1
+        globalAnalytics.resultingProfitInCurncy = globalAnalytics.resultingProfitInCurncy.add(
+          bond.doneProfit,
+        )
+      }
+    }
+
+    return {
+      data: {
+        indicators: {
+          avgCostByAsset: 0,
+          avgCostByDay: 0,
+          avgCostByMonth: 0,
+          avgCostByQuarter: 0,
+          avgCostByYear: 0,
+          avgDaysByAsset: 0,
+          avgTaxByAsset: 0,
+          avgTaxByDay: 0,
+          avgTaxByMonth: 0,
+          avgTaxByQuarter: 0,
+          avgTaxByYear: 0,
+          breakeven: 0,
+          dateEndUtc: '',
+          dateStartUtc: '',
+          edge: 0,
+          expectancyByAsset: 0,
+          expectancyByDay: 0,
+          expectancyByMonth: 0,
+          expectancyByQuarter: 0,
+          expectancyByYear: 0,
+          historyHigh: 0,
+          historyLow: 0,
+          lossAvg: 0,
+          lossMax: 0,
+          lossSum: 0,
+          numberOfActiveAssets: 0,
+          numberOfActiveAssetsLoss: 0,
+          numberOfActiveAssetsProfit: 0,
+          numberOfAssets: 0,
+          numberOfAssetsLoss: 0,
+          numberOfAssetsProfit: 0,
+          profitAvg: 0,
+          profitMax: 0,
+          profitSum: 0,
+          resultingBalanceInCurncy: 0,
+          resultingProfitInCurncy: 0,
+          resultingProfitInPerc: 0,
+        },
+        series: [],
+        wallets: [],
+      },
+    }
+  }
+
+  async walletCreate(): Promise<CreateWalletResponse> {
     return {
       data: {
         currencyCodes: acceptedCurrencyCodes as CurrencyCode[],
       },
-    };
+    }
   }
 
-  async store(input: StoreWalletRequest): Promise<void> {
+  async walletStore(input: StoreWalletRequest): Promise<void> {
     await Wallet.create({
-      userId: input.userId,
-      name: input.name,
       currencyCode: input.currencyCode as CurrencyCode,
-    });
+      name: input.name,
+      userId: input.userId,
+    })
   }
 
-  async show(input: ShowWalletRequest): Promise<ShowWalletResponse> {
+  async walletShow(input: ShowWalletRequest): Promise<ShowWalletResponse> {
     const wallet = await Wallet.query()
       .where('id', input.walletId)
       .where('userId', input.userId)
-      .firstOrFail();
+      .firstOrFail()
     return {
       data: {
         walletId: wallet.id,
       },
-    };
+    }
   }
 
-  async edit(input: EditWalletRequest): Promise<void> {
+  async walletEdit(input: EditWalletRequest): Promise<void> {
     const wallet = await Wallet.query()
       .where('id', input.walletId)
       .where('userId', input.userId)
-      .firstOrFail();
+      .firstOrFail()
     if (input.name) {
-      wallet.name = input.name;
+      wallet.name = input.name
     }
     if (input.currencyCode) {
-      wallet.currencyCode = input.currencyCode as CurrencyCode;
+      wallet.currencyCode = input.currencyCode as CurrencyCode
     }
-    await wallet.save();
+    await wallet.save()
   }
 
-  async delete(input: DeleteWalletRequest): Promise<void> {
+  async walletDelete(input: DeleteWalletRequest): Promise<void> {
     const wallet = await Wallet.query()
       .where('id', input.walletId)
       .where('userId', input.userId)
-      .firstOrFail();
-    await wallet.softDelete();
+      .firstOrFail()
+    await wallet.softDelete()
   }
 }

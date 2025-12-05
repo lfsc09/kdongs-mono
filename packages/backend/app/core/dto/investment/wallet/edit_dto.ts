@@ -1,4 +1,4 @@
-import type { InferInput } from '@vinejs/vine/types';
-import type { editWalletValidator } from '#validators/investment/wallet/edit';
+import type { InferInput } from '@vinejs/vine/types'
+import type { editWalletValidator } from '#validators/investment/wallet/edit'
 
-export type EditWalletRequest = InferInput<typeof editWalletValidator>;
+export type EditWalletRequest = InferInput<typeof editWalletValidator>
