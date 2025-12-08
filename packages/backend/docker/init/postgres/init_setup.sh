@@ -13,12 +13,12 @@ if [ -z "$POSTGRES_USER" ]; then
   exit 1
 fi
 
-test_db_name="${POSTGRES_DB}-test"
+local_db_name="${POSTGRES_DB}-test"
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOS
-  CREATE DATABASE "$test_db_name";
+  CREATE DATABASE "$local_db_name";
 EOS
 
-printf "✅ Created %s for user %s...\n" "$test_db_name" "$POSTGRES_USER"
+printf "✅ Created %s for user %s...\n" "$local_db_name" "$POSTGRES_USER"
 
 ##
 # Enable the pg_stat_statements extension

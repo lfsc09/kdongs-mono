@@ -12,6 +12,10 @@
     "dev:backend": "npm run dev --workspace backend",
     "dev:backend:migrate": "npm run migration:fresh --workspace backend",
     "dev:backend:format": "npm run biome:check --workspace backend",
+    "dev:backend:docker-db-up": "npm run docker:up:db-only --workspace backend",
+    "dev:backend:docker-db-down": "npm run docker:down:db-only --workspace backend",
+    "dev:backend:docker-full-up": "npm run docker:up:full --workspace backend",
+    "dev:backend:docker-full-down": "npm run docker:down:full --workspace backend",
     "test:frontend": "npm run test --workspace frontend",
     "test:backend": "npm run test --workspace backend",
     "test:backend:migrate": "npm run test:migration:force --workspace backend"

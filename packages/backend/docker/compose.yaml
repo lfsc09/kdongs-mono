@@ -11,9 +11,9 @@ services:
   api-build:
     build:
       context: ../
-      dockerfile: docker/dockerfile.test
-    image: kdongs-api-test
-    container_name: kdongs-api-test
+      dockerfile: docker/dockerfile.local
+    image: kdongs-api-local
+    container_name: kdongs-api-local
     restart: unless-stopped
     depends_on:
       api-postgres:
