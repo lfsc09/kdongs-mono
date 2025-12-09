@@ -26,8 +26,8 @@ COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app
 EXPOSE 3333
 
-# Copy entrypoint script from docker folder
-COPY --chmod=755 ../../docker/adonisjs/entrypoint/entrypoint.sh /usr/local/bin/entrypoint.sh
+# Copy production entrypoint script
+COPY --chmod=755 docker/entrypoints/adonisjs/production.entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 CMD [ "node", "./bin/server.js" ]
