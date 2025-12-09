@@ -10,13 +10,34 @@ TAG="${1:-}"
 DOCKER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../docker" && pwd)"
 # ----------------
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+log_info() {
+    echo -e "[INFO] $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
 echo "========================================="
 echo "Kdongs Manual Deployment"
 echo "========================================="
 
 # Check if we're in the docker directory
 if [ ! -f "$DOCKER_DIR/compose.yaml" ]; then
-  echo "❌ Error: docker/compose.yaml not found"
+  log_error "docker/compose.yaml not found"
   exit 1
 fi
 
@@ -24,67 +45,59 @@ cd "$DOCKER_DIR"
 
 # If tag is specified, checkout that tag
 if [ -n "$TAG" ]; then
-  echo "📌 Checking out tag: $TAG"
+  log_info "Checking out tag: $TAG"
   cd ..
   git fetch --all --tags
   git checkout "tags/$TAG"
   cd docker
 else
-  echo "📌 Using current working directory state"
+  log_info "Using current working directory state"
 fi
 
 # Create backup before deployment
-echo "💾 Creating database backup..."
+log_info "Creating database backup..."
 BACKUP_DIR="../backups"
 mkdir -p "$BACKUP_DIR"
-./postgres/scripts/export-database.sh "$BACKUP_DIR" "pre-deploy-$(date +%Y%m%d-%H%M%S)" || echo "⚠️  Backup skipped (database not running)"
+./postgres/scripts/export-database.sh "$BACKUP_DIR" "pre-deploy-$(date +%Y%m%d-%H%M%S)" || log_warn "Backup skipped (database not running)"
 
 # Confirm before proceeding
 echo ""
-echo "⚠️  This will rebuild and restart all containers."
+log_warn "This will rebuild and restart all containers."
 echo ""
 read -p "Continue with deployment? (yes/no): " CONFIRM
 
 if [ "$CONFIRM" != "yes" ]; then
-  echo "❌ Deployment cancelled."
+  log_error "Deployment cancelled."
   exit 0
 fi
 
 # Build and deploy
 echo ""
-echo "🔨 Building containers..."
+log_info "Building containers..."
 docker compose build --no-cache
 
 echo ""
-echo "🛑 Stopping old containers..."
+log_info "Stopping old containers..."
 docker compose down
 
 echo ""
-echo "🚀 Starting new containers..."
+log_info "Starting new containers..."
 docker compose up -d
 
 # Wait for services
 echo ""
-echo "⏳ Waiting for services to start..."
+log_info "Waiting for services to start..."
 sleep 10
 
 # Check status
 echo ""
-echo "📊 Container Status:"
+log_info "Container Status:"
 docker compose ps
 
 # Show logs
 echo ""
-echo "📋 Recent Logs:"
+log_info "Recent Logs:"
 docker compose logs --tail=50
 
 echo ""
-echo "========================================="
-echo "✅ Deployment completed!"
-echo "========================================="
-echo ""
-echo "📋 Next steps:"
-echo "   - Check logs: docker compose logs -f"
-echo "   - Check health: curl http://localhost:8000/health"
-echo "   - Rollback if needed: docker compose down && git checkout main"
-echo "========================================="
+log_success "Deployment successful!"

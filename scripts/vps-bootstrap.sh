@@ -22,7 +22,7 @@ set -euo pipefail
 
 # --- CONFIG ---
 DEPLOY_USER="kdongs"
-REPO_URL="git@github.com:lfsc09/kdongs-mono.git"
+REPO_URL="https://github.com/lfsc09/kdongs-mono.git"
 TARGET_DIR="/var/www/kdongs-mono"
 BRANCH="main"
 DOMAIN="${1:-example.com}"
@@ -36,7 +36,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo -e "[INFO] $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[OK]${NC} $1"
 }
 
 log_warn() {
@@ -88,14 +92,14 @@ setup_as_root() {
         usermod -aG sudo "$DEPLOY_USER"
         echo "$DEPLOY_USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$DEPLOY_USER
         chmod 0440 /etc/sudoers.d/$DEPLOY_USER
-        log_info "✅ User '$DEPLOY_USER' created with sudo access"
+        log_success "User '$DEPLOY_USER' created with sudo access"
     fi
 
     # 2. Update system
     log_info "Updating system packages..."
     apt-get update -qq
     apt-get upgrade -y -qq
-    log_info "✅ System updated"
+    log_success "System updated"
 
     # 3. Install Docker if needed
     if command_exists docker; then
@@ -106,7 +110,7 @@ setup_as_root() {
         usermod -aG docker "$DEPLOY_USER"
         systemctl enable docker >/dev/null 2>&1
         systemctl start docker >/dev/null 2>&1
-        log_info "✅ Docker installed"
+        log_success "Docker installed"
     fi
 
     # 4. Install dependencies
@@ -121,7 +125,7 @@ setup_as_root() {
         fail2ban \
         unattended-upgrades \
         >/dev/null 2>&1
-    log_info "✅ Dependencies installed"
+    log_success "Dependencies installed"
 
     # 5. Install rclone
     if command_exists rclone; then
@@ -129,7 +133,7 @@ setup_as_root() {
     else
         log_info "Installing rclone..."
         curl -fsSL https://rclone.org/install.sh | bash >/dev/null 2>&1
-        log_info "✅ rclone installed"
+        log_success "rclone installed"
     fi
 
     # 6. Configure firewall
@@ -152,7 +156,7 @@ setup_as_root() {
     # Enable firewall
     ufw --force enable >/dev/null 2>&1
 
-    log_info "✅ Firewall configured"
+    log_success "Firewall configured"
     log_info "   - SSH (22/tcp): allowed"
     log_info "   - HTTP (80/tcp): allowed"
     log_info "   - HTTPS (443/tcp): allowed"
@@ -164,7 +168,7 @@ setup_as_root() {
     fi
     systemctl enable fail2ban >/dev/null 2>&1
     systemctl start fail2ban >/dev/null 2>&1
-    log_info "✅ fail2ban configured"
+    log_success "fail2ban configured"
 
     # 8. Enable automatic security updates
     log_info "Enabling automatic security updates..."
@@ -178,13 +182,13 @@ Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::Automatic-Reboot "false";
 EOF
-    log_info "✅ Automatic security updates enabled"
+    log_success "Automatic security updates enabled"
 
     # 9. Create target directory with proper ownership
     log_info "Setting up target directory: $TARGET_DIR"
     mkdir -p "$TARGET_DIR"
     chown -R "$DEPLOY_USER:$DEPLOY_USER" "$TARGET_DIR"
-    log_info "✅ Directory created and owned by $DEPLOY_USER"
+    log_success "Directory created and owned by $DEPLOY_USER"
 
     # 10. Setup SSH directory for deploy user
     DEPLOY_HOME=$(eval echo ~$DEPLOY_USER)
@@ -195,7 +199,7 @@ EOF
         touch "$DEPLOY_HOME/.ssh/authorized_keys"
         chmod 600 "$DEPLOY_HOME/.ssh/authorized_keys"
         chown -R "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh"
-        log_info "✅ SSH directory created"
+        log_success "SSH directory created"
         log_warn "Don't forget to add your SSH public key to $DEPLOY_HOME/.ssh/authorized_keys"
     fi
 
@@ -211,6 +215,10 @@ EOF
         export BRANCH='$BRANCH'
         export REPO_URL='$REPO_URL'
         export DEPLOY_USER='$DEPLOY_USER'
+        export GREEN='$GREEN'
+        export YELLOW='$YELLOW'
+        export RED='$RED'
+        export NC='$NC'
         $(declare -f setup_as_user log_info log_warn log_error print_header command_exists)
         setup_as_user
     "
@@ -234,25 +242,20 @@ setup_as_user() {
     log_info "Setting up repository..."
     if [ ! -d "$TARGET_DIR/.git" ]; then
         log_info "Cloning repository from $REPO_URL..."
-        log_warn "NOTE: If this fails, you may need to setup SSH keys for git access"
-        log_warn "      Run: ssh-keygen -t ed25519 -C 'deploy@kdongs.com'"
-        log_warn "      Add the public key to your GitHub account"
 
         # Try to clone
         if ! git clone --branch "$BRANCH" "$REPO_URL" "$TARGET_DIR" 2>/dev/null; then
             log_error "Failed to clone repository"
-            log_warn "This is likely because SSH keys are not setup for GitHub"
-            log_warn "Please setup SSH keys and run this script again, or clone manually"
             exit 1
         fi
-        log_info "✅ Repository cloned successfully"
+        log_success "Repository cloned successfully"
     else
         log_info "Repository already exists, pulling latest changes..."
         cd "$TARGET_DIR"
         git fetch origin >/dev/null 2>&1
         git checkout "$BRANCH" >/dev/null 2>&1
         git pull origin "$BRANCH" >/dev/null 2>&1
-        log_info "✅ Repository updated"
+        log_success "Repository updated"
     fi
 
     cd "$TARGET_DIR"
@@ -268,7 +271,7 @@ setup_as_user() {
         log_info "Generating database password..."
         openssl rand -base64 32 | tr -d "=+/" | cut -c1-32 > "$DB_PASSWORD_FILE"
         chmod 600 "$DB_PASSWORD_FILE"
-        log_info "✅ Database password generated"
+        log_success "Database password generated"
     else
         log_info "Database password already exists"
     fi
@@ -279,7 +282,7 @@ setup_as_user() {
         log_info "Generating APP_KEY..."
         openssl rand -base64 32 > "$APP_KEY_FILE"
         chmod 600 "$APP_KEY_FILE"
-        log_info "✅ APP_KEY generated"
+        log_success "APP_KEY generated"
     else
         log_info "APP_KEY already exists"
     fi
@@ -291,14 +294,14 @@ setup_as_user() {
         # Replace placeholder domain with actual domain
         sed -i "s/example\.com/$DOMAIN/g" "$NGINX_CONFIG"
         sed -i "s/www\.example\.com/www.$DOMAIN/g" "$NGINX_CONFIG"
-        log_info "✅ Nginx configuration updated"
+        log_success "Nginx configuration updated"
     fi
 
     # 5. Set proper permissions
     log_info "Setting proper permissions..."
     chmod 700 "$SECRETS_DIR"
     chmod 600 "$SECRETS_DIR"/* 2>/dev/null || true
-    log_info "✅ Permissions set"
+    log_success "Permissions set"
 
     # 6. Setup automated backups via crontab
     log_info "Setting up automated database backups..."
@@ -311,71 +314,66 @@ setup_as_user() {
     else
         # Add cron job
         (crontab -l 2>/dev/null || echo ""; echo "$CRON_JOB") | crontab -
-        log_info "✅ Automated backups configured (daily at 2 AM, 7-day retention)"
+        log_success "Automated backups configured (daily at 2 AM, 7-day retention)"
     fi
 
     # 7. Create backup directory
     BACKUP_DIR="$TARGET_DIR/backups"
     mkdir -p "$BACKUP_DIR"
-    log_info "✅ Backup directory created: $BACKUP_DIR"
+    log_success "Backup directory created: $BACKUP_DIR"
 
     print_header "Bootstrap Completed Successfully!"
 
     echo ""
-    log_info "📋 Summary:"
+    log_info "Summary:"
     log_info "   User: $DEPLOY_USER"
     log_info "   Directory: $TARGET_DIR"
     log_info "   Domain: $DOMAIN"
     log_info "   Email: $EMAIL"
     log_info "   Database Password: $DB_PASSWORD_FILE"
-    log_info "   Backend .env: $ENV_FILE"
     echo ""
 
     print_header "Next Steps"
     echo ""
-    echo "1️⃣  Configure rclone for remote backups (optional but recommended):"
-    echo "    sudo rclone config"
-    echo "    Then add to crontab:"
-    echo "    0 3 * * * rclone sync $BACKUP_DIR/ remote:kdongs-backups/"
+    echo "[1]  Configure rclone for remote backups (optional but recommended):"
+    echo "       sudo rclone config"
+    echo "       Then add to crontab:"
+    echo "       0 3 * * * rclone sync $BACKUP_DIR/ remote:kdongs-backups/"
     echo ""
-    echo "2️⃣  Setup SSH key for GitHub (if not done):"
-    echo "    ssh-keygen -t ed25519 -C '$EMAIL'"
-    echo "    cat ~/.ssh/id_ed25519.pub"
-    echo "    Add the public key to GitHub: https://github.com/settings/keys"
+    echo "[2]  Setup SSH key for GitHub (if not done):"
+    echo "       ssh-keygen -t ed25519 -C '$EMAIL'"
+    echo "       cat ~/.ssh/id_ed25519.pub"
+    echo "       Add the public key to GitHub: https://github.com/settings/keys"
     echo ""
-    echo "3️⃣  Obtain SSL certificate:"
-    echo "    cd $TARGET_DIR/docker"
-    echo "    docker compose up -d nginx"
-    echo "    docker compose run --rm certbot certonly \\"
-    echo "      --webroot -w /var/www/certbot \\"
-    echo "      -d $DOMAIN -d www.$DOMAIN \\"
-    echo "      --email $EMAIL \\"
-    echo "      --agree-tos"
+    echo "[3]  Obtain SSL certificate:"
+    echo "       cd $TARGET_DIR/docker"
+    echo "       docker compose up -d nginx"
+    echo "       docker compose run --rm certbot certonly \\"
+    echo "         --webroot -w /var/www/certbot \\"
+    echo "         -d $DOMAIN -d www.$DOMAIN \\"
+    echo "         --email $EMAIL \\"
+    echo "         --agree-tos"
     echo ""
-    echo "4️⃣  Start the application:"
-    echo "    cd $TARGET_DIR/docker"
-    echo "    docker compose up -d"
+    echo "[4]  Start the application:"
+    echo "       cd $TARGET_DIR/docker"
+    echo "       docker compose up -d"
     echo ""
-    echo "5️⃣  Check logs:"
-    echo "    docker compose logs -f"
+    echo "[5]  Check logs:"
+    echo "       docker compose logs -f"
     echo ""
-    echo "6️⃣  Check container status:"
-    echo "    docker compose ps"
+    echo "[6]  Check container status:"
+    echo "       docker compose ps"
     echo ""
-    print_header "Important Security Notes"
+    print_header "Security Notes"
     echo ""
-    log_warn "🔐 Firewall Status:"
+    log_info "Firewall Status:"
     sudo ufw status numbered
     echo ""
-    log_warn "🔐 Secrets generated:"
-    log_warn "    - Database password: $DB_PASSWORD_FILE"
-    log_warn "    - APP_KEY: $APP_KEY_FILE"
-    log_warn "🔐 Keep the secrets directory secure!"
-    log_warn "🔐 NEVER commit docker/secrets/ to git!"
-    log_warn "🔐 Setup SSH keys for GitHub access"
-    log_warn "🔐 Configure rclone for remote backups"
+    log_info "Secrets generated:"
+    log_info "    - Database password: $DB_PASSWORD_FILE"
+    log_info "    - APP_KEY: $APP_KEY_FILE"
     echo ""
-    print_header "Setup Complete"
+    log_success "Setup Complete"
 }
 
 # Main execution

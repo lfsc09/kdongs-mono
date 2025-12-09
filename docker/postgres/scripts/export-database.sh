@@ -13,6 +13,28 @@ BACKUP_DIR="${1:-./backups}"
 BACKUP_NAME="${2:-backup-$(date +%Y%m%d-%H%M%S)}"
 # ----------------
 
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+log_info() {
+    echo -e "[INFO] $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
 echo "========================================="
 echo "PostgreSQL Database Export"
 echo "========================================="
@@ -25,8 +47,8 @@ echo "========================================="
 
 # Check if container is running
 if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-  echo "❌ Error: Container '$CONTAINER_NAME' is not running."
-  echo "   Start the container first with: docker compose up -d"
+  log_error "Container '$CONTAINER_NAME' is not running."
+  log_info "Start the container first with: docker compose up -d"
   exit 1
 fi
 
@@ -36,8 +58,8 @@ mkdir -p "$BACKUP_DIR"
 # Generate backup filename
 BACKUP_FILE="$BACKUP_DIR/${BACKUP_NAME}.sql.gz"
 
-echo "📦 Creating backup..."
-echo "   Output: $BACKUP_FILE"
+log_info "Creating backup..."
+log_info "Output: $BACKUP_FILE"
 
 # Export database using pg_dump with compression
 docker exec -t "$CONTAINER_NAME" pg_dump \
@@ -51,15 +73,13 @@ docker exec -t "$CONTAINER_NAME" pg_dump \
 
 if [ $? -eq 0 ]; then
   BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
-  echo "✅ Backup created successfully!"
-  echo "   File: $BACKUP_FILE"
-  echo "   Size: $BACKUP_SIZE"
+  log_success "Backup created successfully!"
+  echo "  File: $BACKUP_FILE"
+  echo "  Size: $BACKUP_SIZE"
   echo ""
-  echo "📋 To restore this backup, use:"
-  echo "   ./import-database.sh $BACKUP_FILE"
+  log_info "To restore this backup, use:"
+  echo "  ./import-database.sh $BACKUP_FILE"
 else
-  echo "❌ Error: Backup failed!"
+  log_error "Backup failed!"
   exit 1
 fi
-
-echo "========================================="

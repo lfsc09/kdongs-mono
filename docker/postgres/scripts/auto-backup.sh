@@ -28,12 +28,12 @@ BACKUP_NAME="auto-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Clean up old backups
 echo ""
-echo "🗑️  Cleaning up old backups (older than $RETENTION_DAYS days)..."
+echo "[INFO] Cleaning up old backups (older than $RETENTION_DAYS days)..."
 find "$BACKUP_DIR" -name "auto-backup-*.sql.gz" -type f -mtime +"$RETENTION_DAYS" -print -delete
 
 # Count remaining backups
 BACKUP_COUNT=$(find "$BACKUP_DIR" -name "auto-backup-*.sql.gz" -type f | wc -l)
-echo "✅ Cleanup complete. $BACKUP_COUNT backups remaining."
+echo -e "\033[0;32m[OK]\033[0m Cleanup complete. $BACKUP_COUNT backups remaining."
 
 echo "========================================="
 echo "Backup completed successfully at $(date '+%Y-%m-%d %H:%M:%S')"
