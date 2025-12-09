@@ -12,13 +12,35 @@ DB_USER="adonisjs"
 BACKUP_FILE="${1:-}"
 # ----------------
 
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+log_info() {
+    echo -e "[INFO] $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
 echo "========================================="
 echo "PostgreSQL Database Import"
 echo "========================================="
 
 # Check if backup file was provided
 if [ -z "$BACKUP_FILE" ]; then
-  echo "❌ Error: No backup file specified."
+  log_error "No backup file specified."
   echo ""
   echo "Usage: $0 <backup-file>"
   echo ""
@@ -29,7 +51,7 @@ fi
 
 # Check if backup file exists
 if [ ! -f "$BACKUP_FILE" ]; then
-  echo "❌ Error: Backup file not found: $BACKUP_FILE"
+  log_error "Backup file not found: $BACKUP_FILE"
   exit 1
 fi
 
@@ -41,51 +63,49 @@ echo "========================================="
 
 # Check if container is running
 if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-  echo "❌ Error: Container '$CONTAINER_NAME' is not running."
-  echo "   Start the container first with: docker compose up -d"
+  log_error "Container '$CONTAINER_NAME' is not running."
+  log_info "Start the container first with: docker compose up -d"
   exit 1
 fi
 
 # Confirm before proceeding
 echo ""
-echo "⚠️  WARNING: This will REPLACE the current database with the backup!"
-echo "   Current database '$DB_NAME' will be dropped and recreated."
+log_warn "WARNING: This will REPLACE the current database with the backup!"
+log_warn "  Current database '$DB_NAME' will be dropped and recreated."
 echo ""
 read -p "Are you sure you want to continue? (yes/no): " CONFIRM
 
 if [ "$CONFIRM" != "yes" ]; then
-  echo "❌ Import cancelled."
+  log_error "Import cancelled."
   exit 0
 fi
 
 echo ""
-echo "📥 Importing backup..."
+log_info "Importing backup..."
 
 # Detect if file is compressed
 if [[ "$BACKUP_FILE" == *.gz ]]; then
-  echo "   Detected compressed backup (gzip)"
+  log_info "Detected compressed backup (gzip)"
   gunzip -c "$BACKUP_FILE" | docker exec -i "$CONTAINER_NAME" psql \
     --username="$DB_USER" \
     --dbname="postgres"
 else
-  echo "   Detected uncompressed backup"
+  log_info "Detected uncompressed backup"
   cat "$BACKUP_FILE" | docker exec -i "$CONTAINER_NAME" psql \
     --username="$DB_USER" \
     --dbname="postgres"
 fi
 
 if [ $? -eq 0 ]; then
-  echo "✅ Database imported successfully!"
+  log_success "Database imported successfully!"
   echo ""
-  echo "📋 Next steps:"
-  echo "   1. Verify the import:"
+  echo "Next steps:"
+  echo "[1] Verify the import:"
   echo "      docker exec -it $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME -c '\\dt'"
   echo ""
-  echo "   2. Restart the backend to reconnect:"
+  echo "[2] Restart the backend to reconnect:"
   echo "      docker compose restart api-backend"
 else
-  echo "❌ Error: Import failed!"
+  log_error "Import failed!"
   exit 1
 fi
-
-echo "========================================="
