@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-##
-# Create the test database
-##
 if [ -z "$POSTGRES_DB" ]; then
   echo "POSTGRES_DB environment variable is not set."
   exit 1
@@ -13,12 +10,15 @@ if [ -z "$POSTGRES_USER" ]; then
   exit 1
 fi
 
-local_db_name="${POSTGRES_DB}-test"
+##
+# Create the test database
+##
+test_db_name="${POSTGRES_DB}-test"
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOS
-  CREATE DATABASE "$local_db_name";
+  CREATE DATABASE "$test_db_name";
 EOS
 
-printf "✅ Created %s for user %s...\n" "$local_db_name" "$POSTGRES_USER"
+printf "✅ Created %s for user %s...\n" "$test_db_name" "$POSTGRES_USER"
 
 ##
 # Enable the pg_stat_statements extension
