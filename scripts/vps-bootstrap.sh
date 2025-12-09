@@ -219,7 +219,7 @@ EOF
         export YELLOW='$YELLOW'
         export RED='$RED'
         export NC='$NC'
-        $(declare -f setup_as_user log_info log_warn log_error print_header command_exists)
+        $(declare -f setup_as_user log_info log_success log_warn log_error print_header command_exists)
         setup_as_user
     "
 }
