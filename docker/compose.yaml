@@ -1,0 +1,117 @@
+services:
+  frontend-builder:
+    build:
+      context: ../packages/frontend/
+      dockerfile: ../../docker/dockerfile.frontend
+      target: build
+    container_name: kdongs-frontend-builder
+    volumes:
+      - frontend-dist:/app/dist/frontend/browser
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: kdongs-nginx
+    restart: always
+    depends_on:
+      frontend-builder:
+        condition: service_completed_successfully
+      api-backend:
+        condition: service_started
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx:/etc/nginx:ro
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+      - frontend-dist:/usr/share/nginx/html:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.2G'
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: kdongs-certbot
+    restart: unless-stopped
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    # This container runs a renewal loop
+    entrypoint: /bin/sh
+    command: -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h; done"
+
+  api-backend:
+    build:
+      context: ../packages/backend/
+      dockerfile: ../../docker/dockerfile.backend
+    container_name: kdongs-api-backend
+    restart: unless-stopped
+    depends_on:
+      api-postgres:
+        condition: service_healthy
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3333
+      LOG_LEVEL: info
+      NODE_ENV: production
+      DB_HOST: api-postgres
+      DB_PORT: 5432
+      DB_USER: adonisjs
+      DB_DATABASE: app
+      # APP_KEY and DB_PASSWORD come from secrets (loaded in entrypoint)
+    secrets:
+      - root_pass
+      - app_key
+    ports:
+      - '8000:3333'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.4G'
+    
+  api-postgres:
+    image: postgres:16-alpine
+    container_name: kdongs-api-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: adonisjs
+      POSTGRES_PASSWORD_FILE: /run/secrets/root_pass
+    secrets:
+      - root_pass
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', '${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - '8001:5432'
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      - api-postgres-data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c pg_stat_statements.max=10000
+      -c track_activity_query_size=2048
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: '1G'
+
+volumes:
+  letsencrypt:
+  certbot-www:
+  frontend-dist:
+  api-postgres-data:
+
+secrets:
+  root_pass:
+    file: ./secrets/root_pass
+  app_key:
+    file: ./secrets/app_key

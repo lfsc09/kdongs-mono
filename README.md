@@ -49,14 +49,16 @@ npm run dev:setup
 
 #### Frontend
 
+???
+
 </br>
 
-### Run
+### Run (*development*)
 
-1. Bring up the Docker ecosystem
+1. Bring up the backend ecosystem (**only db**).
 
 ```bash
-docker compose -f packages/backend/docker/compose.yaml --profile local up --build --detach
+npm run dev:backend:docker-db-up
 ```
 
 2. Load **backend** migrations & seeds 
@@ -74,12 +76,18 @@ npm run test:backend:migrate
 
 </br>
 
-### Staging the Build ecosystem
+### Run (*staging*)
 
-After setting up the project, run the compose files to **build** the projects.
+1. Bring up the backend ecosystem (**db + node**)
 
 ```bash
-docker compose -f packages/backend/docker/compose.yaml --profile build up --build --detach
+npm run dev:backend:docker-full-up
+```
+
+2. Load **backend** migrations & seeds 
+
+```bash
+npm run dev:backend:migrate
 ```
 
 </br>
@@ -123,24 +131,14 @@ npm run test:frontend
 
 # Uninstall
 
-### The Local ecosystem
+### Local ecosystem
 
-To bring down the ecosystem without losing the current data:
-
-```bash
-docker compose -f packates/backend/docker/compose.yaml --profile local down
-```
-
-If you want complete deletion, **including its data**:
+*Will delete all the data.*
 
 ```bash
-docker compose -f packates/backend/docker/compose.yaml --profile local down --volumes --rmi all
-```
+# Only db
+npm run dev:backend:docker-db-down
 
-</br>
-
-### The Build ecosystem
-
-```bash
-docker compose -f packates/backenddocker/compose.yaml --profile build down
+# Db + node
+npm run dev:backend:docker-full-down
 ```

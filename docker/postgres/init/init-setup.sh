@@ -11,16 +11,6 @@ if [ -z "$POSTGRES_USER" ]; then
 fi
 
 ##
-# Create the test database
-##
-test_db_name="${POSTGRES_DB}-test"
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" -d "$POSTGRES_DB" <<-EOS
-  CREATE DATABASE "$test_db_name";
-EOS
-
-printf "✅ Created %s for user %s...\n" "$test_db_name" "$POSTGRES_USER"
-
-##
 # Enable the pg_stat_statements extension
 ##
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOS
