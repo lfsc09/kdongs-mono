@@ -1,0 +1,17 @@
+FROM node:24.11-alpine AS build
+WORKDIR /app
+
+# Install Angular CLI
+RUN npm install -g @angular/cli@21 --silent
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm ci --silent
+
+# Copy source code
+COPY . ./
+
+# Build for production
+RUN ng build --configuration production
+
+# The dist folder will be available in /app/dist/frontend/browser
