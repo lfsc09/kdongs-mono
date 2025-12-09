@@ -204,11 +204,16 @@ EOF
     echo ""
 
     # Switch to deploy user and continue
-    # Export variables for the user phase
-    export DOMAIN EMAIL TARGET_DIR BRANCH REPO_URL
-
-    # Run user phase as deploy user
-    sudo -u "$DEPLOY_USER" -H bash -c "$(declare -f setup_as_user log_info log_warn log_error print_header command_exists); setup_as_user"
+    sudo -u "$DEPLOY_USER" -H bash -c "
+        export DOMAIN='$DOMAIN'
+        export EMAIL='$EMAIL'
+        export TARGET_DIR='$TARGET_DIR'
+        export BRANCH='$BRANCH'
+        export REPO_URL='$REPO_URL'
+        export DEPLOY_USER='$DEPLOY_USER'
+        $(declare -f setup_as_user log_info log_warn log_error print_header command_exists)
+        setup_as_user
+    "
 }
 
 # User setup phase

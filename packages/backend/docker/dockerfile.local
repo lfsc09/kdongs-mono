@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app
 COPY --from=build /app/.env.example /app/.env
-COPY --from=build /app/docker/entrypoints/adonisjs.entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --from=build /app/docker/entrypoints/adonisjs/local.entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
