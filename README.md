@@ -4,13 +4,31 @@ A set of web tools, that over the years I could not find software (paid) that wo
 
 ### Roadmap
 
-- [x] Wallet management, specifically for investments, covering basic depoits, withdraws, investment registry, profit tracking and currency exchange.
-- [ ] Market ticker data, investment calculators, and price tracking and warnings.
+#### Finished
 
-### READMEs
+- [x] Wallet management (create, delete);
 
-- API [README](packages/backend/README.md)
-- Angular [README](packages/frontend/README.md)
+#### In Progress
+
+- [x] Make wallet movements (deposit, withdraw);
+- [ ] Manage asset inclusion in wallets;
+- [ ] Wallet profit calculation;
+- [x] Deployment scripts
+
+#### Backlog
+
+- [ ] Allow change wallet currency (simulation only);
+- [ ] Market data;
+  - [ ] Stocks;
+  - [ ] Currency rates;
+  - [ ] Private and public bonds info (cdi, selic, etc);
+- [ ] Investments alerts;
+- [ ] Investment calculators;
+
+### Additional READMEs
+
+1. [Backend Adonisjs Api](packages/backend/README.md)
+2. [Frontend Angular](packages/frontend/README.md)
 
 </br>
 </br>
