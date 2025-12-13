@@ -9,7 +9,7 @@ RUN npm ci
 # Production only deps stage
 FROM base AS production-deps
 WORKDIR /app
-COPY ../package.json ../package-lock.json ./
+COPY ../package.json ../../../package-lock.json ./
 RUN npm ci --omit=dev
 
 # Build stage
@@ -27,7 +27,7 @@ COPY --from=build /app/build /app
 EXPOSE 3333
 
 # Copy production entrypoint script
-COPY --chmod=755 docker/entrypoints/adonisjs/production.entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=755 entrypoints/adonisjs/production.entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 CMD [ "node", "./bin/server.js" ]
