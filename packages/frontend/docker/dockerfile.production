@@ -5,11 +5,11 @@ WORKDIR /app
 RUN npm install -g @angular/cli@21 --silent
 
 # Install dependencies
-COPY ../package.json ../../../package-lock.json ./
+COPY packages/frontend/package.json package-lock.json ./
 RUN npm ci --silent
 
 # Copy source code
-COPY ../ ./
+COPY packages/frontend ./
 # Build for production
 RUN ng build --configuration production
 

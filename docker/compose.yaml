@@ -1,8 +1,8 @@
 services:
   frontend-builder:
     build:
-      context: ../packages/frontend/docker
-      dockerfile: dockerfile.production
+      context: ..
+      dockerfile: packages/frontend/docker/dockerfile.production
       target: build
     container_name: kdongs-frontend-builder
     volumes:
@@ -44,8 +44,8 @@ services:
 
   api-backend:
     build:
-      context: ../packages/backend/docker
-      dockerfile: dockerfile.production
+      context: ..
+      dockerfile: packages/backend/docker/dockerfile.production
     container_name: kdongs-api-backend
     restart: unless-stopped
     depends_on:
