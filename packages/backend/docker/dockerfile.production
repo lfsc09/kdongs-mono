@@ -27,7 +27,7 @@ COPY --from=build /app/build /app
 EXPOSE 3333
 
 # Copy production entrypoint script
-COPY --chmod=755 packages/backend/entrypoints/adonisjs/production.entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=755 packages/backend/docker/entrypoints/adonisjs/production.entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 CMD [ "node", "./bin/server.js" ]
