@@ -17,6 +17,7 @@ FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules /app/node_modules
 COPY packages/backend ./
+COPY docker/adonisjs/entrypoint/production.entrypoint.sh docker/entrypoint.sh
 RUN node ace build
 
 # Production stage
@@ -24,10 +25,9 @@ FROM base
 WORKDIR /app
 COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app
-EXPOSE 3333
+COPY --from=build --chmod=755 /app/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Copy production entrypoint script
-COPY --chmod=755 packages/backend/docker/entrypoints/adonisjs/production.entrypoint.sh /usr/local/bin/entrypoint.sh
+EXPOSE 3333
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 CMD [ "node", "./bin/server.js" ]

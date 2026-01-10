@@ -1,13 +1,19 @@
-services:
-  frontend-builder:
-    build:
-      context: ..
-      dockerfile: packages/frontend/docker/dockerfile.production
-      target: build
-    container_name: kdongs-frontend-builder
-    volumes:
-      - frontend-dist:/app/dist/frontend/browser
+x-api-backend-env: &api-backend-env
+  HOST: 0.0.0.0
+  PORT: 3333
+  LOG_LEVEL: info
+  NODE_ENV: production
+  DB_HOST: api-postgres
+  DB_PORT: 5432
+  DB_USER: adonisjs
+  DB_DATABASE: app
 
+x-api-postgres-env: &api-postgres-env
+  POSTGRES_DB: app
+  POSTGRES_USER: adonisjs
+  POSTGRES_PASSWORD_FILE: /run/secrets/root_pass
+
+services:
   nginx:
     image: nginx:stable-alpine
     container_name: kdongs-nginx
@@ -42,6 +48,15 @@ services:
     entrypoint: /bin/sh
     command: -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h; done"
 
+  frontend-builder:
+    build:
+      context: ..
+      dockerfile: packages/frontend/docker/dockerfile.production
+      target: build
+    container_name: kdongs-frontend-builder
+    volumes:
+      - frontend-dist:/app/dist/frontend/browser
+
   api-backend:
     build:
       context: ..
@@ -52,15 +67,7 @@ services:
       api-postgres:
         condition: service_healthy
     environment:
-      HOST: 0.0.0.0
-      PORT: 3333
-      LOG_LEVEL: info
-      NODE_ENV: production
-      DB_HOST: api-postgres
-      DB_PORT: 5432
-      DB_USER: adonisjs
-      DB_DATABASE: app
-      # APP_KEY and DB_PASSWORD come from secrets (loaded in entrypoint)
+      <<: *api-backend-env
     secrets:
       - root_pass
       - app_key
@@ -77,9 +84,7 @@ services:
     container_name: kdongs-api-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: app
-      POSTGRES_USER: adonisjs
-      POSTGRES_PASSWORD_FILE: /run/secrets/root_pass
+      <<: *api-postgres-env
     secrets:
       - root_pass
     healthcheck:
@@ -90,7 +95,7 @@ services:
     ports:
       - '8001:5432'
     volumes:
-      - ./postgres/init:/docker-entrypoint-initdb.d
+      - ./postgres/init/production.init-setup.sh:/docker-entrypoint-initdb.d/init-setup.sh
       - api-postgres-data:/var/lib/postgresql/data
     command: >
       postgres

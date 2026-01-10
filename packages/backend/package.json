@@ -12,11 +12,7 @@
     "biome:check": "biome check --write --no-errors-on-unmatched",
     "typecheck": "tsc --noEmit",
     "migration:fresh": "node ace migration:fresh --seed --force",
-    "test:migration:force": "NODE_ENV=test node ace migration:fresh --force",
-    "docker:up:db-only": "docker compose -f docker/compose.yaml --profile local up --build --detach",
-    "docker:down:db-only": "docker compose -f docker/compose.yaml --profile local down --volumes --rmi all",
-    "docker:up:full": "docker compose -f docker/compose.yaml --profile build up --build --detach",
-    "docker:down:full": "docker compose -f docker/compose.yaml --profile build down --volumes --rmi all"
+    "test:migration:force": "NODE_ENV=test node ace migration:fresh --force"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",

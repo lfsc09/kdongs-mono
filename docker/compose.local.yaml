@@ -1,5 +1,6 @@
-x-env: &env
+x-api-adonisjs-env: &api-adonisjs-env
   HOST: 0.0.0.0
+  PORT: 8000
   LOG_LEVEL: info
   NODE_ENV: production
   DB_HOST: api-postgres
@@ -7,19 +8,24 @@ x-env: &env
   DB_USER: adonisjs
   DB_DATABASE: app
 
+x-api-postgres-env: &api-postgres-env
+  POSTGRES_DB: app
+  POSTGRES_USER: adonisjs
+  POSTGRES_PASSWORD_FILE: /run/secrets/root_pass
+
 services:
-  api-build:
+  api-adonisjs:
     build:
-      context: ../
-      dockerfile: docker/dockerfile.local
-    image: kdongs-api-local
-    container_name: kdongs-api-local
+      context: ..
+      dockerfile: packages/backend/docker/dockerfile.local
+    image: kdongs-api-adonisjs
+    container_name: kdongs-api-adonisjs
     restart: unless-stopped
     depends_on:
       api-postgres:
         condition: service_healthy
     environment:
-      <<: *env
+      <<: *api-adonisjs-env
     secrets:
       - root_pass
     ports:
@@ -27,9 +33,9 @@ services:
     networks:
       - api-network
     volumes:
-      - api-build:/app/build
+      - api-adonisjs:/app/build
     profiles:
-      - build
+      - full
     deploy:
       resources:
         limits:
@@ -41,9 +47,7 @@ services:
     container_name: api-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: app
-      POSTGRES_USER: adonisjs
-      POSTGRES_PASSWORD_FILE: /run/secrets/root_pass
+      <<: *api-postgres-env
     secrets:
       - root_pass
     healthcheck:
@@ -56,7 +60,7 @@ services:
     networks:
       - api-network
     volumes:
-      - ./init/postgres:/docker-entrypoint-initdb.d
+      - ./postgres/init/local.init-setup.sh:/docker-entrypoint-initdb.d/init-setup.sh
       - api-postgres:/var/lib/postgresql/data
     command: >
       postgres
@@ -65,8 +69,8 @@ services:
       -c pg_stat_statements.max=10000
       -c track_activity_query_size=2048
     profiles:
-      - local
-      - build
+      - db-only
+      - full
     deploy:
       resources:
         limits:
@@ -82,7 +86,7 @@ networks:
     driver: bridge
 
 volumes:
-  api-build:
+  api-adonisjs:
     driver: local
   api-postgres:
     driver: local

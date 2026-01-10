@@ -4,13 +4,10 @@ WORKDIR /app
 # Install Angular CLI
 RUN npm install -g @angular/cli@21 --silent
 
-# Install dependencies
 COPY packages/frontend/package.json package-lock.json ./
 RUN npm ci --silent
-
-# Copy source code
 COPY packages/frontend ./
-# Build for production
 RUN ng build --configuration production
 
-# The dist folder will be available in /app/dist/frontend/browser
+FROM scratch
+COPY --from=build /app/dist/frontend/browser /app/dist/frontend/browser
