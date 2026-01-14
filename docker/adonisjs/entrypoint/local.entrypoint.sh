@@ -7,7 +7,7 @@ export DB_PASSWORD=$(cat /run/secrets/root_pass)
 
 # Generate application key
 echo -e "[INFO] Generating application key..."
-node ace generate:key
+export APP_KEY=$(node ace generate:key --show | awk '{print $3}')
 
 # Run migrations & seeding
 echo -e "[INFO] Running migrations & seeding..."

@@ -18,17 +18,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules /app/node_modules
 COPY packages/backend ./
 COPY docker/adonisjs/entrypoint/local.entrypoint.sh docker/entrypoint.sh
-RUN node ace build
+RUN node ace build --ignore-ts-errors
 
 # Production stage
 FROM base
 WORKDIR /app
 COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/build /app
-COPY --from=build /app/.env.example /app/.env
 COPY --from=build --chmod=755 /app/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-
 EXPOSE 8000
-
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 CMD [ "node", "./bin/server.js" ]

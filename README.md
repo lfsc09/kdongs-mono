@@ -335,7 +335,9 @@ npm run dev:docker-full-up
 
 > Configure containers env variables in `docker/compose.local.yaml`.
 
-#### 5. Run **backend** migrations & seeds.
+> *Will automatically run migrations with adonisjs Entrypoint.
+
+#### 5. Run **backend** migrations & seeds. (**dev:docker-db-up only**)
 
 > The ecosystem will have two isolated databases, one for the `.env` and another for the `.env.test`. So the tests will have a dedicated database, because each test completely erases all the data, before it runs.
 

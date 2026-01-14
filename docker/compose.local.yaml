@@ -32,8 +32,6 @@ services:
       - '8000:3333'
     networks:
       - api-network
-    volumes:
-      - api-adonisjs:/app/build
     profiles:
       - full
     deploy:
