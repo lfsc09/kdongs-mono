@@ -84,9 +84,9 @@ A set of web tools, that over the years I could not find software (paid) that wo
 ```bash
 # Example
 # bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/production.bootstrap.sh) \
-# <your-user> \
-# <your-domain.com> \
-# <your-email@example.com>
+#   <your-user> \
+#   <your-domain.com> \
+#   <your-email@example.com>
 ```
 
 ```bash

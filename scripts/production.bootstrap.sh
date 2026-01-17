@@ -101,13 +101,48 @@ setup_as_root() {
     log_success "User '$DEPLOY_USER' created with sudo access"
   fi
 
-  # 2. Update system
+  # 2. Generate SSH key for GitHub Actions deployment
+  if [ ! -f "$DEPLOY_HOME/.ssh/id_ed25519" ]; then
+    log_info "Generating SSH key for GitHub Actions..."
+    sudo -u "$DEPLOY_USER" ssh-keygen -t ed25519 -f "$DEPLOY_HOME/.ssh/id_ed25519" -N "" -C "github-actions-deploy-$DEPLOY_USER@$(hostname)"
+    chmod 600 "$DEPLOY_HOME/.ssh/id_ed25519"
+    chmod 644 "$DEPLOY_HOME/.ssh/id_ed25519.pub"
+    chown "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh/id_ed25519"*
+    log_success "SSH key generated for GitHub Actions"
+  else
+    log_info "SSH key already exists for GitHub Actions"
+  fi
+
+  # 3. Add public key to authorized_keys for GitHub Actions
+  if [ ! -d "$DEPLOY_HOME/.ssh" ]; then
+    mkdir -p "$DEPLOY_HOME/.ssh"
+    chmod 700 "$DEPLOY_HOME/.ssh"
+    chown "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh"
+  fi
+  
+  if [ ! -f "$DEPLOY_HOME/.ssh/authorized_keys" ]; then
+    touch "$DEPLOY_HOME/.ssh/authorized_keys"
+  fi
+  
+  # Add the generated public key to authorized_keys if not already present
+  if [ -f "$DEPLOY_HOME/.ssh/id_ed25519.pub" ]; then
+    PUB_KEY=$(cat "$DEPLOY_HOME/.ssh/id_ed25519.pub")
+    if ! grep -qF "$PUB_KEY" "$DEPLOY_HOME/.ssh/authorized_keys" 2>/dev/null; then
+      cat "$DEPLOY_HOME/.ssh/id_ed25519.pub" >> "$DEPLOY_HOME/.ssh/authorized_keys"
+      log_success "Public key added to authorized_keys"
+    fi
+  fi
+  
+  chmod 600 "$DEPLOY_HOME/.ssh/authorized_keys"
+  chown "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh/authorized_keys"
+
+  # 4. Update system
   log_info "Updating system packages..."
   apt-get update -qq
   apt-get upgrade -y -qq
   log_success "System updated"
 
-  # 3. Install Docker if needed
+  # 5. Install Docker if needed
   if command_exists docker; then
     log_info "Docker already installed"
   else
@@ -119,7 +154,7 @@ setup_as_root() {
     log_success "Docker installed"
   fi
 
-  # 4. Install dependencies
+  # 6. Install dependencies
   log_info "Installing dependencies..."
   apt-get install -y -qq \
     docker-compose-plugin \
@@ -133,7 +168,7 @@ setup_as_root() {
     >/dev/null 2>&1
   log_success "Dependencies installed"
 
-  # 5. Install rclone
+  # 7. Install rclone
   if command_exists rclone; then
     log_info "rclone already installed"
   else
@@ -142,7 +177,7 @@ setup_as_root() {
     log_success "rclone installed"
   fi
 
-  # 6. Configure firewall
+  # 8. Configure firewall
   log_info "Configuring firewall (UFW)..."
 
   # Disable first to reset
@@ -167,7 +202,7 @@ setup_as_root() {
   log_info "   - HTTP (80/tcp): allowed"
   log_info "   - HTTPS (443/tcp): allowed"
 
-  # 7. Configure fail2ban
+  # 9. Configure fail2ban
   log_info "Configuring fail2ban..."
   if [ -f /etc/fail2ban/jail.conf ] && [ ! -f /etc/fail2ban/jail.local ]; then
     cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
@@ -176,7 +211,7 @@ setup_as_root() {
   systemctl start fail2ban >/dev/null 2>&1
   log_success "fail2ban configured"
 
-  # 8. Enable automatic security updates
+  # 10. Enable automatic security updates
   log_info "Enabling automatic security updates..."
   cat > /etc/apt/apt.conf.d/50unattended-upgrades <<EOF
 Unattended-Upgrade::Allowed-Origins {
@@ -190,19 +225,7 @@ Unattended-Upgrade::Automatic-Reboot "false";
 EOF
   log_success "Automatic security updates enabled"
 
-  # 9. Setup SSH directory for deploy user
-  if [ ! -d "$DEPLOY_HOME/.ssh" ]; then
-    log_info "Setting up SSH directory for $DEPLOY_USER..."
-    mkdir -p "$DEPLOY_HOME/.ssh"
-    chmod 700 "$DEPLOY_HOME/.ssh"
-    touch "$DEPLOY_HOME/.ssh/authorized_keys"
-    chmod 600 "$DEPLOY_HOME/.ssh/authorized_keys"
-    chown -R "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh"
-    log_success "SSH directory created"
-    log_warn "Don't forget to add your SSH public key to $DEPLOY_HOME/.ssh/authorized_keys"
-  fi
-
-  # 10. Setup log rotation for backup logs
+  # 11. Setup log rotation for backup logs
   LOGROTATE_CONFIG="/etc/logrotate.d/kdongs-backup"
   if [ ! -f "$LOGROTATE_CONFIG" ]; then
     log_info "Setting up log rotation for backup logs..."
@@ -228,6 +251,19 @@ EOF
 
   print_header "Root Setup Complete"
   log_info "Switching to user '$DEPLOY_USER' for application setup..."
+
+  # Display SSH private key for GitHub secrets
+  echo ""
+  print_header "IMPORTANT: GitHub Actions SSH Key"
+  log_warn "Copy the SSH PRIVATE KEY below and add it to your GitHub repository secrets as VPS_SSH_KEY:"
+  echo ""
+  echo "----------------------------------------"
+  sudo cat "$DEPLOY_HOME/.ssh/id_ed25519"
+  echo "----------------------------------------"
+  echo ""
+  log_info "In GitHub: Settings → Secrets and variables → Actions → New repository secret"
+  log_info "Name: VPS_SSH_KEY"
+  log_info "Value: (paste the private key above)"
   echo ""
 
   # Switch to deploy user and continue
@@ -369,12 +405,21 @@ setup_as_user() {
 
   print_header "Next Steps"
   echo ""
-  echo "[1]  Setup SSH key for GitHub (if not done):"
-  echo "       ssh-keygen -t ed25519 -C '$EMAIL'"
-  echo "       cat ~/.ssh/id_ed25519.pub"
-  echo "       Add the public key to GitHub: https://github.com/settings/keys"
+  echo "[1]  Add SSH private key to GitHub secrets:"
+  echo "       The private key was displayed after root setup"
+  echo "       Go to: https://github.com/lfsc09/kdongs-mono/settings/secrets/actions"
+  echo "       Create secret: VPS_SSH_KEY (paste the private key)"
   echo ""
-  echo "[2]  Obtain SSL certificate:"
+  echo "[2]  Configure other GitHub secrets:"
+  echo "       VPS_HOST: $(hostname -I | awk '{print $1}')"
+  echo "       VPS_USER: $DEPLOY_USER"
+  echo "       VPS_REPO_PATH: $TARGET_DIR"
+  echo "       VPS_BACKUP_DB_NAME: $BACKUP_DB_NAME"
+  echo "       VPS_BACKUP_DB_USER: $BACKUP_DB_USER"
+  echo "       VPS_BACKUP_PATH: $BACKUP_DIR"
+  echo "       VPS_HEALTHCHECK_ENDPOINT: https://$DOMAIN/api/health"
+  echo ""
+  echo "[3]  Obtain SSL certificate:"
   echo "       cd $TARGET_DIR/docker"
   echo "       docker compose up -d nginx"
   echo "       docker compose run --rm certbot certonly \\"
@@ -383,11 +428,11 @@ setup_as_user() {
   echo "         --email $EMAIL \\"
   echo "         --agree-tos"
   echo ""
-  echo "[3]  Start the application:"
+  echo "[4]  Start the application:"
   echo "       cd $TARGET_DIR/docker"
   echo "       docker compose up -d"
   echo ""
-  echo "[4]  Configure rclone for remote backups (optional):"
+  echo "[5]  Configure rclone for remote backups (optional):"
   echo "       sudo rclone config"
   echo "       Then add to crontab:"
   echo "       0 3 * * * rclone sync $BACKUP_DIR/ remote:kdongs-backups/"
