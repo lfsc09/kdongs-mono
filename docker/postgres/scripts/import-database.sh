@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Database Import Script
 # Imports PostgreSQL database from a backup file
-# Usage: ./import-database.sh [BACKUP_FILE]
+# Usage: ./import-database.sh [BACKUP_FILE] [DB_NAME] [DB_USER]
 
 set -euo pipefail
 
 # --- CONFIG ---
 CONTAINER_NAME="kdongs-api-postgres"
-DB_NAME="app"
-DB_USER="adonisjs"
 BACKUP_FILE="${1:-}"
+DB_NAME="${2:-}"
+DB_USER="${3:-}"
 # ----------------
 
 # Colors for output
@@ -19,33 +19,41 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "[INFO] $1"
+  echo -e "[INFO] $1"
 }
 
 log_success() {
-    echo -e "${GREEN}[OK]${NC} $1"
+  echo -e "${GREEN}[OK]${NC} $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+  echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+  echo -e "${RED}[ERROR]${NC} $1"
 }
 
 echo "========================================="
 echo "PostgreSQL Database Import"
 echo "========================================="
 
+# Check if DB_NAME and DB_USER are provided
+if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ]; then
+  log_error "Database name and user must be specified."
+  echo ""
+  echo "Usage: $0 <backup-file> <db-name> <db-user>"
+  exit 1
+fi
+
 # Check if backup file was provided
 if [ -z "$BACKUP_FILE" ]; then
   log_error "No backup file specified."
   echo ""
-  echo "Usage: $0 <backup-file>"
+  echo "Usage: $0 <backup-file> <db-name> <db-user>"
   echo ""
   echo "Example:"
-  echo "  $0 ./backups/backup-20241209-120000.sql.gz"
+  echo "  $0 ./backups/backup-20241209-120000.sql.gz mydatabase myuser"
   exit 1
 fi
 

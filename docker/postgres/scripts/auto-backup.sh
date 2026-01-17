@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 # Automated Database Backup Script
 # Creates daily backups and cleans up old ones
-# Usage: ./auto-backup.sh [RETENTION_DAYS]
+# Usage: ./auto-backup.sh [DB_NAME] [DB_USER] [RETENTION_DAYS]
 #
 # Add to crontab for automatic backups:
-# 0 2 * * * /var/www/kdongs-mono/docker/postgres/scripts/auto-backup.sh >> /var/log/kdongs-backup.log 2>&1
+# 0 2 * * * /home/<vps-user>/kdongs-mono/docker/postgres/scripts/auto-backup.sh <db-name> <db-user> <retention-days> >> /var/log/kdongs-backup.log 2>&1
 
 set -euo pipefail
 
 # --- CONFIG ---
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_DIR="${BACKUP_DIR:-$SCRIPT_DIR/../../../backups}"
-RETENTION_DAYS="${1:-7}"  # Keep backups for 7 days by default
+REPO_DIR="$HOME/kdongs-mono"
+SCRIPT_DIR="$REPO_DIR/docker/postgres/scripts"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/backups}"
+DB_NAME="${1:-}"
+DB_USER="${2:-}"
+RETENTION_DAYS="${3:-7}"  # Keep backups for 7 days by default
 # ----------------
 
 echo "========================================="
@@ -19,12 +22,22 @@ echo "Automated Database Backup"
 echo "========================================="
 echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "Backup Directory: $BACKUP_DIR"
+echo "Database: $DB_NAME"
+echo "User: $DB_USER"
 echo "Retention: $RETENTION_DAYS days"
 echo "========================================="
 
+# Check if DB_NAME and DB_USER are provided
+if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ]; then
+  log_error "Database name and user must be specified."
+  echo ""
+  echo "Usage: $0 <db-name> <db-user> [retention-days]"
+  exit 1
+fi
+
 # Create backup using export script
 BACKUP_NAME="auto-backup-$(date +%Y%m%d-%H%M%S)"
-"$SCRIPT_DIR/export-database.sh" "$BACKUP_DIR" "$BACKUP_NAME"
+"$SCRIPT_DIR/export-database.sh" "$DB_NAME" "$DB_USER" "$BACKUP_DIR" "$BACKUP_NAME"
 
 # Clean up old backups
 echo ""

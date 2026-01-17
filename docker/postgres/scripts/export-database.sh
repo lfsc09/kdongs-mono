@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # Database Export Script
 # Exports PostgreSQL database to a backup file
-# Usage: ./export-database.sh [BACKUP_DIR] [BACKUP_NAME]
+# Usage: ./export-database.sh [DB_NAME] [DB_USER] [BACKUP_DIR] [BACKUP_NAME]
 
 set -euo pipefail
 
 # --- CONFIG ---
 CONTAINER_NAME="kdongs-api-postgres"
-DB_NAME="app"
-DB_USER="adonisjs"
-BACKUP_DIR="${1:-./backups}"
-BACKUP_NAME="${2:-backup-$(date +%Y%m%d-%H%M%S)}"
+DB_NAME="${1:-}"
+DB_USER="${2:-}"
+BACKUP_DIR="${3:-$HOME/backups}"
+BACKUP_NAME="${4:-backup-$(date +%Y%m%d-%H%M%S)}"
 # ----------------
 
 # Colors for output
@@ -20,19 +20,19 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "[INFO] $1"
+  echo -e "[INFO] $1"
 }
 
 log_success() {
-    echo -e "${GREEN}[OK]${NC} $1"
+  echo -e "${GREEN}[OK]${NC} $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+  echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+  echo -e "${RED}[ERROR]${NC} $1"
 }
 
 echo "========================================="
@@ -44,6 +44,14 @@ echo "User: $DB_USER"
 echo "Backup Directory: $BACKUP_DIR"
 echo "Backup Name: $BACKUP_NAME"
 echo "========================================="
+
+# Check if DB_NAME and DB_USER are provided
+if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ]; then
+  log_error "Database name and user must be specified."
+  echo ""
+  echo "Usage: $0 <db-name> <db-user> [backup-dir] [backup-name]"
+  exit 1
+fi
 
 # Check if container is running
 if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then

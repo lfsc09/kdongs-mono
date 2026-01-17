@@ -79,11 +79,11 @@ A set of web tools, that over the years I could not find software (paid) that wo
 
 ## First Time Installation
 
-#### 1. Run the bootstrap script providing `<your-domain>`, `<your-email@example.com>` and `<your-user>` to the script:
+#### 1. Run the bootstrap script providing `<your-user>`, `<your-domain>` and `<your-email@example.com>` to the script:
 
 ```bash
 # Example
-# bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/production.bootstrap.sh) your-domain.com your-email@example.com your-user
+# bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/production.bootstrap.sh) <your-user> <your-domain.com> <your-email@example.com>
 ```
 
 ```bash
@@ -128,7 +128,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scri
 #### 2. Obtain SSL certificate:
 
 ```bash
-cd /var/www/kdongs-mono/docker
+cd ~/kdongs-mono/docker
 ```
 
 ```bash
@@ -162,30 +162,17 @@ The certbot container runs a renewal loop every 12 hours.
 Create manual backup:
 
 ```bash
-./postgres/scripts/export-database.sh ../backups "backup-$(date +%Y%m%d)"
+# <export-location> defaults to ~/backups
+./postgres/scripts/export-database.sh <db-name> <db-user> <export-location> "backup-$(date +%Y%m%d)"
 ```
 
-Automated backups are configured via cron (setup by bootstrap):
+Automated backups are configured via cron (setup in `production.bootstrap.sh`):
 ```bash
 # Add this line (runs at 2 AM daily, keeps 7 days of backups)
-0 2 * * * /var/www/kdongs-mono/docker/postgres/scripts/auto-backup.sh 7 >> /var/log/kdongs-backup.log 2>&1
+0 2 * * * /home/<vps-user>/kdongs-mono/docker/postgres/scripts/auto-backup.sh <db-name> <db-user> <backup-retention-days> >> /var/log/kdongs-backup.log 2>&1
 ```
 
-Setup log rotation to prevent disk space issues:
-
-```bash
-sudo nano /etc/logrotate.d/kdongs
-
-# Add this configuration:
-/var/log/kdongs-*.log {
-  daily
-  rotate 7
-  compress
-  delaycompress
-  missingok
-  notifempty
-}
-```
+> Logs created will be rotated as configured by `production.bootstrap.sh`.
 
 #### Backup to remote storage
 
@@ -196,13 +183,13 @@ Sync backups to remote storage:
 rclone config
 
 # Add to cron after auto-backup
-0 3 * * * rclone sync /var/www/kdongs-mono/backups/ remote:kdongs-backups/
+0 3 * * * rclone sync /home/<vps-user>/backups/ remote:kdongs-backups/
 ```
 
 #### Restore
 
 ```bash
-./postgres/scripts/import-database.sh ../backups/backup-20241209-120000.sql.gz
+./postgres/scripts/import-database.sh ~/backups/backup-20241209-120000.sql.gz <db-name> <db-user>
 ```
 
 #### Access database
@@ -229,13 +216,16 @@ docker exec -it kdongs-api-postgres psql -U adonisjs -d app
 > *It creates a backup before deployment and asks for confirmation.
 
 ```bash
-cd /var/www/kdongs-mono
-
+# <backup-folder> defaults to ~/backups
 # Deploy latest main branch
-./scripts/deploy.sh
+~/kdongs-mono/scripts/production.deploy.sh <db-name> <db-user>
+~/kdongs-mono/scripts/production.deploy.sh <db-name> <db-user> latest
 
 # Deploy specific release tag
-./scripts/deploy.sh v1.2.3
+~/kdongs-mono/scripts/production.deploy.sh <db-name> <db-user> v1.2.3
+
+# Custom backup folder
+BACKUP_DIR=/custom ~/kdongs-mono/scripts/production.deploy.sh <db-name> <db-user> latest
 ```
 
 #### Automated deployment
@@ -243,6 +233,17 @@ cd /var/www/kdongs-mono
 Deployments are triggered automatically on GitHub releases via GitHub Actions.
 
 Add the required Github secrets.
+
+| **Secret Name** | **Description** |
+|-----------------|-----------------|
+| `VPS_SSH_KEY` | Private SSH key for authentication to VPS (e.g. `~/.ssh/id_ed25519`) |
+| `VPS_HOST` | VPS server hostname or IP address |
+| `VPS_USER` | SSH username for VPS login |
+| `VPS_REPO_PATH` | Full path to repository inside VPS |
+| `VPS_BACKUP_DB_NAME` | PostgreSQL database name for backups |
+| `VPS_BACKUP_DB_USER` | PostgreSQL database user for backups |
+| `VPS_BACKUP_PATH` | Directory path for storing backups (defaults to `/home/<VPS_USER>/backups`)|
+| `VPS_HEALTHCHECK_ENDPOINT` | URL endpoint for health check after deployment |
 
 </br>
 
@@ -262,7 +263,7 @@ Add the required Github secrets.
 | **Backup Commands** | **Description** |
 | `docker run --rm -v kdongs_api-postgres-data:/data -v $(pwd):/backup alpine tar czf /backup/postgres-data-backup.tar.gz /data` | Backup database volume |
 | `docker run --rm -v kdongs_api-postgres-data:/data -v $(pwd):/backup alpine sh -c "cd /data && tar xzf /backup/postgres-data-backup.tar.gz --strip 1"` | Restore database volume |
-| `find /var/www/kdongs-mono/backups -name "*.sql.gz" -mtime +30 -delete` | Manually remove old backups |
+| `find ~/backups -name "*.sql.gz" -mtime +30 -delete` | Manually remove old backups |
 
 #### Database monitoring
 

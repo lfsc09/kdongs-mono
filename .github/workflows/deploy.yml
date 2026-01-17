@@ -39,7 +39,10 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_PATH: ${{ secrets.VPS_PATH }}
+          VPS_REPO_PATH: ${{ secrets.VPS_REPO_PATH }}
+          VPS_BACKUP_DB_NAME: ${{ secrets.VPS_BACKUP_DB_NAME }}
+          VPS_BACKUP_DB_USER: ${{ secrets.VPS_BACKUP_DB_USER }}
+          VPS_BACKUP_PATH: ${{ secrets.VPS_BACKUP_PATH }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           ssh $VPS_USER@$VPS_HOST << 'ENDSSH'
@@ -50,18 +53,18 @@ jobs:
             echo "========================================="
 
             # Navigate to project directory
-            cd $VPS_PATH
+            cd $VPS_REPO_PATH
 
             # Pull latest changes
-            echo "📥 Fetching latest code..."
+            echo "[1] Fetching latest code..."
             git fetch --all --tags
 
             # Checkout release tag or main branch
             if [ -n "$RELEASE_TAG" ]; then
-              echo "Checking out release: $RELEASE_TAG"
+              echo "[2] Checking out release: $RELEASE_TAG"
               git checkout tags/$RELEASE_TAG
             else
-              echo "Checking out main branch"
+              echo "[2] Checking out main branch"
               git checkout main
               git pull origin main
             fi
@@ -70,65 +73,64 @@ jobs:
             cd docker
 
             # Create backup before deployment
-            echo "💾 Creating database backup..."
-            ./postgres/scripts/export-database.sh ../backups "pre-deploy-$(date +%Y%m%d-%H%M%S)" || echo "⚠️  Backup skipped (database not running)"
+            echo "[3] Creating database backup..."
+            ./postgres/scripts/export-database.sh $VPS_BACKUP_DB_NAME $VPS_BACKUP_DB_USER $VPS_BACKUP_PATH "pre-deploy-$(date +%Y%m%d-%H%M%S)" || echo "    \033[0;31mBackup skipped (database not running)\033[0m"
 
             # Pull latest images and rebuild
-            echo "🔨 Building and deploying containers..."
+            echo "[4] Building and deploying containers..."
             docker compose pull
             docker compose build --no-cache
 
             # Stop old containers
-            echo "🛑 Stopping old containers..."
+            echo "[5] Stopping old containers..."
             docker compose down
 
             # Start new containers
-            echo "🚀 Starting new containers..."
+            echo "[6] Starting new containers..."
             docker compose up -d
 
             # Wait for services to be healthy
-            echo "⏳ Waiting for services to be healthy..."
+            echo "[7] Waiting for services to be healthy..."
             sleep 10
 
             # Check container status
-            echo "📊 Container Status:"
+            echo "[8] Container Status:"
             docker compose ps
 
             # Show recent logs
-            echo "📋 Recent logs:"
+            echo "[9] Recent logs:"
             docker compose logs --tail=50
 
-            echo "========================================="
-            echo "✅ Deployment completed successfully!"
-            echo "========================================="
+            echo ""
+            echo "\033[0;32m[10] Deployment completed successfully!\033[0m"
           ENDSSH
 
       - name: Health Check
         env:
-          VPS_DOMAIN: ${{ secrets.VPS_DOMAIN }}
+          VPS_HEALTHCHECK_ENDPOINT: ${{ secrets.VPS_HEALTHCHECK_ENDPOINT }}
         run: |
-          echo "🏥 Running health check..."
+          echo ""
+          echo "[11] Running health check..."
           sleep 5
 
           # Check if API is responding
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://$VPS_DOMAIN/api/health || echo "000")
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $VPS_HEALTHCHECK_ENDPOINT || echo "000")
 
           if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ Health check passed (HTTP $HTTP_CODE)"
+            echo "\033[0;32m[12] Health check passed (HTTP $HTTP_CODE)\033[0m"
           else
-            echo "⚠️  Health check returned HTTP $HTTP_CODE"
+            echo "\033[0;31m[12] Health check failed (HTTP $HTTP_CODE)\033[0m"
             exit 1
           fi
 
       - name: Notify Deployment Success
         if: success()
         run: |
-          echo "🎉 Deployment successful!"
+          echo "\033[0;32m[ok] Workflow successful\033[0m"
           echo "Release: ${{ github.event.release.tag_name }}"
-          echo "Deployed to: ${{ secrets.VPS_DOMAIN }}"
 
       - name: Notify Deployment Failure
         if: failure()
         run: |
-          echo "❌ Deployment failed!"
+          echo "\033[0;31m[error] Workflow failed\033[0m"
           echo "Please check the logs and rollback if necessary."

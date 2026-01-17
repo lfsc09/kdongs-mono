@@ -2,18 +2,18 @@
 # VPS Bootstrap Script - Fully Automated Setup
 #
 # This script can be run directly from GitHub:
-#   bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/vps-bootstrap.sh) [DOMAIN] [EMAIL]
+#   bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/vps-bootstrap.sh) [DEPLOY_USER] [DOMAIN] [EMAIL]
 #
 # Or downloaded and run locally:
 #   curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/vps-bootstrap.sh -o vps-bootstrap.sh
 #   chmod +x vps-bootstrap.sh
-#   sudo ./vps-bootstrap.sh [DOMAIN] [EMAIL]
+#   sudo ./vps-bootstrap.sh [DEPLOY_USER] [DOMAIN] [EMAIL]
 #
 # This script must be run as root initially, then it will:
-# 1. Create kdongs user
+# 1. Create given deploy user
 # 2. Install Docker, rclone, and dependencies
 # 3. Configure firewall
-# 4. Switch to kdongs user and complete setup
+# 4. Switch to deploy user and complete setup
 # 5. Clone repository
 # 6. Generate secrets
 # 7. Setup automated backups
@@ -21,12 +21,18 @@
 set -euo pipefail
 
 # --- CONFIG ---
-DEPLOY_USER="kdongs"
+DEPLOY_USER="${1:-deploy-user}"
 REPO_URL="https://github.com/lfsc09/kdongs-mono.git"
-TARGET_DIR="/var/www/kdongs-mono"
+DEPLOY_HOME="/home/${DEPLOY_USER}"
+TARGET_DIR="${DEPLOY_HOME}/kdongs-mono"
 BRANCH="main"
-DOMAIN="${1:-example.com}"
-EMAIL="${2:-admin@example.com}"
+DOMAIN="${2:-example.com}"
+EMAIL="${3:-admin@example.com}"
+
+BACKUP_DB_NAME="app"
+BACKUP_DB_USER="adonisjs"
+BACKUP_RETENTION_DAYS="7"
+BACKUP_DIR="${DEPLOY_HOME}/backups"
 # ----------------
 
 # Colors for output
@@ -184,14 +190,7 @@ Unattended-Upgrade::Automatic-Reboot "false";
 EOF
   log_success "Automatic security updates enabled"
 
-  # 9. Create target directory with proper ownership
-  log_info "Setting up target directory: $TARGET_DIR"
-  mkdir -p "$TARGET_DIR"
-  chown -R "$DEPLOY_USER:$DEPLOY_USER" "$TARGET_DIR"
-  log_success "Directory created and owned by $DEPLOY_USER"
-
-  # 10. Setup SSH directory for deploy user
-  DEPLOY_HOME=$(eval echo ~$DEPLOY_USER)
+  # 9. Setup SSH directory for deploy user
   if [ ! -d "$DEPLOY_HOME/.ssh" ]; then
     log_info "Setting up SSH directory for $DEPLOY_USER..."
     mkdir -p "$DEPLOY_HOME/.ssh"
@@ -201,6 +200,30 @@ EOF
     chown -R "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh"
     log_success "SSH directory created"
     log_warn "Don't forget to add your SSH public key to $DEPLOY_HOME/.ssh/authorized_keys"
+  fi
+
+  # 10. Setup log rotation for backup logs
+  LOGROTATE_CONFIG="/etc/logrotate.d/kdongs-backup"
+  if [ ! -f "$LOGROTATE_CONFIG" ]; then
+    log_info "Setting up log rotation for backup logs..."
+    cat > "$LOGROTATE_CONFIG" <<EOF
+/var/log/kdongs-backup.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 640 $DEPLOY_USER adm
+    sharedscripts
+    postrotate
+        /usr/bin/systemctl reload rsyslog >/dev/null 2>&1 || true
+    endscript
+}
+EOF
+    log_success "Log rotation configured for backup logs"
+  else
+    log_info "Log rotation for backup logs already configured"
   fi
 
   print_header "Root Setup Complete"
@@ -244,7 +267,7 @@ setup_as_user() {
     log_info "Cloning repository from $REPO_URL..."
 
     # Try to clone
-    if ! git clone --branch "$BRANCH" "$REPO_URL" "$TARGET_DIR" 2>/dev/null; then
+    if ! git clone --depth 1 --single-branch --branch "$BRANCH" "$REPO_URL" "$TARGET_DIR" 2>/dev/null; then
       log_error "Failed to clone repository"
       exit 1
     fi
@@ -260,7 +283,18 @@ setup_as_user() {
 
   cd "$TARGET_DIR"
 
-  # 2. Generate Docker secrets
+  # 2. Configure git for read-only (production safety)
+  log_info "Configuring git as read-only..."
+  git config --local core.fileMode false
+  git config --local push.default nothing
+  git config --local receive.denyCurrentBranch refuse
+  # Remove any git credentials
+  git config --local --unset credential.helper 2>/dev/null || true
+  log_success "Git configured for read-only access"
+  log_warn "This repository is configured for deployment only"
+  log_warn "Do not commit or push from this server!"
+
+  # 3. Generate Docker secrets
   log_info "Generating Docker secrets..."
   SECRETS_DIR="$TARGET_DIR/docker/secrets"
   mkdir -p "$SECRETS_DIR"
@@ -287,7 +321,7 @@ setup_as_user() {
     log_info "APP_KEY already exists"
   fi
 
-  # 4. Update domain in nginx config
+  # 3. Update domain in nginx config
   log_info "Configuring domain: $DOMAIN"
   NGINX_CONFIG="$TARGET_DIR/docker/nginx/conf.d/site.conf"
   if [ -f "$NGINX_CONFIG" ]; then
@@ -297,17 +331,20 @@ setup_as_user() {
     log_success "Nginx configuration updated"
   fi
 
-  # 5. Set proper permissions
+  # 4. Set proper permissions
   log_info "Setting proper permissions..."
   chmod 700 "$SECRETS_DIR"
   chmod 600 "$SECRETS_DIR"/* 2>/dev/null || true
   log_success "Permissions set"
 
+  # 5. Create backup directory
+  mkdir -p "$BACKUP_DIR"
+  log_success "Backup directory created: $BACKUP_DIR"
+
   # 6. Setup automated backups via crontab
   log_info "Setting up automated database backups..."
   BACKUP_SCRIPT="$TARGET_DIR/docker/postgres/scripts/auto-backup.sh"
-  CRON_JOB="0 2 * * * $BACKUP_SCRIPT 7 >> /var/log/kdongs-backup.log 2>&1"
-
+  CRON_JOB="0 2 * * * BACKUP_DIR=$BACKUP_DIR $BACKUP_SCRIPT $BACKUP_DB_NAME $BACKUP_DB_USER $BACKUP_RETENTION_DAYS >> /var/log/kdongs-backup.log 2>&1"
   # Check if cron job already exists
   if crontab -l 2>/dev/null | grep -q "$BACKUP_SCRIPT"; then
     log_info "Backup cron job already exists"
@@ -316,11 +353,6 @@ setup_as_user() {
     (crontab -l 2>/dev/null || echo ""; echo "$CRON_JOB") | crontab -
     log_success "Automated backups configured (daily at 2 AM, 7-day retention)"
   fi
-
-  # 7. Create backup directory
-  BACKUP_DIR="$TARGET_DIR/backups"
-  mkdir -p "$BACKUP_DIR"
-  log_success "Backup directory created: $BACKUP_DIR"
 
   print_header "Bootstrap Completed Successfully!"
 
@@ -331,21 +363,18 @@ setup_as_user() {
   log_info "   Domain: $DOMAIN"
   log_info "   Email: $EMAIL"
   log_info "   Database Password: $DB_PASSWORD_FILE"
+  log_info "   Clone Directory: $TARGET_DIR"
+  log_info "   Backup Directory: $BACKUP_DIR"
   echo ""
 
   print_header "Next Steps"
   echo ""
-  echo "[1]  Configure rclone for remote backups (optional but recommended):"
-  echo "       sudo rclone config"
-  echo "       Then add to crontab:"
-  echo "       0 3 * * * rclone sync $BACKUP_DIR/ remote:kdongs-backups/"
-  echo ""
-  echo "[2]  Setup SSH key for GitHub (if not done):"
+  echo "[1]  Setup SSH key for GitHub (if not done):"
   echo "       ssh-keygen -t ed25519 -C '$EMAIL'"
   echo "       cat ~/.ssh/id_ed25519.pub"
   echo "       Add the public key to GitHub: https://github.com/settings/keys"
   echo ""
-  echo "[3]  Obtain SSL certificate:"
+  echo "[2]  Obtain SSL certificate:"
   echo "       cd $TARGET_DIR/docker"
   echo "       docker compose up -d nginx"
   echo "       docker compose run --rm certbot certonly \\"
@@ -354,16 +383,16 @@ setup_as_user() {
   echo "         --email $EMAIL \\"
   echo "         --agree-tos"
   echo ""
-  echo "[4]  Start the application:"
+  echo "[3]  Start the application:"
   echo "       cd $TARGET_DIR/docker"
   echo "       docker compose up -d"
   echo ""
-  echo "[5]  Check logs:"
-  echo "       docker compose logs -f"
+  echo "[4]  Configure rclone for remote backups (optional):"
+  echo "       sudo rclone config"
+  echo "       Then add to crontab:"
+  echo "       0 3 * * * rclone sync $BACKUP_DIR/ remote:kdongs-backups/"
   echo ""
-  echo "[6]  Check container status:"
-  echo "       docker compose ps"
-  echo ""
+
   print_header "Security Notes"
   echo ""
   log_info "Firewall Status:"
@@ -383,7 +412,7 @@ main() {
   # Validate domain
   if [ "$DOMAIN" = "example.com" ]; then
     log_warn "Using default domain 'example.com'"
-    log_warn "For production, run with: $0 your-domain.com your-email@example.com"
+    log_warn "For production, run with: $0 your-user your-domain.com your-email@example.com"
     echo ""
   fi
 
