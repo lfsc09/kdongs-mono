@@ -274,12 +274,18 @@ EOF
 
   # Switch to deploy user and continue
   sudo -u "$DEPLOY_USER" -H bash -c "
+    export DEPLOY_USER='$DEPLOY_USER'
     export DOMAIN='$DOMAIN'
     export EMAIL='$EMAIL'
+    export REPO_URL='$REPO_URL'
+    export DEPLOY_HOME='$DEPLOY_HOME'
     export TARGET_DIR='$TARGET_DIR'
     export BRANCH='$BRANCH'
-    export REPO_URL='$REPO_URL'
-    export DEPLOY_USER='$DEPLOY_USER'
+    export BACKUP_DB_NAME='$BACKUP_DB_NAME'
+    export BACKUP_DB_USER='$BACKUP_DB_USER'
+    export BACKUP_RETENTION_DAYS='$BACKUP_RETENTION_DAYS'
+    export BACKUP_DIR='$BACKUP_DIR'
+    export SSH_FILE_NAME='$SSH_FILE_NAME'
     export GREEN='$GREEN'
     export YELLOW='$YELLOW'
     export RED='$RED'
