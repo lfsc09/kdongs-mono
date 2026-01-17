@@ -249,18 +249,17 @@ Add the required Github secrets.
 
 ## Troubleshooting
 
-| **Container Commands** | **Description** |
+| **Commands** | **Description** |
 | -- | -- |
+| **Container Commands** | |
 | `docker compose restart <container-name>` | Restart a container |
 | `docker exec kdongs-api-postgres pg_isready -U adonisjs` | Check DB is healthy |
 | `docker compose up -d --build frontend-builder` | Rebuild frontend |
-| -- | -- |
-| **Certificate Commands** | **Description** |
+| **Certificate Commands** | |
 | `docker compose exec nginx openssl x509 -in /etc/letsencrypt/live/<your-domain>/cert.pem -noout -dates` | Check certificate |
 | `docker compose exec certbot certbot renew --dry-run` | Manual test certificate generation |
 | `docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d <your-domain> --force-renewal` | Certificate manual renewal |
-| -- | -- |
-| **Backup Commands** | **Description** |
+| **Backup Commands** | |
 | `docker run --rm -v kdongs_api-postgres-data:/data -v $(pwd):/backup alpine tar czf /backup/postgres-data-backup.tar.gz /data` | Backup database volume |
 | `docker run --rm -v kdongs_api-postgres-data:/data -v $(pwd):/backup alpine sh -c "cd /data && tar xzf /backup/postgres-data-backup.tar.gz --strip 1"` | Restore database volume |
 | `find ~/backups -name "*.sql.gz" -mtime +30 -delete` | Manually remove old backups |
