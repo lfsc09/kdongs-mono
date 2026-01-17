@@ -52,6 +52,7 @@ BACKUP_DB_NAME="app"
 BACKUP_DB_USER="adonisjs"
 BACKUP_RETENTION_DAYS="7"
 BACKUP_DIR="${DEPLOY_HOME}/backups"
+SSH_FILE_NAME="$DEPLOY_USER-$(hostname)"
 # ----------------
 
 # Colors for output
@@ -121,12 +122,12 @@ setup_as_root() {
   fi
 
   # 2. Generate SSH key for GitHub Actions deployment
-  if [ ! -f "$DEPLOY_HOME/.ssh/id_ed25519" ]; then
+  if [ ! -f "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME" ]; then
     log_info "Generating SSH key for GitHub Actions..."
-    sudo -u "$DEPLOY_USER" ssh-keygen -t ed25519 -f "$DEPLOY_HOME/.ssh/id_ed25519" -N "" -C "github-actions-deploy-$DEPLOY_USER@$(hostname)"
-    chmod 600 "$DEPLOY_HOME/.ssh/id_ed25519"
-    chmod 644 "$DEPLOY_HOME/.ssh/id_ed25519.pub"
-    chown "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh/id_ed25519"*
+    sudo -u "$DEPLOY_USER" ssh-keygen -t ed25519 -f "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME" -N "" -C "github-actions-deploy-$DEPLOY_USER@$(hostname)"
+    chmod 600 "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME"
+    chmod 644 "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME.pub"
+    chown "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME"*
     log_success "SSH key generated for GitHub Actions"
   else
     log_info "SSH key already exists for GitHub Actions"
@@ -144,10 +145,10 @@ setup_as_root() {
   fi
   
   # Add the generated public key to authorized_keys if not already present
-  if [ -f "$DEPLOY_HOME/.ssh/id_ed25519.pub" ]; then
-    PUB_KEY=$(cat "$DEPLOY_HOME/.ssh/id_ed25519.pub")
+  if [ -f "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME.pub" ]; then
+    PUB_KEY=$(cat "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME.pub")
     if ! grep -qF "$PUB_KEY" "$DEPLOY_HOME/.ssh/authorized_keys" 2>/dev/null; then
-      cat "$DEPLOY_HOME/.ssh/id_ed25519.pub" >> "$DEPLOY_HOME/.ssh/authorized_keys"
+      cat "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME.pub" >> "$DEPLOY_HOME/.ssh/authorized_keys"
       log_success "Public key added to authorized_keys"
     fi
   fi
@@ -412,7 +413,7 @@ setup_as_user() {
   echo ""
   echo "[1]  Configure all GitHub secrets:"
   echo "       Go to: https://github.com/lfsc09/kdongs-mono/settings/secrets/actions"
-  echo "       VPS_SSH_KEY: $(cat "$DEPLOY_HOME/.ssh/id_ed25519.pub" >/dev/null 2>&1 || echo "(not found)")"
+  echo "       VPS_SSH_KEY: (check Security Notes below)"
   echo "       VPS_HOST: $(hostname -I | awk '{print $1}')"
   echo "       VPS_USER: $DEPLOY_USER"
   echo "       VPS_REPO_PATH: $TARGET_DIR"
@@ -448,6 +449,9 @@ setup_as_user() {
   log_info "Secrets generated:"
   log_info "    - Database password: $DB_PASSWORD_FILE"
   log_info "    - APP_KEY: $APP_KEY_FILE"
+  echo ""
+  log_info "Private SSH key for GitHub Actions deployment:"
+  cat "$DEPLOY_HOME/.ssh/$SSH_FILE_NAME"
   echo ""
   log_success "Setup Complete"
 }
