@@ -1,16 +1,37 @@
 #!/usr/bin/env bash
 # Database Export Script
 # Exports PostgreSQL database to a backup file
-# Usage: ./export-database.sh [DB_NAME] [DB_USER] [BACKUP_DIR] [BACKUP_NAME]
+# Usage: [CONTAINER_NAME=<container-name>] [DB_NAME=<db-name>] [DB_USER=<db-user>] ./export-database.sh [backup-name-prefix] [backup-dir]
+#
+# Examples:
+#   ./export-database.sh                                                                                       # Export to default backup name prefix and backup dir
+#   ./export-database.sh backup /custom/path                                                                   # Export to custom backup name prefix and backup dir
+#   CONTAINER_NAME=my-postgres-container DB_NAME=mydb DB_USER=dbuser ./export-database.sh backup /custom/path  # Custom container, DB, user, backup name prefix, and backup dir
+#
+# Parameters:
+#   backup-name-prefix : Prefix for the backup file name (optional, default: "backup")
+#   backup-dir         : Backup directory (optional, default: $HOME/backups)
+#
+# Environment Variables:
+#   CONTAINER_NAME : Name of the PostgreSQL Docker container (optional, default: kdongs-api-postgres)
+#   DB_NAME        : Database name (optional, default: app)
+#   DB_USER        : Database user (optional, default: adonisjs)
+#
+# This script does the following:
+#   1. Exports the specified PostgreSQL database from the Docker container
+#   2. Compresses the output using gzip
+#
 
 set -euo pipefail
 
 # --- CONFIG ---
-CONTAINER_NAME="kdongs-api-postgres"
-DB_NAME="${1:-}"
-DB_USER="${2:-}"
-BACKUP_DIR="${3:-$HOME/backups}"
-BACKUP_NAME="${4:-backup-$(date +%Y%m%d-%H%M%S)}"
+CONTAINER_NAME="${POSTGRES_CONTAINER_NAME:-kdongs-api-postgres}"
+DB_NAME="${DB_NAME:-app}"
+DB_USER="${DB_USER:-adonisjs}"
+BACKUP_NAME_PREFIX="${1:-backup}"
+BACKUP_DIR="${2:-$HOME/backups}"
+
+BACKUP_NAME="${BACKUP_NAME_PREFIX}-$(date +%Y%m%d-%H%M%S)"
 # ----------------
 
 # Colors for output
@@ -86,7 +107,7 @@ if [ $? -eq 0 ]; then
   echo "  Size: $BACKUP_SIZE"
   echo ""
   log_info "To restore this backup, use:"
-  echo "  ./import-database.sh $BACKUP_FILE"
+  echo "  DB_NAME=app DB_USER=adonisjs ./import-database.sh $BACKUP_FILE"
 else
   log_error "Backup failed!"
   exit 1

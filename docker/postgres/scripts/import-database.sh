@@ -1,15 +1,32 @@
 #!/usr/bin/env bash
 # Database Import Script
-# Imports PostgreSQL database from a backup file
-# Usage: ./import-database.sh [BACKUP_FILE] [DB_NAME] [DB_USER]
+# Imports PostgreSQL database from a backup file (compressed or uncompressed)
+# Usage: [DB_NAME=<db-name>] [DB_USER=<db-user>] ./import-database.sh <backup-file>
+#
+# Examples:
+#   ./import-database.sh ./backups/backup-20241209-120000.sql.gz                              # Import from compressed backup file
+#   ./import-database.sh ./backups/backup-20241209-120000.sql                                 # Import from uncompressed backup file
+#   DB_NAME=mydb DB_USER=dbuser ./import-database.sh ./backups/backup-20241209-120000.sql.gz  # Custom DB and user
+#
+# Parameters:
+#   backup-file : Path to the backup file (required)
+#
+# Environment Variables:
+#   DB_NAME    : Database name (optional, default: app)
+#   DB_USER    : Database user (optional, default: adonisjs)
+#
+# This script does the following:
+#   1. Imports the specified PostgreSQL database into the Docker container
+#
 
 set -euo pipefail
 
 # --- CONFIG ---
-CONTAINER_NAME="kdongs-api-postgres"
 BACKUP_FILE="${1:-}"
 DB_NAME="${2:-}"
 DB_USER="${3:-}"
+
+CONTAINER_NAME="kdongs-api-postgres"
 # ----------------
 
 # Colors for output

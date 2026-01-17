@@ -74,7 +74,7 @@ jobs:
 
             # Create backup before deployment
             echo "[3] Creating database backup..."
-            ./postgres/scripts/export-database.sh $VPS_BACKUP_DB_NAME $VPS_BACKUP_DB_USER $VPS_BACKUP_PATH "pre-deploy-$(date +%Y%m%d-%H%M%S)" || echo "    \033[0;31mBackup skipped (database not running)\033[0m"
+            CONTAINER_NAME="kdongs-api-postgres" DB_NAME="$VPS_BACKUP_DB_NAME" DB_USER="$VPS_BACKUP_DB_USER" ./postgres/scripts/export-database.sh "pre-deploy" "$VPS_BACKUP_PATH" || echo "    \033[0;31mBackup skipped (database not running)\033[0m"
 
             # Pull latest images and rebuild
             echo "[4] Building and deploying containers..."

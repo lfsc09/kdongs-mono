@@ -1,34 +1,53 @@
 #!/usr/bin/env bash
 # VPS Bootstrap Script - Fully Automated Setup
+# Usage: sudo ./production.bootstrap.sh <vps-user> <domain> <email>
 #
-# This script can be run directly from GitHub:
-#   bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/vps-bootstrap.sh) [DEPLOY_USER] [DOMAIN] [EMAIL]
+# Examples:
+#   sudo ./production.bootstrap.sh deployuser example.com user@example.com
 #
-# Or downloaded and run locally:
-#   curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/vps-bootstrap.sh -o vps-bootstrap.sh
-#   chmod +x vps-bootstrap.sh
-#   sudo ./vps-bootstrap.sh [DEPLOY_USER] [DOMAIN] [EMAIL]
+#   This script can be run directly from GitHub:
+#     bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/production.bootstrap.sh) <vps-user> <domain> <email>
 #
-# This script must be run as root initially, then it will:
-# 1. Create given deploy user
-# 2. Install Docker, rclone, and dependencies
-# 3. Configure firewall
-# 4. Switch to deploy user and complete setup
-# 5. Clone repository
-# 6. Generate secrets
-# 7. Setup automated backups
+#   Or downloaded and run locally:
+#     curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scripts/production.bootstrap.sh -o production.bootstrap.sh
+#     chmod +x production.bootstrap.sh
+#     sudo ./production.bootstrap.sh <vps-user> <domain> <email>
+#
+# Parameters:
+#   vps-user : Username for the deploy user to be created
+#   domain   : Domain name for the application
+#   email    : Email address for SSL certificate registration
+#
+# This script does:
+#   At root phase:
+#     1. Create deploy user `<vps-user>` with sudo access
+#     2. Generate SSH key for GitHub Actions deployment
+#     3. Update and install necessary packages (Docker, Docker Compose, Git, UFW, Fail2Ban, etc.)
+#     4. Configure firewall (UFW) and Fail2Ban
+#     5. Enable automatic security updates
+#     6. Setup log rotation for backup logs
+#     7. Switch to deploy user for application setup
+#   At user phase:
+#     1. Clone or update the application repository
+#     2. Configure git for read-only access
+#     3. Generate Docker secrets (DB password, APP_KEY)
+#     4. Update `<domain>` in nginx configuration
+#     5. Set proper permissions for secrets
+#     6. Create backup directory
+#     7. Setup automated database backups via crontab
+#
 
 set -euo pipefail
 
 # --- CONFIG ---
-DEPLOY_USER="${1:-deploy-user}"
+DEPLOY_USER="${1:-}"
+DOMAIN="${2:-}"
+EMAIL="${3:-}"
+
 REPO_URL="https://github.com/lfsc09/kdongs-mono.git"
 DEPLOY_HOME="/home/${DEPLOY_USER}"
 TARGET_DIR="${DEPLOY_HOME}/kdongs-mono"
 BRANCH="main"
-DOMAIN="${2:-example.com}"
-EMAIL="${3:-admin@example.com}"
-
 BACKUP_DB_NAME="app"
 BACKUP_DB_USER="adonisjs"
 BACKUP_RETENTION_DAYS="7"
@@ -366,7 +385,7 @@ setup_as_user() {
   # 6. Setup automated backups via crontab
   log_info "Setting up automated database backups..."
   BACKUP_SCRIPT="$TARGET_DIR/docker/postgres/scripts/auto-backup.sh"
-  CRON_JOB="0 2 * * * BACKUP_DIR=$BACKUP_DIR $BACKUP_SCRIPT $BACKUP_DB_NAME $BACKUP_DB_USER $BACKUP_RETENTION_DAYS >> /var/log/kdongs-backup.log 2>&1"
+  CRON_JOB="0 2 * * * BACKUP_DIR=$BACKUP_DIR DB_NAME=$BACKUP_DB_NAME DB_USER=$BACKUP_DB_USER $BACKUP_SCRIPT $BACKUP_RETENTION_DAYS >> /var/log/kdongs-backup.log 2>&1"
   # Check if cron job already exists
   if crontab -l 2>/dev/null | grep -q "$BACKUP_SCRIPT"; then
     log_info "Backup cron job already exists"
@@ -437,11 +456,10 @@ setup_as_user() {
 main() {
   print_header "Kdongs VPS Bootstrap Script"
 
-  # Validate domain
-  if [ "$DOMAIN" = "example.com" ]; then
-    log_warn "Using default domain 'example.com'"
-    log_warn "For production, run with: $0 your-user your-domain.com your-email@example.com"
-    echo ""
+  # Check necessary parameters
+  if [ -z "$DEPLOY_USER" ] || [ -z "$DOMAIN" ] || [ -z "$EMAIL" ]; then
+    log_error "Usage: sudo $0 <vps-user> <domain> <email>"
+    exit 1
   fi
 
   # Check execution context

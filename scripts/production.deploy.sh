@@ -1,23 +1,40 @@
 #!/usr/bin/env bash
 # Manual Deployment Script
 # Manually deploys the application inside the VPS server
-# Usage: BACKUP_DIR=<backup_dir> ./production.deploy.sh [DB_NAME] [DB_USER] [TAG|latest]
+# Usage: [BACKUP_DIR=<backup-dir>] [DB_NAME=<db-name>] [DB_USER=<db-user>] ./production.deploy.sh [<tag>|latest]
 #
 # Examples:
-#   ./production.deploy.sh <db-name> <db-user>                             # Deploy latest from main
-#   ./production.deploy.sh <db-name> <db-user> latest                      # Deploy latest from main
-#   ./production.deploy.sh <db-name> <db-user> v1.2.3                      # Deploy specific tag
-#   BACKUP_DIR=/custom ./production.deploy.sh <db-name> <db-user> v1.2.3   # Custom backup dir
+#   ./production.deploy.sh                                                      # Deploy latest from main branch
+#   ./production.deploy.sh latest                                               # Deploy latest from main branch
+#   ./production.deploy.sh v1.2.3                                               # Deploy specific tag
+#   BACKUP_DIR=/custom/path ./production.deploy.sh v1.2.3                       # Custom backup directory
+#   BACKUP_DIR=/custom/path DB_NAME=mydb DB_USER=dbuser ./production.deploy.sh  # Custom DB and backup dir
+#
+# Parameters:
+#   tag        : Release tag or 'latest' for main branch (optional, default: latest)
+#
+# Environment Variables:
+#   BACKUP_DIR : Custom backup directory (optional, default: $HOME/backups)
+#   DB_NAME    : Database name (optional, default: app)
+#   DB_USER    : Database user (optional, default: adonisjs)
+#
+# This script does the following:
+#   1. Prompts for confirmation before proceeding
+#   2. Checks out the specified tag or latest from main branch
+#   3. Creates a database backup (with "pre-deploy" prefix)
+#   4. Builds and deploys the Docker containers
+#
 
 set -euo pipefail
 
 # --- CONFIG ---
+BACKUP_DIR="${BACKUP_DIR:-$HOME/backups}"
+DB_NAME="${DB_NAME:-app}"
+DB_USER="${DB_USER:-adonisjs}"
+TAG="${1:-latest}"
+
 REPO_DIR="$HOME/kdongs-mono"
 DOCKER_DIR="$REPO_DIR/docker"
-BACKUP_DIR="${BACKUP_DIR:-$HOME/backups}"
-DB_NAME="${1:-}"
-DB_USER="${2:-}"
-TAG="${3:-latest}"
 # ----------------
 
 RED='\033[0;31m'
@@ -44,6 +61,19 @@ log_error() {
 echo "========================================="
 echo "Kdongs Manual Deployment"
 echo "========================================="
+# Confirm before proceeding
+echo ""
+log_warn "This will rebuild and restart all containers."
+log_info "Backup directory: $BACKUP_DIR"
+log_info "Database: $DB_NAME"
+log_info "User: $DB_USER"
+echo ""
+read -p "Continue with deployment? (yes/no): " CONFIRM
+
+if [ "$CONFIRM" != "yes" ]; then
+  log_error "Deployment cancelled."
+  exit 0
+fi
 
 # Check if DB_NAME, DB_USER and TAG are provided
 if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$TAG" ]; then
@@ -78,21 +108,7 @@ fi
 # Create backup before deployment
 log_info "Creating database backup..."
 mkdir -p "$BACKUP_DIR"
-"$DOCKER_DIR/postgres/scripts/export-database.sh" "$DB_NAME" "$DB_USER" "$BACKUP_DIR" "pre-deploy-$(date +%Y%m%d-%H%M%S)" || log_warn "Backup skipped (database not running)"
-
-# Confirm before proceeding
-echo ""
-log_warn "This will rebuild and restart all containers."
-log_info "Backup directory: $BACKUP_DIR"
-log_info "Database: $DB_NAME"
-log_info "User: $DB_USER"
-echo ""
-read -p "Continue with deployment? (yes/no): " CONFIRM
-
-if [ "$CONFIRM" != "yes" ]; then
-  log_error "Deployment cancelled."
-  exit 0
-fi
+CONTAINER_NAME="kdongs-api-postgres" DB_NAME="$DB_NAME" DB_USER="$DB_USER" "$DOCKER_DIR/postgres/scripts/export-database.sh" "pre-manual-deploy" "$BACKUP_DIR" || log_warn "Backup skipped (database not running)"
 
 # Navigate to docker directory
 cd "$DOCKER_DIR"
