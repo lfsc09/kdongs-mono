@@ -97,15 +97,17 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scri
 
 > There are resource limitations for containers configured in `docker/compose.production.yaml`.
 
+#### 2. Start all services:
+
+```bash
+su <vps-user> && cd ~/kdongs-mono/docker
+```
+
+```bash
+docker compose -f compose.production.yaml up -d
+```
+
 #### 2. Obtain SSL certificate:
-
-```bash
-cd ~/kdongs-mono/docker
-```
-
-```bash
-docker compose up -d nginx
-```
 
 ```bash
 docker compose run --rm certbot certonly \
@@ -113,12 +115,6 @@ docker compose run --rm certbot certonly \
   -d <your-domain.com> -d <www.your-domain.com> \
   --email <your-email@example.com> \
   --agree-tos
-```
-
-#### 3. Start all services:
-
-```bash
-docker compose up -d
 ```
 
 </br>
