@@ -100,7 +100,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lfsc09/kdongs-mono/main/scri
 #### 2. Start all services:
 
 ```bash
-su <vps-user> && cd ~/kdongs-mono/docker
+cd /home/<vps-user>/kdongs-mono/docker
 ```
 
 ```bash
