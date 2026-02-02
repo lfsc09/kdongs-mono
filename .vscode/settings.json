@@ -1,0 +1,8 @@
+{
+  "workbench.colorTheme": "Dracula Theme",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.suggest.completeJSDocs": false,
+  "typescript.suggest.jsdoc.generateReturns": false,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "tailwindCSS.emmetCompletions": true,
+}
