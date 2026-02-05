@@ -2,20 +2,26 @@
 
 A set of web tools, that over the years I could not find software (paid) that would cover all my needs.
 
-### Roadmap
+## Core Features
+- **User Authentication**: Secure token-based authentication with automatic token refresh
+- **Investment Dashboard**: View and manage multiple investment wallets
+- **Performance Analytics**: Portfolio performance visualization
+- **Multi-Currency Support**: Handle wallets in different currencies
 
-#### Finished
+## Roadmap
+
+### Finished
 
 - [x] Wallet management (create, delete);
 
-#### In Progress
+### In Progress
 
 - [x] Make wallet movements (deposit, withdraw);
 - [ ] Manage asset inclusion in wallets;
 - [ ] Wallet profit calculation;
 - [x] Deployment scripts
 
-#### Backlog
+### Backlog
 
 - [ ] Allow change wallet currency (simulation only);
 - [ ] Market data;
@@ -25,7 +31,7 @@ A set of web tools, that over the years I could not find software (paid) that wo
 - [ ] Investments alerts;
 - [ ] Investment calculators;
 
-### Additional READMEs
+## Additional READMEs
 
 1. [Backend Adonisjs Api](packages/backend/README.md)
 2. [Frontend Angular](packages/frontend/README.md)
