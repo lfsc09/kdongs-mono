@@ -33,8 +33,9 @@
   "homepage": "https://github.com/lfsc09/kdongs-mono#readme",
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
-    "mprocs": "^0.7.3"
+    "lint-staged": "^16.2.7",
+    "mprocs": "^0.8.3",
+    "npm-check-updates": "^19.3.2"
   },
   "lint-staged": {
     "packages/frontend/src/**/*.{ts,js,json,css,scss,html,md}": [
