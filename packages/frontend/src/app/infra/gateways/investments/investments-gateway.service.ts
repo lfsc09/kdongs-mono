@@ -3,7 +3,12 @@ import { catchError, map, Observable, throwError } from 'rxjs'
 import { GatewayError } from '../shared/default-gateway.model'
 import { DefaultGatewayService } from '../shared/default-gateway.service'
 import {
+  GetUserWalletsPerformanceRequestDTO,
+  GetUserWalletsPerformanceRequestDTOSchema,
+  GetUserWalletsPerformanceResponseDTO,
+  GetUserWalletsPerformanceResponseDTOSchema,
   ListUserWalletRequestDTO,
+  ListUserWalletRequestDTOSchema,
   ListUserWalletResponseDTO,
   ListUserWalletResponseDTOSchema,
 } from './investments-gateway.model'
@@ -11,11 +16,12 @@ import {
 @Injectable()
 export class InvestmentsGatewayService extends DefaultGatewayService {
   listUserWallets(request: ListUserWalletRequestDTO): Observable<ListUserWalletResponseDTO> {
+    const parsedRequest = ListUserWalletRequestDTOSchema.parse(request)
     return this.http
       .get<ListUserWalletResponseDTO>(`${this.apiUrl}/investments/wallets`, {
         observe: 'response',
         withCredentials: true,
-        params: request,
+        params: parsedRequest,
       })
       .pipe(
         map(response => {
@@ -25,7 +31,39 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
             throw new GatewayError(
               response.status,
               validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid authentication response structure'
+              'Invalid list user wallets response structure'
+            )
+          }
+
+          return validationResult.data
+        }),
+        catchError(error => {
+          return throwError(() => this.handleHttpError(error))
+        })
+      )
+  }
+
+  getUserWalletsPerformance(
+    request: GetUserWalletsPerformanceRequestDTO
+  ): Observable<GetUserWalletsPerformanceResponseDTO> {
+    const parsedRequest = GetUserWalletsPerformanceRequestDTOSchema.parse(request)
+    return this.http
+      .get<GetUserWalletsPerformanceResponseDTO>(`${this.apiUrl}/investments/performance`, {
+        observe: 'response',
+        withCredentials: true,
+        params: parsedRequest,
+      })
+      .pipe(
+        map(response => {
+          const validationResult = GetUserWalletsPerformanceResponseDTOSchema.safeParse(
+            response.body
+          )
+
+          if (!validationResult.success) {
+            throw new GatewayError(
+              response.status,
+              validationResult.error.issues.map(e => e.message).join(', '),
+              'Invalid performance response structure'
             )
           }
 

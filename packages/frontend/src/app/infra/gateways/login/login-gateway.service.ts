@@ -5,6 +5,7 @@ import { GatewayError } from '../shared/default-gateway.model'
 import { DefaultGatewayService } from '../shared/default-gateway.service'
 import {
   AuthenticateRequest,
+  AuthenticateRequestSchema,
   AuthenticateResponse,
   AuthenticateResponseSchema,
 } from './login-gateway.model'
@@ -14,8 +15,9 @@ export class LoginGatewayService extends DefaultGatewayService {
   private readonly _identityService = inject(IdentityService)
 
   authenticate(request: AuthenticateRequest): Observable<boolean> {
+    const parsedRequest = AuthenticateRequestSchema.parse(request)
     return this.http
-      .post<AuthenticateResponse>(`${this.apiUrl}/login`, request, {
+      .post<AuthenticateResponse>(`${this.apiUrl}/login`, parsedRequest, {
         observe: 'response',
         withCredentials: true,
       })
