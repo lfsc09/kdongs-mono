@@ -7,9 +7,11 @@ export type HandleSelectedWalletsPerformanceRequest = InferInput<
 
 export type HandleSelectedWalletsPerformanceResponse = {
   data: {
+    currencyToShow: string
+    walletIds: string[]
     indicators: {
-      resultingBalanceInCurncy: number
-      resultingProfitInCurncy: number
+      resultingBalanceInCurrency: number
+      resultingProfitInCurrency: number
       resultingProfitInPerc: number
       dateStartUtc: string
       dateEndUtc: string
@@ -46,14 +48,9 @@ export type HandleSelectedWalletsPerformanceResponse = {
       historyHigh: number
       historyLow: number
     }
-    wallets: {
-      partialId: string
-      name: string
-      currencyCode: string
-    }[]
     series: {
       type: SerieType
-      partialWalletId: string
+      walletId: string
       exitDateUtc: string
       inputAmount: number
       grossProfit: number

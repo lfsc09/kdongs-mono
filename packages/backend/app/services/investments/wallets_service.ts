@@ -83,12 +83,12 @@ export default class WalletsService {
               new Big(0),
             )
 
-            const profitInCurncy = brlPrivateBondsProfit
+            const profitInCurrency = brlPrivateBondsProfit
               .add(brlPublicBondsProfit)
               .add(sefbfrAssetsProfit)
 
             // Current balance is the balance of the wallet considering the submissions and the investments done in the wallet
-            const currentBalance = submissionBalance.add(profitInCurncy)
+            const currentBalance = submissionBalance.add(profitInCurrency)
 
             const profitInPerc = submissionBalance.eq(0)
               ? submissionBalance
@@ -101,7 +101,7 @@ export default class WalletsService {
               id: wallet.id,
               initialBalance: submissionBalance.round(2, Big.roundHalfEven).toNumber(),
               name: wallet.name,
-              profitInCurncy: profitInCurncy.round(2, Big.roundHalfEven).toNumber(),
+              profitInCurrency: profitInCurrency.round(2, Big.roundHalfEven).toNumber(),
               profitInPerc: profitInPerc.round(2, Big.roundHalfEven).toNumber(),
               // FIXME: fix trend calculation
               trend: 'up',
@@ -124,8 +124,25 @@ export default class WalletsService {
   async walletsPerformance(
     input: HandleSelectedWalletsPerformanceRequest,
   ): Promise<HandleSelectedWalletsPerformanceResponse> {
+    const isWalletIdsArray = Array.isArray(input.walletIds)
     const wallets = await Wallet.query()
-      .whereIn('id', input.walletIds)
+      .if(
+        !input.walletIds || (isWalletIdsArray && input.walletIds.length === 0),
+        q => {
+          q.orderBy('updatedAt', 'desc').limit(1)
+        },
+        q => {
+          q.if(
+            isWalletIdsArray,
+            q => {
+              q.whereIn('id', input.walletIds as string[])
+            },
+            q => {
+              q.where('id', input.walletIds as string)
+            },
+          )
+        },
+      )
       .where('userId', input.userId)
       .preload('movements', movementQuery => {
         movementQuery.orderBy('dateUtc', 'asc')
@@ -167,10 +184,10 @@ export default class WalletsService {
       numberOfAssetsProfit: 0,
 
       // Submissions + Assets profit/loss
-      resultingBalanceInCurncy: new Big(0),
+      resultingBalanceInCurrency: new Big(0),
 
       // Only Assets profit/loss
-      resultingProfitInCurncy: new Big(0),
+      resultingProfitInCurrency: new Big(0),
       resultingProfitInPerc: new Big(0),
     }
 
@@ -224,7 +241,7 @@ export default class WalletsService {
         }
 
         globalAnalytics.numberOfAssets += 1
-        globalAnalytics.resultingProfitInCurncy = globalAnalytics.resultingProfitInCurncy.add(
+        globalAnalytics.resultingProfitInCurrency = globalAnalytics.resultingProfitInCurrency.add(
           bond.doneProfit,
         )
       }
@@ -232,6 +249,7 @@ export default class WalletsService {
 
     return {
       data: {
+        currencyToShow: 'BRL',
         indicators: {
           avgCostByAsset: 0,
           avgCostByDay: 0,
@@ -267,12 +285,12 @@ export default class WalletsService {
           profitAvg: 0,
           profitMax: 0,
           profitSum: 0,
-          resultingBalanceInCurncy: 0,
-          resultingProfitInCurncy: 0,
+          resultingBalanceInCurrency: 0,
+          resultingProfitInCurrency: 0,
           resultingProfitInPerc: 0,
         },
         series: [],
-        wallets: [],
+        walletIds: wallets.map(wallet => wallet.id),
       },
     }
   }

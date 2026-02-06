@@ -18,17 +18,13 @@ The backend is an AdonisJS 6.x application providing a RESTful API.
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| **AdonisJS** | 6.x | Web framework & dependency injection |
-| **Node.js** | Latest LTS | Runtime environment |
-| **TypeScript** | 5.6.x | Type-safe language |
-| **PostgreSQL** | 8.x | Relational database |
-| **Lucid ORM** | Latest | Database ORM with migrations |
-| **Vine** | Latest | Schema validation |
-| **Bouncer** | Latest | Authorization & abilities |
-| **Scrypt** | Latest | Password hashing |
-| **Pino** | Latest | Structured logging |
-| **Japa** | Latest | Testing framework |
-| **Biome** | 2.2.2 | Linting & formatting |
+| **Node.js** | 24.11 | Runtime environment |
+| **TypeScript** | 5.9.x | Type-safe language |
+| **AdonisJS** | 6.20.x | Web framework & dependency injection |
+| **Lucid ORM** | 21.8.x | Database ORM with migrations |
+| **Vine** | 4.3.x | Schema validation |
+| **Japa** | 5.3.x | Testing framework |
+| **Biome** | 2.3.x | Linting & formatting |
 
 ---
 

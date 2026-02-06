@@ -13,7 +13,7 @@ export type IndexWalletsResponse = {
       trend: 'up' | 'down' | 'stable'
       initialBalance: number
       currentBalance: number
-      profitInCurncy: number
+      profitInCurrency: number
       profitInPerc: number
       createdAt?: string
       updatedAt?: string
