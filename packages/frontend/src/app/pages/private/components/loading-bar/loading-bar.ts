@@ -12,6 +12,7 @@ import { Component, input, ViewEncapsulation } from '@angular/core'
         class="h-full transition-all rounded absolute animate-[indeterminate_1.5s_infinite_ease-out] {{
           barColors[color()]
         }}"
+        style="animation-delay: {{ randomStartDelay }}s"
       ></div>
     </div>
   `,
@@ -19,7 +20,7 @@ import { Component, input, ViewEncapsulation } from '@angular/core'
     @keyframes indeterminate {
       0% {
         left: -0%;
-        width: 30%;
+        width: 5%;
       }
       50% {
         left: 50%;
@@ -42,6 +43,7 @@ export class LoadingBar {
    */
   size = input<'sm' | 'md'>('md')
   color = input<'slate' | 'lime'>('lime')
+  randomStartDelay = Math.random() * 1.5
 
   /**
    * VARS
