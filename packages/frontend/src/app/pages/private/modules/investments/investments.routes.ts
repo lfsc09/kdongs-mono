@@ -13,17 +13,20 @@ export const investmentsRoutes: Routes = [
     title: titleResolver,
     loadComponent: () => import('./investments').then(module => module.Investments),
     canMatch: [authorizationGuard],
-    // children: [
-    //   {
-    //     path: 'performance',
-    //     loadComponent: () => import('./wallets-performance/wallets-performance.component').then((module) => module.WalletsPerformanceComponent),
-    //   },
-    //   {
-    //     path: 'wallets/create',
-    //     loadComponent: () => import('./wallets/create-wallet/create-wallet.component').then((module) => module.CreateWalletComponent),
-    //   },
-    //   { path: '', redirectTo: 'performance', pathMatch: 'full' },
-    // ],
+    children: [
+      {
+        path: 'performance',
+        loadComponent: () =>
+          import('./wallet-performance/wallet-performance').then(
+            module => module.WalletPerformance
+          ),
+      },
+      // {
+      //   path: 'wallets/create',
+      //   loadComponent: () => import('./wallets/create-wallet/create-wallet').then((module) => module.CreateWalletComponent),
+      // },
+      { path: '', redirectTo: 'performance', pathMatch: 'full' },
+    ],
   },
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ]

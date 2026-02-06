@@ -1,18 +1,22 @@
-import { Component, inject } from '@angular/core'
+import { Component, inject, OnInit } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { InvestmentsGatewayService } from '../../../../infra/gateways/investments/investments-gateway.service'
+import { InvestmentsService } from './investments.service'
 import { Wallet } from './wallet/wallet'
-import { WalletService } from './wallet/wallet.service'
 
 @Component({
   selector: 'kdongs-investments',
   imports: [RouterOutlet, Wallet],
-  providers: [WalletService, InvestmentsGatewayService],
+  providers: [InvestmentsService, InvestmentsGatewayService],
   templateUrl: './investments.html',
 })
-export class Investments {
+export class Investments implements OnInit {
   /**
    * SERVICES
    */
-  protected readonly walletService = inject(WalletService)
+  protected readonly investmentsService = inject(InvestmentsService)
+
+  ngOnInit(): void {
+    this.investmentsService.readUserPreferences()
+  }
 }

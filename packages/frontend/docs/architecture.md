@@ -111,7 +111,6 @@ export class WalletService {
   selectedWallets = signal<Map<string, Wallet>>(new Map())
 
   handleCollapse(): void
-  resetSelectedWallets(): void
 }
 ```
 

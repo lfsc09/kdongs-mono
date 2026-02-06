@@ -12,12 +12,11 @@ The application uses signals for state management, standalone components, and fo
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| **Angular** | 21.x.x | UI framework |
-| **Angular Signals** | Built-in | State management |
-| **TypeScript** | 5.7.x | Type-safe language |
-| **Tailwind CSS** | 4.1.17 | Utility-first styling |
-| **Zod** | 3.x | Runtime schema validation |
-| **Font Awesome** | 6.x | Icon library |
+| **TypeScript** | 5.9.x | Type-safe language |
+| **Angular** | 21.1.x | UI framework |
+| **Tailwind CSS** | 4.1.x | Utility-first styling |
+| **Zod** | 4.3.x | Runtime schema validation |
+| **Font Awesome** | 7.1.x | Icon library |
 | **Prettier** | Latest | Code formatting |
 
 ---

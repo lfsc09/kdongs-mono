@@ -1,12 +1,13 @@
 import { CurrencyPipe, DatePipe, PercentPipe } from '@angular/common'
-import { Component, effect, inject, OnDestroy, signal } from '@angular/core'
+import { Component, inject, linkedSignal, OnDestroy, signal } from '@angular/core'
+import { toObservable } from '@angular/core/rxjs-interop'
 import { RouterLink } from '@angular/router'
-import { Subscription } from 'rxjs'
+import { combineLatest, debounceTime, Subscription, switchMap } from 'rxjs'
 import { ListUserWalletDTO } from '../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../infra/gateways/investments/investments-gateway.service'
 import { LoadingBar } from '../../../components/loading-bar/loading-bar'
-import { SelectableWalletsMap_Key, SelectableWalletsMap_Value } from './wallet.model'
-import { WalletService } from './wallet.service'
+import { InvestmentsService } from '../investments.service'
+import { LocalSelectableWallets } from './wallet.model'
 
 @Component({
   selector: 'kdongs-wallet',
@@ -20,14 +21,21 @@ export class Wallet implements OnDestroy {
   /**
    * SERVICES
    */
-  protected readonly walletService = inject(WalletService)
+  protected readonly investmentsService = inject(InvestmentsService)
   private readonly _investmentsGatewayService = inject(InvestmentsGatewayService)
 
   /**
-   * SINGNALS
+   * SIGNALS
    */
   protected loading = signal<boolean>(false)
   protected wallets = signal<ListUserWalletDTO[] | null | undefined>(undefined)
+  protected localSelectedWallets = linkedSignal<LocalSelectableWallets>(() =>
+    this.investmentsService
+      .selectedWalletIds()
+      .reduce((map, walletId) => map.set(walletId, null), new Map() as LocalSelectableWallets)
+  )
+  private navPage = signal<number>(1)
+  private pageSize = signal<number>(10)
 
   /**
    * VARS
@@ -35,30 +43,37 @@ export class Wallet implements OnDestroy {
   private _investmentsSubscription: Subscription | undefined
 
   constructor() {
-    effect(() => {
-      this.loading.set(true)
-      this._investmentsSubscription = this._investmentsGatewayService
-        .listUserWallets({ page: 1, limit: 100 })
-        .subscribe({
-          next: response => {
-            this.wallets.set(response.data.wallets)
-            if (this.walletService.possibleSelectedWallets().size === 0) {
-              const latestWalletId = response.data.wallets.at(0)?.id ?? null
-              this.handleUpdateSelectedWallets(latestWalletId ? [latestWalletId] : [])
-            }
-            this.loading.set(false)
-          },
-          error: () => {
-            this.wallets.set(null)
-            this.walletService.resetSelectedWallets()
-            this.loading.set(false)
-          },
+    const page$ = toObservable(this.navPage)
+    const pageSize$ = toObservable(this.pageSize)
+
+    this._investmentsSubscription = combineLatest([page$, pageSize$])
+      .pipe(
+        debounceTime(150),
+        switchMap(([page, pageSize]) => {
+          this.loading.set(true)
+          return this._investmentsGatewayService.listUserWallets({ page, limit: pageSize })
         })
-    })
+      )
+      .subscribe({
+        next: response => {
+          this.wallets.set(response.data.wallets)
+          if (this.localSelectedWallets().size === 0) {
+            const latestWalletId = response.data.wallets.at(0)?.id ?? null
+            this.handleUpdateLocalSelectedWallets(latestWalletId ? [latestWalletId] : [])
+          }
+          this.loading.set(false)
+        },
+        error: () => {
+          this.wallets.set(null)
+          this.handleUpdateLocalSelectedWallets([])
+          this.loading.set(false)
+        },
+      })
   }
 
   ngOnDestroy(): void {
     this._investmentsSubscription?.unsubscribe()
+    this.handleUpdateSelectedWallets()
   }
 
   /**
@@ -69,58 +84,56 @@ export class Wallet implements OnDestroy {
     if (event.ctrlKey) {
       let selectedWalletIds: string[]
       // Figure it out if must add or remove
-      if (this.walletService.possibleSelectedWallets().has(selectedWalletId)) {
-        if (this.walletService.possibleSelectedWallets().size === 1) {
-          // If only one wallet was selected, do nothing on remove
+      if (this.localSelectedWallets().has(selectedWalletId)) {
+        if (this.localSelectedWallets().size === 1) {
+          // If only one wallet was selected, do nothing on remove (must have at least one)
           return
         }
-        selectedWalletIds = Array.from(this.walletService.possibleSelectedWallets().keys()).filter(
+        selectedWalletIds = Array.from(this.localSelectedWallets().keys()).filter(
           walletId => walletId !== selectedWalletId
         )
       } else {
-        selectedWalletIds = [
-          ...Array.from(this.walletService.possibleSelectedWallets().keys()),
-          selectedWalletId,
-        ]
+        selectedWalletIds = [...Array.from(this.localSelectedWallets().keys()), selectedWalletId]
       }
-      this.handleUpdateSelectedWallets(selectedWalletIds)
-    } else this.handleUpdateSelectedWallets([selectedWalletId])
+      this.handleUpdateLocalSelectedWallets(selectedWalletIds)
+    } else this.handleUpdateLocalSelectedWallets([selectedWalletId])
   }
 
   /**
-   * Checks if the selected wallets have changed and updates the lastSelectedWalletState signal.
+   * Update the in memory Map of the local selected wallets.
    */
-  protected handleOnHide(): void {
-    if (this.walletService.didSelectedWalletsChange()) {
-      let selectedWalletMap = new Map<SelectableWalletsMap_Key, SelectableWalletsMap_Value>()
-      if (this.wallets()!.length > 0) {
-        for (let selectedWalletId of this.walletService.possibleSelectedWallets().keys()) {
-          const wallet_idx = this.wallets()!.findIndex(wallet => wallet.id === selectedWalletId)
-          selectedWalletMap.set(selectedWalletId, {
-            currency: this.wallets()![wallet_idx].currencyCode,
-          })
-        }
-      }
-      // At initial load, will not have wallets data to calculate percentages
-      else {
-        for (let selectedWalletId of this.walletService.possibleSelectedWallets().keys())
-          selectedWalletMap.set(selectedWalletId, null)
-      }
-      this.walletService.selectedWallets.set(selectedWalletMap)
-    }
-  }
-
-  /**
-   * Update the in memory Map of the possible selected wallets, which are the selected wallets before the dialog was closed.
-   * This Map will have the wallet_id as the key `SelectableWalletsMap_Key`, and an object as value `SelectableWalletsMap_Value`.
-   */
-  private handleUpdateSelectedWallets(selectedWalletsIds: string[]): void {
-    if (this.wallets() === null || selectedWalletsIds.length === 0) {
-      this.walletService.resetSelectedWallets()
+  private handleUpdateLocalSelectedWallets(selectedWalletsIds: string[]): void {
+    if (selectedWalletsIds.length === 0) {
+      this.localSelectedWallets.set(new Map())
       return
     }
-    let selectedWalletMap = new Map<SelectableWalletsMap_Key, null>()
-    for (let selectedWalletId of selectedWalletsIds) selectedWalletMap.set(selectedWalletId, null)
-    this.walletService.possibleSelectedWallets.set(selectedWalletMap)
+    let newLocalSelectedWalletMap = new Map() as LocalSelectableWallets
+    for (let selectedWalletId of selectedWalletsIds)
+      newLocalSelectedWalletMap.set(selectedWalletId, null)
+    this.localSelectedWallets.set(newLocalSelectedWalletMap)
+  }
+
+  /**
+   * Checks if the local selected wallets have changed compared to the currently selected wallets.
+   */
+  private didSelectedWalletsChange(): boolean {
+    if (this.localSelectedWallets().size !== this.investmentsService.selectedWalletIds().length)
+      return true
+    for (const key of this.localSelectedWallets().keys()) {
+      if (!this.investmentsService.selectedWalletIds().includes(key)) return true
+    }
+    return false
+  }
+
+  /**
+   * Updates the globally selected wallets in the WalletService if there are changes.
+   * This avoids unnecessary updates and potential re-renders, in other components that depend on the selected wallets.
+   */
+  private handleUpdateSelectedWallets(): void {
+    if (!this.didSelectedWalletsChange() || !this.wallets()) {
+      return
+    }
+    const newSelectedWalletIds: string[] = Array.from(this.localSelectedWallets().keys())
+    this.investmentsService.handleSelectedWalletIdsChange(newSelectedWalletIds)
   }
 }

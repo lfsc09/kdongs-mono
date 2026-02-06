@@ -1,4 +1,9 @@
-export type SelectableWalletsMap_Key = string
-export type SelectableWalletsMap_Value = { currency: string } | null
-export type SelectableWallets = Map<SelectableWalletsMap_Key, SelectableWalletsMap_Value>
-export type PossibleSelectableWallets = Map<SelectableWalletsMap_Key, null>
+import z from 'zod'
+
+// Local Selectable Wallets
+export const LocalSelectableWalletsSchema = z.map(
+  // Wallet Id
+  z.string(),
+  z.null()
+)
+export type LocalSelectableWallets = z.infer<typeof LocalSelectableWalletsSchema>
