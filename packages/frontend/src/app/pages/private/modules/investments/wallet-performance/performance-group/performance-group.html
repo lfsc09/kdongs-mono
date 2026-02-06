@@ -1,0 +1,12 @@
+@if (loading()) {
+  <div class="loading-bar-box h-72 *:w-1/2!">
+    <kdongs-cp-loading-bar size="md" />
+  </div>
+} @else if (data() === null) {
+  <div class="error-box h-72">
+    <div class="error-content">
+      <span>(╯°□°)╯︵ ┻━┻</span>
+      <span>Failed to load Groups</span>
+    </div>
+  </div>
+} @else {}

@@ -1,0 +1,299 @@
+@if (loading()) {
+  <div class="loading-bar-box h-72 *:w-1/2!">
+    <kdongs-cp-loading-bar size="md" />
+  </div>
+} @else if (data() === null) {
+  <div class="error-box h-72">
+    <div class="error-content">
+      <span>(╯°□°)╯︵ ┻━┻</span>
+      <span>Failed to load Indicators</span>
+    </div>
+  </div>
+} @else {
+  <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-2">
+      <span class="text-2xl font-medium text-lime-500 select-none">Indicators</span>
+      <span class="chip chip-xs w-fit bg-indigo-400"
+        >{{ data()?.dateStartUtc | date: 'MMM yyyy' }} -
+        {{ data()?.dateEndUtc | date: 'MMM yyyy' }}</span
+      >
+    </div>
+    <div class="grid grid-cols-8 gap-4">
+      <div class="card col-span-2 flex flex-col justify-center gap-4">
+        <span class="font-bold text-lime-500">N° of Assets</span>
+        <div class="flex w-full flex-1 flex-col justify-start gap-4">
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row justify-between gap-2">
+              <span class="text-xs font-bold">Total:</span>
+              <span class="text-[.7rem]">{{ data()?.numberOfAssets }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">Profitable:</span>
+              <span class="text-[.7rem]">{{ data()?.numberOfAssetsProfit }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">Unprofitable:</span>
+              <span class="text-[.7rem]">{{ data()?.numberOfAssetsLoss }}</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row justify-between gap-2">
+              <span class="text-xs font-bold">Active:</span>
+              <span class="text-[.7rem]">{{ data()?.numberOfActiveAssets }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">Profitable:</span>
+              <span class="text-[.7rem]">{{ data()?.numberOfActiveAssetsProfit }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">Unprofitable:</span>
+              <span class="text-[.7rem]">{{ data()?.numberOfActiveAssetsLoss }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card col-span-2 flex flex-col justify-center gap-4">
+        <span class="font-bold text-lime-500">Net Expectancy</span>
+        <div class="flex w-full flex-1 flex-col justify-start gap-1">
+          <div class="flex flex-row justify-between gap-2">
+            <span class="text-xs font-bold">By Asset</span>
+            <span class="text-[.7rem]">{{
+              data()?.expectancyByAsset | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="text-xs font-bold">Avg. Days</span>
+            <span class="text-[.7rem]">{{ data()?.avgDaysByAsset }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Day:</span>
+            <span class="text-[.7rem]">{{
+              data()?.expectancyByDay | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Month:</span>
+            <span class="text-[.7rem]">{{
+              data()?.expectancyByMonth | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Quarter:</span>
+            <span class="text-[.7rem]">{{
+              data()?.expectancyByQuarter | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Year:</span>
+            <span class="text-[.7rem]">{{
+              data()?.expectancyByYear | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="card col-span-2 flex flex-col justify-center gap-4">
+        <span class="font-bold text-red-400">Avg. Cost</span>
+        <div class="flex w-full flex-1 flex-col justify-start gap-1">
+          <div class="flex flex-row justify-between gap-2">
+            <span class="text-xs font-bold">By Asset</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgCostByAsset | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="text-xs font-bold">Avg. Days</span>
+            <span class="text-[.7rem]">{{ data()?.avgDaysByAsset }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Day:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgCostByDay | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Month:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgCostByMonth | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Quarter:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgCostByQuarter | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Year:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgCostByYear | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="card col-span-2 flex flex-col justify-center gap-4">
+        <span class="font-bold text-red-400">Avg. Taxes</span>
+        <div class="flex w-full flex-1 flex-col justify-start gap-1">
+          <div class="flex flex-row justify-between gap-2">
+            <span class="text-xs font-bold">By Asset</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgTaxByAsset | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="text-xs font-bold">Avg. Days</span>
+            <span class="text-[.7rem]">{{ data()?.avgDaysByAsset }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Day:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgTaxByDay | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Month:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgTaxByMonth | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Quarter:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgTaxByQuarter | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+          <div class="flex flex-row justify-between gap-2">
+            <span class="ml-4 text-xs">By. Year:</span>
+            <span class="text-[.7rem]">{{
+              data()?.avgTaxByYear | currency: currencyOnUse() : 'symbol' : '0.0-2'
+            }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="card col-span-2 flex flex-col justify-center gap-4">
+        <span class="font-bold text-lime-500">Profit Balance</span>
+        <div class="flex w-full flex-1 flex-row items-center justify-evenly">
+          <span
+            class="text-[.7rem]"
+            [class]="{
+              'text-emerald-600': (data()?.resultingProfitInPerc ?? 0) > 0,
+              'dark:text-emerald-500': (data()?.resultingProfitInPerc ?? 0) > 0,
+              'text-red-500': (data()?.resultingProfitInPerc ?? 0) < 0,
+              'dark:text-red-400': (data()?.resultingProfitInPerc ?? 0) < 0,
+            }"
+          >
+            {{ data()?.resultingProfitInPerc | percent: '0.0-2' }}
+          </span>
+          <span
+            class="text-xs"
+            [class]="{
+              'text-emerald-600': (data()?.resultingProfitInCurrency ?? 0) > 0,
+              'dark:text-emerald-500': (data()?.resultingProfitInCurrency ?? 0) > 0,
+              'text-red-500': (data()?.resultingProfitInCurrency ?? 0) < 0,
+              'dark:text-red-400': (data()?.resultingProfitInCurrency ?? 0) < 0,
+            }"
+          >
+            {{ data()?.resultingProfitInCurrency | currency: currencyOnUse() : 'symbol' : '0.0-2' }}
+          </span>
+        </div>
+      </div>
+      <div class="card flex flex-col justify-center gap-4">
+        <span class="font-bold text-lime-500">Breakeven</span>
+        <div class="flex w-full flex-1 flex-row items-center justify-evenly">
+          <kdongs-cp-gauge
+            [value]="(data()?.breakeven ?? 0) * 100"
+            [colorMeter]="[
+              { threshold: 50, stroke: 'stroke-lime-500', fill: 'fill-lime-500' },
+              { threshold: 75, stroke: 'stroke-amber-500', fill: 'fill-amber-500' },
+              { threshold: 100, stroke: 'stroke-red-500', fill: 'fill-red-500' },
+            ]"
+            size="sm"
+          >
+            {{ data()?.breakeven | percent: '0.0-2' }}
+          </kdongs-cp-gauge>
+        </div>
+      </div>
+      <div class="card flex flex-col justify-center gap-4">
+        <span class="font-bold text-lime-500">Edge</span>
+        <div class="flex w-full flex-1 flex-row items-center justify-evenly">
+          <kdongs-cp-gauge
+            [value]="(data()?.edge ?? 0) * 100"
+            [colorMeter]="[
+              { threshold: 50, stroke: 'stroke-lime-500', fill: 'fill-lime-500' },
+              { threshold: 75, stroke: 'stroke-amber-500', fill: 'fill-amber-500' },
+              { threshold: 100, stroke: 'stroke-red-500', fill: 'fill-red-500' },
+            ]"
+            size="sm"
+          >
+            {{ data()?.edge | percent: '0.0-2' }}
+          </kdongs-cp-gauge>
+        </div>
+      </div>
+      <div class="card col-span-2 flex flex-col justify-center gap-4">
+        <span class="font-bold text-lime-500">Profit & Losses</span>
+        <div class="flex w-full flex-1 flex-col justify-start gap-4">
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Total Profit</span>
+              <span class="text-[.7rem]">{{
+                data()?.profitSum | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Avg. Profit</span>
+              <span class="text-[.7rem]">{{
+                data()?.profitAvg | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Total Losses</span>
+              <span class="text-[.7rem]">{{
+                data()?.lossSum | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Avg. Loss</span>
+              <span class="text-[.7rem]">{{
+                data()?.lossAvg | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card col-span-2 flex flex-col justify-center gap-4">
+        <span class="font-bold text-lime-500">History</span>
+        <div class="flex w-full flex-1 flex-col justify-start gap-4">
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Highest Balance</span>
+              <span class="text-[.7rem]">{{
+                data()?.historyHigh | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Lowest Balance</span>
+              <span class="text-[.7rem]">{{
+                data()?.historyLow | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Highest Profit</span>
+              <span class="text-[.7rem]">{{
+                data()?.profitMax | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row items-center justify-between gap-2">
+              <span class="text-xs font-bold">Highest Loss</span>
+              <span class="text-[.7rem]">{{
+                data()?.lossMax | currency: currencyOnUse() : 'symbol' : '0.0-2'
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
