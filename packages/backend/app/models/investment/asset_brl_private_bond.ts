@@ -8,7 +8,7 @@ import type {
   BondType,
   IndexType,
   InterestType,
-} from '../../core/types/investment/brl_private_bonds.js'
+} from '../../core/types/investment/brl_private_bond.js'
 
 export default class AssetBrlPrivateBond extends BaseModel {
   static table = 'investment_asset_brl_private_bonds'

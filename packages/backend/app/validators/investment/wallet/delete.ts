@@ -1,8 +1,8 @@
 import vine from '@vinejs/vine'
 
-export const deleteWalletValidator = vine.compile(
-  vine.object({
-    userId: vine.string().uuid(),
-    walletId: vine.string().uuid(),
-  }),
-)
+export const deleteWalletSchema = vine.object({
+  userId: vine.string().uuid(),
+  walletId: vine.string().uuid(),
+})
+
+export const deleteWalletValidator = vine.create(deleteWalletSchema)

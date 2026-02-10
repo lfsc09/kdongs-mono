@@ -4,7 +4,8 @@ import Big from 'big.js'
 import type { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
 import Wallet from '#models/investment/wallet'
-import type { CurrencyCode } from '../../core/types/investment/currencies.js'
+import type { CurrencyCode } from '../../core/types/investment/currency.js'
+import type { WalletMovementType } from '../../core/types/investment/wallet_movement.js'
 
 export default class WalletMovement extends BaseModel {
   static table = 'investment_wallet_movements'
@@ -24,7 +25,7 @@ export default class WalletMovement extends BaseModel {
   declare wallet: BelongsTo<typeof Wallet>
 
   @column()
-  declare movementType: 'deposit' | 'withdraw' // Type of movement
+  declare movementType: WalletMovementType // Type of movement
 
   @column.dateTime()
   declare dateUtc: DateTime // Date of the movement in UTC
@@ -39,13 +40,13 @@ export default class WalletMovement extends BaseModel {
     consume: (value: string) => new Big(value),
     prepare: (value: Big) => value.toString(),
   })
-  declare originAmount: Big // Amount in the origin currency
+  declare originAmount: Big // Amount in the origin currency (only positive, for both deposits and withdraws)
 
   @column({
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare originExchGrossRate: Big | null // Gross exchange rate to convert the origin currency
+  declare originExchGrossRate: Big | null // Gross exchange rate to convert the origin currency (only positive, for both deposits and withdraws)
 
   @column({
     consume: (value: string | null) => (value ? new Big(value) : null),
@@ -57,7 +58,7 @@ export default class WalletMovement extends BaseModel {
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare originExchVetRate: Big | null // Final exchange rate to convert the origin currency
+  declare originExchVetRate: Big | null // Final exchange rate to convert the origin currency (considering the gross rate and the operation fee) (only positive, for both deposits and withdraws)
 
   @column()
   declare resultCurrencyCode: CurrencyCode // Currency code to which the origin currency was converted
@@ -66,7 +67,7 @@ export default class WalletMovement extends BaseModel {
     consume: (value: string) => new Big(value),
     prepare: (value: Big) => value.toString(),
   })
-  declare resultAmount: Big // Amount in the result currency
+  declare resultAmount: Big // Amount in the result currency (only positive, for both deposits and withdraws)
 
   @column()
   declare details: string | null // Additional details about the movement

@@ -2,19 +2,18 @@ import factory from '@adonisjs/lucid/factories'
 import { DateTime } from 'luxon'
 import AssetBrlPublicBond from '#models/investment/asset_brl_public_bond'
 import {
-  acceptedBondTypes,
-  acceptedIndexTypes,
   acceptedInterestTypes,
+  BondTypes,
+  IndexTypes,
   type InterestType,
-} from '../../app/core/types/investment/brl_public_bonds.js'
+  InterestTypes,
+} from '../../app/core/types/investment/brl_public_bond.js'
 import { AssetBrlPublicBondBuyFactory } from './investment_asset_brl_public_bond_buy_factory.js'
 import { AssetBrlPublicBondSellFactory } from './investment_asset_brl_public_bond_sell_factory.js'
 
 const regularBondGenerator = (interestType: InterestType) => {
   const indexType =
-    interestType === 'fixed'
-      ? acceptedIndexTypes.filter(v => v === 'a.a%').at(0)
-      : acceptedIndexTypes.filter(v => v === 'selic + %').at(0)
+    interestType === InterestTypes.fixed ? IndexTypes.aa : IndexTypes.selic_plus_perc
   if (!indexType) {
     throw new Error(`No valid index type found`)
   }
@@ -28,13 +27,12 @@ export const AssetBrlPublicBondFactory = factory
   .define(AssetBrlPublicBond, async ({ faker }) => {
     const isDone = faker.datatype.boolean(0.3)
     const interestType = faker.helpers.arrayElement(acceptedInterestTypes as InterestType[])
-    const bondType =
-      interestType === 'fixed'
-        ? acceptedBondTypes.filter(v => v === 'LTN').at(0)
-        : acceptedBondTypes.filter(v => v === 'LFT').at(0)
+    const bondType = interestType === InterestTypes.fixed ? BondTypes.LTN : BondTypes.LFT
+
     if (!bondType) {
       throw new Error(`No valid bond type found`)
     }
+
     const maturityDateUtc = isDone
       ? DateTime.fromSQL(`${faker.date.past({ years: 3 }).getUTCFullYear()}-01-01`)
       : DateTime.fromSQL(`${faker.date.future({ years: 7 }).getUTCFullYear()}-01-01`)

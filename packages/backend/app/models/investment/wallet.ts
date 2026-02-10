@@ -7,7 +7,7 @@ import AssetBrlPublicBond from '#models/investment/asset_brl_public_bond'
 import AssetSefbfr from '#models/investment/asset_sefbfr'
 import WalletMovement from '#models/investment/wallet_movement'
 import User from '#models/user/user'
-import type { CurrencyCode } from '../../core/types/investment/currencies.js'
+import type { CurrencyCode } from '../../core/types/investment/currency.js'
 
 export default class Wallet extends BaseModel {
   static table = 'investment_wallets'

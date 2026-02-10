@@ -1,7 +1,7 @@
 import User from '#models/user/user'
 import type { LoginRequest, LoginResponse } from '../../core/dto/auth/login_dto.js'
 import type { LogoutRequest } from '../../core/dto/auth/logout_dto.js'
-import { frontendPermissionsbyUserRole } from '../../core/types/user/user_roles.js'
+import { frontendPermissionsbyUserRole } from '../../core/types/user/user_role.js'
 
 export default class AuthService {
   async login(input: LoginRequest): Promise<LoginResponse> {

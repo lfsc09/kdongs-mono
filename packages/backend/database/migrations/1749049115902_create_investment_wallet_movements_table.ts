@@ -1,5 +1,6 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import { acceptedCurrencyCodes } from '../../app/core/types/investment/currencies.js'
+import { acceptedCurrencyCodes } from '../../app/core/types/investment/currency.js'
+import { acceptedWalletMovementTypes } from '../../app/core/types/investment/wallet_movement.js'
 
 export default class extends BaseSchema {
   protected tableName = 'investment_wallet_movements'
@@ -14,7 +15,7 @@ export default class extends BaseSchema {
         .inTable('investment_wallets')
         .onDelete('CASCADE')
 
-      table.string('movement_type').notNullable().checkIn(['deposit', 'withdraw']) // e.g., 'deposit', 'withdrawal'
+      table.string('movement_type').notNullable().checkIn(acceptedWalletMovementTypes) // Type of the movement
       table.datetime('date_utc').notNullable() // Date of the movement
       table.string('institution').nullable() // Institution where the movement occurred
       table.string('origin_currency_code', 3).notNullable().checkIn(acceptedCurrencyCodes) // Currency code of the movement origin

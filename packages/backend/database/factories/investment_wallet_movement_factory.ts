@@ -6,10 +6,15 @@ import WalletMovement from '#models/investment/wallet_movement'
 import {
   acceptedCurrencyCodes,
   type CurrencyCode,
-} from '../../app/core/types/investment/currencies.js'
+} from '../../app/core/types/investment/currency.js'
+import {
+  acceptedWalletMovementTypes,
+  type WalletMovementType,
+  WalletMovementTypes,
+} from '../../app/core/types/investment/wallet_movement.js'
 
 const movementGenerator = (
-  type: 'deposit' | 'withdraw',
+  type: WalletMovementType,
   originAmount: Big,
   originCurrencyCode: CurrencyCode,
   resultCurrencyCode: CurrencyCode,
@@ -21,7 +26,7 @@ const movementGenerator = (
   let resultAmount = null
 
   switch (type) {
-    case 'deposit':
+    case WalletMovementTypes.deposit:
       if (originCurrencyCode !== resultCurrencyCode) {
         originExchGrossRate = new Big(faker.number.float({ fractionDigits: 6, max: 10, min: 1 }))
         const originExchOpFeePercent = new Big(
@@ -39,7 +44,8 @@ const movementGenerator = (
         originExchVetRate,
         resultAmount,
       }
-    case 'withdraw':
+
+    case WalletMovementTypes.withdraw:
       if (originCurrencyCode !== resultCurrencyCode) {
         originExchGrossRate = new Big(faker.number.float({ fractionDigits: 6, max: 10, min: 1 }))
         const originExchOpFeePercent = new Big(
@@ -57,6 +63,7 @@ const movementGenerator = (
         originExchVetRate,
         resultAmount: resultAmount.neg(),
       }
+
     default:
       throw new Error(`Unknown movement type: ${type}`)
   }
@@ -64,12 +71,14 @@ const movementGenerator = (
 
 export const WalletMovementFactory = factory
   .define(WalletMovement, async ({ faker }) => {
-    const movementType = faker.helpers.arrayElement(['deposit', 'withdraw'])
+    const movementType = faker.helpers.arrayElement(
+      acceptedWalletMovementTypes as WalletMovementType[],
+    )
     const dateUtc = faker.date.past({ years: 3 })
     const originCurrencyCode = faker.helpers.arrayElement(acceptedCurrencyCodes as CurrencyCode[])
     const resultCurrencyCode = faker.helpers.arrayElement(acceptedCurrencyCodes as CurrencyCode[])
     const originAmount =
-      movementType === 'withdraw'
+      movementType === WalletMovementTypes.withdraw
         ? new Big(faker.number.float({ fractionDigits: 2, max: 10000, min: 500 })).neg()
         : new Big(faker.number.float({ fractionDigits: 2, max: 10000, min: 100 }))
 
@@ -95,7 +104,9 @@ export const WalletMovementFactory = factory
   })
   .state('recalculate', (w, ctx) => {
     w.originAmount =
-      w.movementType === 'withdraw' ? w.originAmount.abs().neg() : w.originAmount.abs()
+      w.movementType === WalletMovementTypes.withdraw
+        ? w.originAmount.abs().neg()
+        : w.originAmount.abs()
     w.createdAt = DateTime.fromJSDate(
       ctx.faker.date.soon({ days: 10, refDate: w.dateUtc.toJSDate() }),
     )

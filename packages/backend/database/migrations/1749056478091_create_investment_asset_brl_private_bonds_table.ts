@@ -3,7 +3,7 @@ import {
   acceptedBondTypes,
   acceptedIndexTypes,
   acceptedInterestTypes,
-} from '../../app/core/types/investment/brl_private_bonds.js'
+} from '../../app/core/types/investment/brl_private_bond.js'
 
 export default class extends BaseSchema {
   protected tableName = 'investment_asset_brl_private_bonds'

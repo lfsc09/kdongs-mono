@@ -5,8 +5,9 @@ import { WalletFactory } from '#database/factories/investment_wallet_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import Wallet from '#models/investment/wallet'
 import User from '#models/user/user'
-import { acceptedCurrencyCodes } from '../../app/core/types/investment/currencies.js'
-import { UserRole } from '../../app/core/types/user/user_roles.js'
+import { Currencies } from '../../app/core/types/investment/currency.js'
+import { WalletMovementTypes } from '../../app/core/types/investment/wallet_movement.js'
+import { UserRole } from '../../app/core/types/user/user_role.js'
 
 export default class extends BaseSeeder {
   async run() {
@@ -23,17 +24,17 @@ export default class extends BaseSeeder {
 
     // BRL wallet
     await WalletFactory.merge({
-      currencyCode: acceptedCurrencyCodes.find(c => c === 'BRL'),
+      currencyCode: Currencies.BRL,
       userId,
     })
       .with('movements', 1, m =>
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-01-01'),
-            movementType: 'deposit',
+            movementType: WalletMovementTypes.deposit,
             originAmount: new Big(20000),
-            originCurrencyCode: 'BRL',
-            resultCurrencyCode: 'BRL',
+            originCurrencyCode: Currencies.BRL,
+            resultCurrencyCode: Currencies.BRL,
           })
           .apply('recalculate'),
       )
@@ -41,10 +42,10 @@ export default class extends BaseSeeder {
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-02-01'),
-            movementType: 'withdraw',
+            movementType: WalletMovementTypes.withdraw,
             originAmount: new Big(3500),
-            originCurrencyCode: 'BRL',
-            resultCurrencyCode: 'BRL',
+            originCurrencyCode: Currencies.BRL,
+            resultCurrencyCode: Currencies.BRL,
           })
           .apply('recalculate'),
       )
@@ -52,10 +53,10 @@ export default class extends BaseSeeder {
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-03-01'),
-            movementType: 'deposit',
+            movementType: WalletMovementTypes.deposit,
             originAmount: new Big(15000),
-            originCurrencyCode: 'BRL',
-            resultCurrencyCode: 'BRL',
+            originCurrencyCode: Currencies.BRL,
+            resultCurrencyCode: Currencies.BRL,
           })
           .apply('recalculate'),
       )
@@ -66,17 +67,17 @@ export default class extends BaseSeeder {
       .create()
 
     await WalletFactory.merge({
-      currencyCode: acceptedCurrencyCodes.find(c => c === 'BRL'),
+      currencyCode: Currencies.BRL,
       userId,
     })
       .with('movements', 1, m =>
         m
           .merge({
             dateUtc: DateTime.fromSQL('2025-01-01'),
-            movementType: 'deposit',
+            movementType: WalletMovementTypes.deposit,
             originAmount: new Big(175000),
-            originCurrencyCode: 'BRL',
-            resultCurrencyCode: 'BRL',
+            originCurrencyCode: Currencies.BRL,
+            resultCurrencyCode: Currencies.BRL,
           })
           .apply('recalculate'),
       )

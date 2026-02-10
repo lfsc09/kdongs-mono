@@ -5,7 +5,7 @@ import hash from '@adonisjs/core/services/hash'
 import { BaseModel, beforeCreate, column } from '@adonisjs/lucid/orm'
 import type { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
-import type { UserRole } from '../../core/types/user/user_roles.js'
+import type { UserRole } from '../../core/types/user/user_role.js'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   passwordColumnName: 'password',

@@ -1,4 +1,4 @@
-import type { CurrencyCode } from '../../../types/investment/currencies.js'
+import type { CurrencyCode } from '../../../types/investment/currency.js'
 
 export type CreateWalletResponse = {
   data: {

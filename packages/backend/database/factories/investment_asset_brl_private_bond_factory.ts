@@ -5,11 +5,13 @@ import { DateTime } from 'luxon'
 import AssetBrlPrivateBond from '#models/investment/asset_brl_private_bond'
 import {
   acceptedBondTypes,
-  acceptedIndexTypes,
   acceptedInterestTypes,
   type BondType,
+  BondTypes,
+  IndexTypes,
   type InterestType,
-} from '../../app/core/types/investment/brl_private_bonds.js'
+  InterestTypes,
+} from '../../app/core/types/investment/brl_private_bond.js'
 
 const BUSINESS_DAYS_PER_YEAR = 252
 const CALENDAR_DAYS_PER_YEAR = 365
@@ -129,15 +131,12 @@ const regularBondGenerator = (
   inputAmount: Big,
   faker: Faker,
 ) => {
-  const indexType =
-    interestType === 'fixed'
-      ? acceptedIndexTypes.filter(v => v === 'a.a%').at(0)
-      : acceptedIndexTypes.filter(v => v === '% of cdi').at(0)
+  const indexType = interestType === InterestTypes.fixed ? IndexTypes.aa : IndexTypes.cdi_perc
   if (!indexType) {
     throw new Error(`No valid index type found`)
   }
   const indexValue =
-    interestType === 'fixed'
+    interestType === InterestTypes.fixed
       ? new Big(faker.number.float({ fractionDigits: 2, max: 0.15, min: 0.01 }))
       : new Big(faker.number.float({ fractionDigits: 2, max: 1.2, min: 0.95 }))
 
@@ -151,7 +150,7 @@ const regularBondGenerator = (
   let taxesAmount = null
   if (isDone) {
     const dailyRate =
-      interestType === 'fixed'
+      interestType === InterestTypes.fixed
         ? getDailyFixedPerformance(indexValue, true)
         : getDailyVariablePerformance(
             indexValue,
@@ -162,7 +161,11 @@ const regularBondGenerator = (
     yieldAmount = grossAmount.minus(inputAmount)
     iofAmount = yieldAmount.times(getIofFee(bondYieldDays))
     // Taxes are applied only for certain bond types
-    if (acceptedBondTypes.filter<BondType>(v => v === 'LCA' || v === 'LCI').includes(bondType)) {
+    if (
+      acceptedBondTypes
+        .filter<BondType>(v => v === BondTypes.LCA || v === BondTypes.LCI)
+        .includes(bondType)
+    ) {
       taxesAmount = yieldAmount.minus(iofAmount).times(getTaxFee(bondYieldDays))
     }
   }

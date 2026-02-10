@@ -7,4 +7,4 @@ export const paginationSchema = vine.object({
   sortOrder: vine.enum(['asc', 'desc']).optional(),
 })
 
-export const paginationValidator = vine.compile(paginationSchema)
+export const paginationValidator = vine.create(paginationSchema)

@@ -1,5 +1,5 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import { acceptedCurrencyCodes } from '../../app/core/types/investment/currencies.js'
+import { acceptedCurrencyCodes } from '../../app/core/types/investment/currency.js'
 
 export default class extends BaseSchema {
   protected tableName = 'investment_wallets'

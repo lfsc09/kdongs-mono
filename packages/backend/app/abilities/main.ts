@@ -14,7 +14,7 @@
 
 import { Bouncer } from '@adonisjs/bouncer'
 import type User from '#models/user/user'
-import { UserRole } from '../core/types/user/user_roles.js'
+import { UserRole } from '../core/types/user/user_role.js'
 
 export const onlyAdmin = Bouncer.ability((user: User) => {
   return user.role === UserRole.ADMIN

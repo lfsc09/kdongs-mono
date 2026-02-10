@@ -1,7 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { UserFactory } from '#database/factories/user_factory'
 import User from '#models/user/user'
-import { UserRole } from '../../app/core/types/user/user_roles.js'
+import { UserRole } from '../../app/core/types/user/user_role.js'
 
 export default class extends BaseSeeder {
   async run() {

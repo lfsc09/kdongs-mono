@@ -1,8 +1,8 @@
 import vine from '@vinejs/vine'
 
-export const showWalletValidator = vine.compile(
-  vine.object({
-    userId: vine.string().uuid(),
-    walletId: vine.string().uuid(),
-  }),
-)
+export const showWalletSchema = vine.object({
+  userId: vine.string().uuid(),
+  walletId: vine.string().uuid(),
+})
+
+export const showWalletValidator = vine.create(showWalletSchema)

@@ -1,9 +1,12 @@
 import type { InferInput } from '@vinejs/vine/types'
-import type { handleSelectedWalletsPerformanceValidator } from '#validators/investment/wallet_performance/handle'
+import type { handleSelectedWalletsPerformanceSchema } from '#validators/investment/wallet_performance/handle'
 
 export type HandleSelectedWalletsPerformanceRequest = InferInput<
-  typeof handleSelectedWalletsPerformanceValidator
->
+  typeof handleSelectedWalletsPerformanceSchema
+> & {
+  // Manually override the type of useLivePriceQuote to be a boolean, since vine boolean by default does not give only boolean and the validator transforms it to a boolean
+  useLivePriceQuote: boolean
+}
 
 export type HandleSelectedWalletsPerformanceResponse = {
   data: {
@@ -16,6 +19,9 @@ export type HandleSelectedWalletsPerformanceResponse = {
       dateStartUtc: string
       dateEndUtc: string
       avgDaysByAsset: number
+      numberOfMovements: number
+      numberOfMovementsDeposit: number
+      numberOfMovementsWithdrawal: number
       numberOfAssets: number
       numberOfAssetsProfit: number
       numberOfAssetsLoss: number
@@ -49,14 +55,17 @@ export type HandleSelectedWalletsPerformanceResponse = {
       historyLow: number
     }
     series: {
-      type: SerieType
       walletId: string
-      exitDateUtc: string
-      inputAmount: number
-      grossProfit: number
-      netProfit: number
-      costsAndTaxes: number
-      daysRunning: number
+      walletName: string
+      dataPoints: {
+        type: SerieType
+        doneDateUtc: number
+        inputAmount: number
+        grossAmount: number
+        netAmount: number
+        feesAndCosts: number
+        daysRunning: number
+      }[]
     }[]
   }
 }
