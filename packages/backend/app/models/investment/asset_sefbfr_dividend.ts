@@ -35,7 +35,7 @@ export default class AssetSefbfrDividend extends BaseModel {
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare taxes: Big | null // Taxes associated with the dividend transaction (negative)
+  declare taxes: Big | null // Taxes associated with the dividend transaction (only negative)
 
   @column.dateTime()
   declare dateComUtc: DateTime | null // Date of the dividend transaction in the company's records

@@ -29,7 +29,7 @@ export default class AssetSefbfrBuy extends BaseModel {
     consume: (value: string) => new Big(value),
     prepare: (value: Big) => value.toString(),
   })
-  declare sharesAmount: Big // Amount of shares bought
+  declare sharesAmount: Big // Amount of shares bought (only positive)
 
   @column({
     consume: (value: string) => new Big(value),
@@ -41,7 +41,7 @@ export default class AssetSefbfrBuy extends BaseModel {
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare fees: Big | null // Fees associated with the buy transaction (negative)
+  declare fees: Big | null // Fees associated with the buy transaction (only negative)
 
   @column()
   declare details: string | null // Additional details about the buy transaction

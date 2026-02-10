@@ -35,19 +35,19 @@ export default class AssetBrlPublicBondSell extends BaseModel {
     consume: (value: string) => new Big(value),
     prepare: (value: Big) => value.toString(),
   })
-  declare sharesAmount: Big // Amount of shares sold
+  declare sharesAmount: Big // Amount of shares sold (only negative)
 
   @column({
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare taxes: Big | null // Taxes associated with the sell transaction (negative)
+  declare taxes: Big | null // Taxes associated with the sell transaction (only negative)
 
   @column({
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare fees: Big | null // Fees associated with the sell transaction (negative)
+  declare fees: Big | null // Fees associated with the sell transaction (only negative)
 
   @column()
   declare details: string | null // Additional details about the sell transaction
@@ -56,5 +56,5 @@ export default class AssetBrlPublicBondSell extends BaseModel {
   declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
+  declare updatedAt: DateTime | null
 }

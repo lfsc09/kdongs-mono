@@ -51,7 +51,7 @@ export default class WalletMovement extends BaseModel {
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare originExchOpFee: Big | null // Exchange operation fee of the origin currency conversion (fee + iof) (negative)
+  declare originExchOpFee: Big | null // Exchange operation fee of the origin currency conversion (fee + iof) (only negative)
 
   @column({
     consume: (value: string | null) => (value ? new Big(value) : null),

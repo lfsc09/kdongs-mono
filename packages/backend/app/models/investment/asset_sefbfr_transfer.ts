@@ -29,13 +29,13 @@ export default class AssetSefbfrTransfer extends BaseModel {
     consume: (value: string) => new Big(value),
     prepare: (value: Big) => value.toString(),
   })
-  declare sharesAmount: Big // Number of shares transferred (Negative for sending institution, positive for receiving institution)
+  declare sharesAmount: Big // Number of shares transferred (negative for sending institution, positive for receiving institution)
 
   @column({
     consume: (value: string) => new Big(value),
     prepare: (value: Big) => value.toString(),
   })
-  declare closePriceQuote: Big // Previous day closing price per share of transfer (Only for receiving institution)
+  declare closePriceQuote: Big // Previous day closing price per share of transfer (only for receiving institution)
 
   @column()
   declare previousInstitution: string // Previous institution holding the shares

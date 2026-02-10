@@ -79,13 +79,13 @@ export default class AssetBrlPrivateBond extends BaseModel {
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare fees: Big | null // Fees associated with the bond (e.g., brokerage fees, IOF, etc.) (negative)
+  declare fees: Big | null // Fees associated with the bond (e.g., brokerage fees, IOF, etc.) (only negative)
 
   @column({
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare taxes: Big | null // Other taxes applied to the bond (negative)
+  declare taxes: Big | null // Other taxes applied to the bond (only negative)
 
   @column()
   declare details: string | null // Additional details about the bond
