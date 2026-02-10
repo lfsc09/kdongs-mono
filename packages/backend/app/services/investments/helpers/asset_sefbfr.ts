@@ -1,82 +1,106 @@
+import { Logger } from '@adonisjs/core/logger'
 import db from '@adonisjs/lucid/services/db'
 import Big from 'big.js'
 import { DateTime } from 'luxon'
 import { lucidStream } from '#services/util/lucid_stream'
-import { objToMap } from '#services/util/obj_to_map'
-import { DoneState } from '../../../core/types/investment/sefbfr.js'
+import {
+  DoneState,
+  DoneStates,
+  TransactionType,
+  TransactionTypes,
+} from '../../../core/types/investment/sefbfr.js'
 
-type TransactionType = 'buy' | 'sell' | 'transfer' | 'bonus_share' | 'split' | 'inplit' | 'dividend'
-
-type AssetInfo = {
+export type AssetPerformance = {
   id: string
-  doneState: DoneState
-  assetName: string
-  lastTransactionAt: DateTime | null
-  transactions?: {
+  name: string
+  isDone: boolean
+  startDateUtc: DateTime | null
+  doneDateUtc: DateTime | null
+  inputAmount: Big
+  grossAmount: Big
+  feesAndCosts: Big
+  netAmount: Big
+  daysRunning: number
+}
+
+/**
+ * Get assets performance (done and current profits).
+ *
+ * @param walletId If provided, gets performance for all SEFBFR assets in that wallet.
+ * @param assetId If provided, gets performance for that specific SEFBFR asset.
+ * @param applyLivePriceQuote If true, applies live price quote to current shares amount for performance calculation.
+ * @param logger Optional logger.
+ *
+ * @throws Error if neither walletId nor assetId is provided.
+ * @returns Map of asset id to asset performance data.
+ */
+async function getAllAssetsPerformance(
+  walletId?: string,
+  assetId?: string,
+  applyLivePriceQuote: boolean = false,
+  logger?: Logger,
+): Promise<AssetPerformance[]> {
+  if (!walletId && !assetId) {
+    throw new Error('Either walletId or assetId must be provided')
+  }
+
+  const assetsPerformance = new Map<string, AssetPerformance>()
+  const tempAssetsInfo = new Map<
+    string,
+    {
+      sharesAmount: Big
+      value: Big
+      avgPrice: Big
+    }
+  >()
+
+  // Get all desired assets basic information
+  const assetsData: { id: string; doneState: DoneState; assetName: string }[] = await db
+    .from('investment_asset_sefbfrs')
+    .select('id', 'done_state as doneState', 'asset_name as assetName')
+    .if(
+      walletId !== undefined,
+      query => query.where('wallet_id', walletId!),
+      query => query.where('id', assetId!),
+    )
+
+  for (const assetData of assetsData) {
+    assetsPerformance.set(assetData.id, {
+      daysRunning: 0,
+      doneDateUtc: null,
+      feesAndCosts: new Big(0),
+      grossAmount: new Big(0),
+      id: assetData.id,
+      inputAmount: new Big(0),
+      isDone: assetData.doneState !== DoneStates.active,
+      name: assetData.assetName,
+      netAmount: new Big(0),
+      startDateUtc: null,
+    })
+    tempAssetsInfo.set(assetData.id, {
+      avgPrice: new Big(0),
+      sharesAmount: new Big(0),
+      value: new Big(0),
+    })
+  }
+
+  const assetIds = Array.from(assetsPerformance.keys())
+  // Stream all the assets transactions (buys, sells, transfers, bonus shares, splits, inplits and dividends) ordered by date
+  const assetsAllTransactions = lucidStream<{
+    assetId: string
     type: TransactionType
-    dateUtc: DateTime
+    dateUtc: Date
     sharesAmount?: Big
     priceQuote?: Big
     costs?: Big | null
     value?: Big | null
     factor?: Big | null
-  }[]
-}
-
-export type AssetsTransactions = Map<string, AssetInfo>
-
-export type AssetsPerformance = Map<
-  string,
-  {
-    id: string
-    doneState: DoneState
-    assetName: string
-    doneProfit: Big
-    currentProfit: Big
-    lastTransactionAt: DateTime
-  }
->
-
-/**
- * Get all assets info and assets transactions (buys, sells, transfers, bonus shares, splits, inplits, dividends) ordered by date, for performance calculation and charts.
- *
- * If `walletId` is provided, gets transactions for all SEFBFR assets in that wallet.
- * If `assetId` is provided, gets transactions for that specific SEFBFR asset.
- *
- * At least one of walletId or assetId must be provided.
- */
-async function getAssetsChronologically(
-  walletId?: string,
-  assetId?: string,
-): Promise<AssetsTransactions> {
-  if (!walletId && !assetId) {
-    throw new Error('Either walletId or assetId must be provided')
-  }
-
-  const assets: { id: string; doneState: DoneState; assetName: string; lastTransactionAt: null }[] =
-    await db
-      .from('investment_asset_sefbfrs')
-      .select(
-        'id',
-        'done_state as doneState',
-        'asset_name as assetName',
-        db.raw('NULL as lastTransactionAt'),
-      )
-      .if(
-        walletId !== undefined,
-        query => query.where('wallet_id', walletId!),
-        query => query.where('id', assetId!),
-      )
-  const assetsIds = assets.map(asset => asset.id)
-
-  const assetsInfo = objToMap<AssetInfo, 'id'>('id', assets)
-
-  const transactions = lucidStream(
+  }>(
     db
       .from('investment_asset_sefbfr_buys')
       .select(
         'investment_asset_sefbfr_id as assetId',
-        db.raw("'buy' as type"),
+        db.raw(`'${TransactionTypes.buy}' as type`),
         'date_utc as dateUtc',
         'shares_amount as sharesAmount',
         'price_quote as priceQuote',
@@ -84,17 +108,13 @@ async function getAssetsChronologically(
         db.raw('CAST(NULL as decimal(20, 6)) as value'),
         db.raw('CAST(NULL as decimal(20, 6)) as factor'),
       )
-      .if(
-        assetId !== undefined,
-        query => query.where('investment_asset_sefbfr_id', assetId!),
-        query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
-      )
+      .whereIn('investment_asset_sefbfr_id', assetIds)
       .unionAll(
         db
           .from('investment_asset_sefbfr_sells')
           .select(
             'investment_asset_sefbfr_id as assetId',
-            db.raw("'sell' as type"),
+            db.raw(`'${TransactionTypes.sell}' as type`),
             'date_utc as dateUtc',
             'shares_amount as sharesAmount',
             'price_quote as priceQuote',
@@ -102,18 +122,14 @@ async function getAssetsChronologically(
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             db.raw('CAST(NULL as decimal(20, 6)) as factor'),
           )
-          .if(
-            assetId !== undefined,
-            query => query.where('investment_asset_sefbfr_id', assetId!),
-            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
-          ),
+          .whereIn('investment_asset_sefbfr_id', assetIds),
       )
       .unionAll(
         db
           .from('investment_asset_sefbfr_transfers')
           .select(
             'investment_asset_sefbfr_id as assetId',
-            db.raw("'transfer' as type"),
+            db.raw(`'${TransactionTypes.transfer}' as type`),
             'date_utc as dateUtc',
             'shares_amount as sharesAmount',
             'close_price_quote as priceQuote',
@@ -121,18 +137,14 @@ async function getAssetsChronologically(
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             db.raw('CAST(NULL as decimal(20, 6)) as factor'),
           )
-          .if(
-            assetId !== undefined,
-            query => query.where('investment_asset_sefbfr_id', assetId!),
-            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
-          ),
+          .whereIn('investment_asset_sefbfr_id', assetIds),
       )
       .unionAll(
         db
           .from('investment_asset_sefbfr_bonus_shares')
           .select(
             'investment_asset_sefbfr_id as assetId',
-            db.raw("'bonus_share' as type"),
+            db.raw(`'${TransactionTypes.bonusShare}' as type`),
             'date_utc as dateUtc',
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
@@ -140,18 +152,14 @@ async function getAssetsChronologically(
             'value',
             'factor',
           )
-          .if(
-            assetId !== undefined,
-            query => query.where('investment_asset_sefbfr_id', assetId!),
-            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
-          ),
+          .whereIn('investment_asset_sefbfr_id', assetIds),
       )
       .unionAll(
         db
           .from('investment_asset_sefbfr_splits')
           .select(
             'investment_asset_sefbfr_id as assetId',
-            db.raw("'split' as type"),
+            db.raw(`'${TransactionTypes.split}' as type`),
             'date_utc as dateUtc',
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
@@ -159,18 +167,14 @@ async function getAssetsChronologically(
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             'factor',
           )
-          .if(
-            assetId !== undefined,
-            query => query.where('investment_asset_sefbfr_id', assetId!),
-            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
-          ),
+          .whereIn('investment_asset_sefbfr_id', assetIds),
       )
       .unionAll(
         db
           .from('investment_asset_sefbfr_inplits')
           .select(
             'investment_asset_sefbfr_id as assetId',
-            db.raw("'inplit' as type"),
+            db.raw(`'${TransactionTypes.inplit}' as type`),
             'date_utc as dateUtc',
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
@@ -178,18 +182,14 @@ async function getAssetsChronologically(
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             'factor',
           )
-          .if(
-            assetId !== undefined,
-            query => query.where('investment_asset_sefbfr_id', assetId!),
-            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
-          ),
+          .whereIn('investment_asset_sefbfr_id', assetIds),
       )
       .unionAll(
         db
           .from('investment_asset_sefbfr_dividends')
           .select(
             'investment_asset_sefbfr_id as assetId',
-            db.raw("'dividend' as type"),
+            db.raw(`'${TransactionTypes.dividend}' as type`),
             'date_utc as dateUtc',
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
@@ -197,174 +197,218 @@ async function getAssetsChronologically(
             'value',
             db.raw('CAST(NULL as decimal(20, 6)) as factor'),
           )
-          .if(
-            assetId !== undefined,
-            query => query.where('investment_asset_sefbfr_id', assetId!),
-            query => query.whereIn('investment_asset_sefbfr_id', assetsIds),
-          ),
+          .whereIn('investment_asset_sefbfr_id', assetIds),
       )
       .orderBy('dateUtc', 'asc'),
     100,
   )
 
-  for await (const transaction of transactions) {
-    const assetData = assetsInfo.get(transaction.assetId)
-    if (!assetData) {
-      // FIXME: log this warning
+  for await (const transaction of assetsAllTransactions) {
+    const assetPData = assetsPerformance.get(transaction.assetId)
+    const tempAssetPInfo = tempAssetsInfo.get(transaction.assetId)
+
+    if (!assetPData || !tempAssetPInfo) {
+      if (logger) {
+        logger.warn(
+          `Transaction found for asset id ${transaction.assetId}, but asset basic data not found`,
+        )
+      }
       continue
     }
 
+    const transactionSharesAmount = transaction.sharesAmount
+      ? new Big(transaction.sharesAmount)
+      : undefined
+    const transactionPriceQuote = transaction.priceQuote
+      ? new Big(transaction.priceQuote)
+      : undefined
+    const transactionCosts = transaction.costs ? new Big(transaction.costs) : new Big(0)
+    const transactionValue = transaction.value ? new Big(transaction.value) : undefined
+    const transactionFactor = transaction.factor ? new Big(transaction.factor) : undefined
+
+    // Sum all transaction costs and fees
+    assetPData.feesAndCosts = assetPData.feesAndCosts.add(transactionCosts)
+
+    // Get absolute value of transaction for both buy and sell, as sells shares amount is negative but we want the value to be positive for calculations
+    let absTransactionValue = new Big(0)
+
+    switch (transaction.type) {
+      case TransactionTypes.buy:
+        if (transactionSharesAmount === undefined || transactionPriceQuote === undefined) {
+          if (logger) {
+            logger.warn(
+              `Transaction with id ${transaction.assetId} has invalid shares amount or price quote`,
+            )
+          }
+          // TODO: POST warning msg to user about invalid transaction data
+          continue
+        }
+
+        absTransactionValue = transactionSharesAmount.abs().mul(transactionPriceQuote)
+        // Globally sum the asset shares
+        tempAssetPInfo.sharesAmount = tempAssetPInfo.sharesAmount.add(transactionSharesAmount)
+        tempAssetPInfo.value = tempAssetPInfo.value.add(absTransactionValue).add(transactionCosts)
+        // Avg price considers emoluments and fees as part of the cost of the asset, as they are costs necessary to acquire the asset
+        tempAssetPInfo.avgPrice = tempAssetPInfo.sharesAmount.gt(0)
+          ? tempAssetPInfo.value.div(tempAssetPInfo.sharesAmount)
+          : new Big(0)
+
+        assetPData.inputAmount = assetPData.inputAmount
+          .add(absTransactionValue)
+          .add(transactionCosts)
+        break
+
+      case TransactionTypes.sell:
+        if (transactionSharesAmount === undefined || transactionPriceQuote === undefined) {
+          if (logger) {
+            logger.warn(
+              `Transaction with id ${transaction.assetId} has invalid shares amount or price quote`,
+            )
+          }
+          // TODO: POST warning msg to user about invalid transaction data
+          continue
+        }
+
+        absTransactionValue = transactionSharesAmount.abs().mul(transactionPriceQuote)
+        // Globally sum the asset shares
+        tempAssetPInfo.sharesAmount = tempAssetPInfo.sharesAmount.add(transactionSharesAmount)
+        tempAssetPInfo.value = tempAssetPInfo.sharesAmount.mul(tempAssetPInfo.avgPrice)
+
+        assetPData.grossAmount = assetPData.grossAmount.add(absTransactionValue)
+        assetPData.netAmount = assetPData.netAmount.add(absTransactionValue.add(transactionCosts))
+        break
+
+      case TransactionTypes.transfer:
+        if (transactionSharesAmount === undefined) {
+          if (logger) {
+            logger.warn(`Transaction with id ${transaction.assetId} has invalid shares amount`)
+          }
+          // TODO: POST warning msg to user about invalid transaction data
+          continue
+        }
+
+        // Globally sum the asset shares
+        tempAssetPInfo.sharesAmount = tempAssetPInfo.sharesAmount.add(transactionSharesAmount)
+
+        // Transfer shares amount is negative (avg. price is not affected)
+        if (transactionSharesAmount.lt(0)) {
+          tempAssetPInfo.value = tempAssetPInfo.sharesAmount.mul(tempAssetPInfo.avgPrice)
+        }
+        // Transfer shares amount is positive (avg. price is affected)
+        else {
+          if (transactionPriceQuote === undefined) {
+            // TODO: POST warning msg to user (that he has a transfer without priceQuote defined, and this may affect his avgPrice)
+          }
+          tempAssetPInfo.value = tempAssetPInfo.value.add(
+            transactionSharesAmount.mul(transactionPriceQuote ?? 0),
+          )
+          tempAssetPInfo.avgPrice = tempAssetPInfo.sharesAmount.gt(0)
+            ? tempAssetPInfo.value.div(tempAssetPInfo.sharesAmount)
+            : new Big(0)
+        }
+        break
+
+      case TransactionTypes.bonusShare:
+        if (transactionFactor === undefined) {
+          if (logger) {
+            logger.warn(`Transaction with id ${transaction.assetId} has invalid factor`)
+          }
+          // TODO: POST warning msg to user about invalid transaction data
+          continue
+        }
+
+        // Globally sum the asset shares
+        tempAssetPInfo.sharesAmount = tempAssetPInfo.sharesAmount.add(
+          tempAssetPInfo.sharesAmount.mul(transactionFactor),
+        )
+        tempAssetPInfo.avgPrice = tempAssetPInfo.sharesAmount.gt(0)
+          ? tempAssetPInfo.value.div(tempAssetPInfo.sharesAmount)
+          : new Big(0)
+        break
+
+      case TransactionTypes.split:
+        if (transactionFactor === undefined) {
+          if (logger) {
+            logger.warn(`Transaction with id ${transaction.assetId} has invalid factor`)
+          }
+          // TODO: POST warning msg to user about invalid transaction data
+          continue
+        }
+
+        // Globally sum the asset shares
+        tempAssetPInfo.sharesAmount = tempAssetPInfo.sharesAmount.mul(transactionFactor)
+        tempAssetPInfo.avgPrice = tempAssetPInfo.avgPrice.div(transactionFactor)
+        break
+
+      case TransactionTypes.inplit:
+        if (transactionFactor === undefined) {
+          if (logger) {
+            logger.warn(`Transaction with id ${transaction.assetId} has invalid factor`)
+          }
+          // TODO: POST warning msg to user about invalid transaction data
+          continue
+        }
+
+        // Globally sum the asset shares
+        tempAssetPInfo.sharesAmount = tempAssetPInfo.sharesAmount.div(transactionFactor)
+        tempAssetPInfo.avgPrice = tempAssetPInfo.avgPrice.mul(transactionFactor)
+        break
+
+      case TransactionTypes.dividend:
+        if (transactionValue === undefined) {
+          if (logger) {
+            logger.warn(`Transaction with id ${transaction.assetId} has invalid value`)
+          }
+          // TODO: POST warning msg to user about invalid transaction data
+          continue
+        }
+
+        assetPData.grossAmount = assetPData.grossAmount.add(transactionValue)
+        assetPData.netAmount = assetPData.netAmount.add(transactionValue).add(transactionCosts)
+        break
+
+      default:
+        break
+    }
+
+    // Find the asset first transaction date
+    if (assetPData.startDateUtc === null) {
+      assetPData.startDateUtc = DateTime.fromJSDate(transaction.dateUtc)
+    }
+
+    // Find the asset last transaction date
     if (
-      assetData.lastTransactionAt === null ||
-      assetData.lastTransactionAt < DateTime.fromJSDate(transaction.dateUtc)
+      assetPData.doneDateUtc === null ||
+      assetPData.doneDateUtc < DateTime.fromJSDate(transaction.dateUtc)
     ) {
-      assetData.lastTransactionAt = DateTime.fromJSDate(transaction.dateUtc)
+      assetPData.doneDateUtc = DateTime.fromJSDate(transaction.dateUtc)
     }
-
-    if (assetData.transactions === undefined) {
-      assetData.transactions = []
-    }
-
-    assetData.transactions.push({
-      costs:
-        transaction.costs !== null && transaction.costs !== undefined
-          ? new Big(transaction.costs)
-          : null,
-      dateUtc: DateTime.fromJSDate(transaction.dateUtc),
-      factor:
-        transaction.factor !== null && transaction.factor !== undefined
-          ? new Big(transaction.factor)
-          : undefined,
-      priceQuote: transaction.priceQuote ? new Big(transaction.priceQuote) : undefined,
-      sharesAmount: transaction.sharesAmount ? new Big(transaction.sharesAmount) : undefined,
-      type: transaction.type as TransactionType,
-      value:
-        transaction.value !== null && transaction.value !== undefined
-          ? new Big(transaction.value)
-          : undefined,
-    })
   }
 
-  return assetsInfo
-}
+  for (const [assetId, assetPData] of assetsPerformance.entries()) {
+    const tempAssetPInfo = tempAssetsInfo.get(assetId)
 
-/**
- * Calculate profits (done and current) from all the bond transactions.
- *
- * If `walletId` is provided, calculates performance for all SEFBFR assets in that wallet.
- * If `assetId` is provided, calculates performance for that specific SEFBFR asset.
- *
- * At least one of walletId or assetId must be provided.
- */
-async function getAssetsPerformance(
-  walletId?: string,
-  assetId?: string,
-): Promise<AssetsPerformance> {
-  if (!walletId && !assetId) {
-    throw new Error('Either walletId or assetId must be provided')
-  }
-
-  const assetsInfo = await getAssetsChronologically(walletId, assetId)
-  const assetsPerformance: AssetsPerformance = new Map()
-
-  for (const [assetId, assetData] of assetsInfo.entries()) {
-    if (assetData.transactions === undefined || assetData.transactions.length === 0) continue
-
-    const current = {
-      sharesAmount: new Big(0),
-      value: new Big(0),
-    }
-    let currentPriceQuote = new Big(0)
-    let doneProfit = new Big(0)
-    let currentProfit = new Big(0)
-    let avgPrice = new Big(0)
-
-    for (const transaction of assetData.transactions) {
-      switch (transaction.type) {
-        case 'buy':
-          if (transaction.sharesAmount === undefined || transaction.priceQuote === undefined)
-            continue
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount)
-          current.value = current.value
-            .add(transaction.sharesAmount.mul(transaction.priceQuote))
-            .add(transaction.costs ?? 0)
-          avgPrice = current.value.div(current.sharesAmount)
-          break
-        case 'sell':
-          if (transaction.sharesAmount === undefined || transaction.priceQuote === undefined)
-            continue
-          // Sell shares amount is negative
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount)
-          current.value = current.sharesAmount.mul(avgPrice)
-          doneProfit = doneProfit.add(
-            transaction.sharesAmount
-              .abs()
-              .mul(transaction.priceQuote.sub(avgPrice))
-              .add(transaction.costs ?? 0),
-          )
-          break
-        case 'transfer':
-          if (transaction.sharesAmount === undefined) continue
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount)
-          // Transfer shares amount is negative (avg. price is not affected)
-          if (transaction.sharesAmount.lt(0)) {
-            current.value = current.sharesAmount.mul(avgPrice)
-          }
-          // Transfer shares amount is positive (avg. price is affected)
-          else {
-            // Undo shares amount sum if price quote is undefined
-            if (transaction.priceQuote === undefined) {
-              current.sharesAmount = current.sharesAmount.sub(transaction.sharesAmount)
-              continue
-            }
-            current.value = current.value.add(transaction.sharesAmount.mul(transaction.priceQuote))
-            avgPrice = current.value.div(current.sharesAmount)
-          }
-          break
-        case 'bonus_share':
-          if (transaction.factor === undefined || transaction.factor === null) continue
-          current.sharesAmount = current.sharesAmount.add(
-            current.sharesAmount.mul(transaction.factor),
-          )
-          avgPrice = current.value.div(current.sharesAmount)
-          break
-        case 'split':
-          if (transaction.factor === undefined || transaction.factor === null) continue
-          current.sharesAmount = current.sharesAmount.mul(transaction.factor)
-          avgPrice = avgPrice.div(transaction.factor)
-          break
-        case 'inplit':
-          if (transaction.factor === undefined || transaction.factor === null) continue
-          current.sharesAmount = current.sharesAmount.div(transaction.factor)
-          avgPrice = avgPrice.mul(transaction.factor)
-          break
-        case 'dividend':
-          if (transaction.value === undefined || transaction.value === null) continue
-          doneProfit = doneProfit.add(transaction.value).add(transaction.costs ?? 0)
-          break
-        default:
-          break
-      }
+    if (applyLivePriceQuote && !assetPData.isDone && tempAssetPInfo) {
+      // FIXME: Change this after service to get live price quote is ready
+      const livePriceQuote = tempAssetPInfo.avgPrice
+      const liveValue = tempAssetPInfo.sharesAmount.mul(livePriceQuote.sub(tempAssetPInfo.avgPrice))
+      assetPData.grossAmount = assetPData.grossAmount.add(liveValue)
+      // TODO: Must calculate an avg costs to apply to live share value, instead of adding 0 as cost of the live value. This is necessary to not overestimate the profit of the asset while it is still active, as the live value is not a realized profit until the asset is sold.
+      assetPData.netAmount = assetPData.netAmount.add(liveValue).add(0)
     }
 
-    // TODO: Remove this after assets have proper current price quote
-    currentPriceQuote = avgPrice
-    currentProfit = doneProfit.add(current.sharesAmount.mul(currentPriceQuote.sub(avgPrice)))
+    if (assetPData.startDateUtc !== null && assetPData.doneDateUtc !== null) {
+      assetPData.daysRunning = assetPData.isDone
+        ? (assetPData.doneDateUtc.diff(assetPData.startDateUtc, 'days').days ?? 0)
+        : DateTime.now().diff(assetPData.doneDateUtc, 'days').days
+    }
 
-    assetsPerformance.set(assetId, {
-      assetName: assetData.assetName,
-      currentProfit,
-      doneProfit,
-      doneState: assetData.doneState,
-      id: assetData.id,
-      lastTransactionAt: assetData.lastTransactionAt!,
-    })
+    assetsPerformance.set(assetId, assetPData)
   }
 
-  return assetsPerformance
+  return Array.from(assetsPerformance.values())
 }
 
 export default {
-  getAssetsChronologically,
-  getAssetsPerformance,
+  getAllAssetsPerformance,
 }

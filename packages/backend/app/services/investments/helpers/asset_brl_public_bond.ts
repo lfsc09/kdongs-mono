@@ -1,210 +1,226 @@
+import { Logger } from '@adonisjs/core/logger'
 import db from '@adonisjs/lucid/services/db'
 import Big from 'big.js'
 import { DateTime } from 'luxon'
 import { lucidStream } from '#services/util/lucid_stream'
-import { objToMap } from '#services/util/obj_to_map'
+import {
+  TransactionType,
+  TransactionTypes,
+} from '../../../core/types/investment/brl_public_bond.js'
 
-type BondInfo = {
+export type BondPerformance = {
   id: string
+  name: string
   isDone: boolean
-  bondName: string
-  lastTransactionAt: DateTime | null
-  transactions?: {
-    type: 'buy' | 'sell'
-    dateUtc: DateTime
-    sharesAmount?: Big
-    unitPrice?: Big
-    costs?: Big | null
-  }[]
+  startDateUtc: DateTime | null
+  doneDateUtc: DateTime | null
+  inputAmount: Big
+  grossAmount: Big
+  feesAndCosts: Big
+  netAmount: Big
+  daysRunning: number
 }
 
-export type BondsTransactions = Map<string, BondInfo>
-
-export type BondsPerformance = Map<
-  string,
-  {
-    id: string
-    isDone: boolean
-    bondName: string
-    doneProfit: Big
-    currentProfit: Big
-    lastTransactionAt: DateTime
-  }
->
-
 /**
- * Get all bonds info and bonds transactions (buys, sells) ordered by date, for performance calculation and charts.
+ * Get bonds performance (done and current profits).
  *
- * If `walletId` is provided, gets transactions for all bonds in that wallet.
- * If `bondId` is provided, gets transactions for that specific bond.
+ * @param walletId If provided, gets performance for all bonds in that wallet.
+ * @param bondId If provided, gets performance for that specific bond.
+ * @param applyLivePriceQuote If true, applies live price quote to current shares amount for performance calculation.
+ * @param logger Optional logger.
  *
- * At least one of walletId or bondId must be provided.
+ * @throws Error if neither walletId nor bondId is provided.
+ * @returns Array of bond performance data.
  */
-async function getBondsChronologically(
+async function getAllBondsPerformance(
   walletId?: string,
   bondId?: string,
-): Promise<BondsTransactions> {
+  applyLivePriceQuote: boolean = false,
+  logger?: Logger,
+): Promise<BondPerformance[]> {
   if (!walletId && !bondId) {
     throw new Error('Either walletId or bondId must be provided')
   }
 
-  const bonds: { id: string; isDone: boolean; bondName: string; lastTransactionAt: null }[] =
-    await db
-      .from('investment_asset_brl_public_bonds')
-      .select(
-        'id',
-        'is_done as isDone',
-        'bond_name as bondName',
-        db.raw('NULL as lastTransactionAt'),
-      )
-      .if(
-        walletId !== undefined,
-        query => query.where('wallet_id', walletId!),
-        query => query.where('id', bondId!),
-      )
-  const bondsIds = bonds.map(bond => bond.id)
+  const bondsPerformance = new Map<string, BondPerformance>()
+  const tempBondsInfo = new Map<
+    string,
+    {
+      sharesAmount: Big
+      value: Big
+      avgPrice: Big
+    }
+  >()
 
-  const bondsInfos = objToMap<BondInfo, 'id'>('id', bonds)
+  // Get all desired bonds basic information
+  const bondsData: { id: string; isDone: boolean; bondName: string }[] = await db
+    .from('investment_asset_brl_public_bonds')
+    .select('id', 'is_done as isDone', 'bond_name as bondName')
+    .if(
+      walletId !== undefined,
+      query => query.where('wallet_id', walletId!),
+      query => query.where('id', bondId!),
+    )
 
-  const transactions = lucidStream(
+  for (const bondData of bondsData) {
+    bondsPerformance.set(bondData.id, {
+      daysRunning: 0,
+      doneDateUtc: null,
+      feesAndCosts: new Big(0),
+      grossAmount: new Big(0),
+      id: bondData.id,
+      inputAmount: new Big(0),
+      isDone: bondData.isDone,
+      name: bondData.bondName,
+      netAmount: new Big(0),
+      startDateUtc: null,
+    })
+    tempBondsInfo.set(bondData.id, {
+      avgPrice: new Big(0),
+      sharesAmount: new Big(0),
+      value: new Big(0),
+    })
+  }
+
+  const bondIds = Array.from(bondsPerformance.keys())
+  // Stream all the bonds transactions (buys and sells) ordered by date
+  const bondsAllTransactions = lucidStream<{
+    bondId: string
+    type: TransactionType
+    dateUtc: Date
+    sharesAmount?: string
+    unitPrice?: string
+    costs?: string | null
+  }>(
     db
       .from('investment_asset_brl_public_bond_buys')
       .select(
         'investment_asset_brl_public_bond_id as bondId',
-        db.raw("'buy' as type"),
+        db.raw(`'${TransactionTypes.buy}' as type`),
         'date_utc as dateUtc',
         'shares_amount as sharesAmount',
         'unit_price as unitPrice',
         'fees as costs',
       )
-      .if(
-        bondId !== undefined,
-        query => query.where('investment_asset_brl_public_bond_id', bondId!),
-        query => query.whereIn('investment_asset_brl_public_bond_id', bondsIds),
-      )
+      .whereIn('investment_asset_brl_public_bond_id', bondIds)
       .unionAll(
         db
           .from('investment_asset_brl_public_bond_sells')
           .select(
             'investment_asset_brl_public_bond_id as bondId',
-            db.raw("'sell' as type"),
+            db.raw(`'${TransactionTypes.sell}' as type`),
             'date_utc as dateUtc',
             'shares_amount as sharesAmount',
             'unit_price as unitPrice',
             db.raw('fees + taxes as costs'),
           )
-          .if(
-            bondId !== undefined,
-            query => query.where('investment_asset_brl_public_bond_id', bondId!),
-            query => query.whereIn('investment_asset_brl_public_bond_id', bondsIds),
-          ),
+          .whereIn('investment_asset_brl_public_bond_id', bondIds),
       )
       .orderBy('dateUtc', 'asc'),
     100,
   )
 
-  for await (const transaction of transactions) {
-    const bondData = bondsInfos.get(transaction.bondId)
-    if (!bondData) {
-      // FIXME: log this warning
+  for await (const transaction of bondsAllTransactions) {
+    const bondPData = bondsPerformance.get(transaction.bondId)
+    const tempBondPInfo = tempBondsInfo.get(transaction.bondId)
+
+    if (!bondPData || !tempBondPInfo) {
+      if (logger) {
+        logger.warn(
+          `Transaction found for bond id ${transaction.bondId}, but bond basic data not found`,
+        )
+      }
       continue
     }
 
-    if (
-      bondData.lastTransactionAt === null ||
-      bondData.lastTransactionAt < DateTime.fromJSDate(transaction.dateUtc)
-    ) {
-      bondData.lastTransactionAt = DateTime.fromJSDate(transaction.dateUtc)
-    }
+    const transactionSharesAmount = transaction.sharesAmount
+      ? new Big(transaction.sharesAmount)
+      : undefined
+    const transactionUnitPrice = transaction.unitPrice ? new Big(transaction.unitPrice) : undefined
+    const transactionCosts = transaction.costs ? new Big(transaction.costs) : new Big(0)
 
-    if (bondData.transactions === undefined) {
-      bondData.transactions = []
-    }
-
-    bondData.transactions.push({
-      costs:
-        transaction.costs !== null && transaction.costs !== undefined
-          ? new Big(transaction.costs)
-          : null,
-      dateUtc: DateTime.fromJSDate(transaction.dateUtc),
-      sharesAmount: transaction.sharesAmount ? new Big(transaction.sharesAmount) : undefined,
-      type: transaction.type as 'buy' | 'sell',
-      unitPrice: transaction.unitPrice ? new Big(transaction.unitPrice) : undefined,
-    })
-  }
-
-  return bondsInfos
-}
-
-/**
- * Calculate profits (done and current) from all the bond transactions.
- *
- * If `walletId` is provided, calculates performance for all bonds in that wallet.
- * If `bondId` is provided, calculates performance for that specific bond.
- *
- * At least one of walletId or bondId must be provided.
- */
-async function getBondsPerformance(walletId?: string, bondId?: string): Promise<BondsPerformance> {
-  if (!walletId && !bondId) {
-    throw new Error('Either walletId or bondId must be provided')
-  }
-
-  const bondsInfos = await getBondsChronologically(walletId, bondId)
-  const bondsPerformance: BondsPerformance = new Map()
-
-  for (const [bondId, bondInfo] of bondsInfos.entries()) {
-    if (bondInfo.transactions === undefined || bondInfo.transactions.length === 0) continue
-
-    const current = {
-      sharesAmount: new Big(0),
-      value: new Big(0),
-    }
-    let currentUnitPrice = new Big(0)
-    let doneProfit = new Big(0)
-    let currentProfit = new Big(0)
-    let avgPrice = new Big(0)
-
-    for (const transaction of bondInfo.transactions) {
-      if (transaction.sharesAmount === undefined || transaction.unitPrice === undefined) continue
-      switch (transaction.type) {
-        case 'buy':
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount)
-          current.value = current.value
-            .add(transaction.sharesAmount.mul(transaction.unitPrice))
-            .add(transaction.costs ?? 0)
-          avgPrice = current.value.div(current.sharesAmount)
-          break
-        case 'sell':
-          current.sharesAmount = current.sharesAmount.add(transaction.sharesAmount)
-          current.value = current.sharesAmount.mul(avgPrice)
-          doneProfit = doneProfit.add(
-            transaction.sharesAmount
-              .abs()
-              .mul(transaction.unitPrice)
-              .add(transaction.costs ?? 0),
-          )
-          break
+    if (transactionSharesAmount === undefined || transactionUnitPrice === undefined) {
+      if (logger) {
+        logger.warn(
+          `Transaction with id ${transaction.bondId} has invalid shares amount or unit price`,
+        )
       }
+      // TODO: POST warning msg to user about invalid transaction data
+      continue
     }
 
-    // TODO: Remove this after assets have proper current price quote
-    currentUnitPrice = avgPrice
-    currentProfit = doneProfit.add(current.sharesAmount.mul(currentUnitPrice.sub(avgPrice)))
+    // Find the bond first transaction date
+    if (bondPData.startDateUtc === null) {
+      bondPData.startDateUtc = DateTime.fromJSDate(transaction.dateUtc)
+    }
 
-    bondsPerformance.set(bondId, {
-      bondName: bondInfo.bondName,
-      currentProfit,
-      doneProfit,
-      id: bondInfo.id,
-      isDone: bondInfo.isDone,
-      lastTransactionAt: bondInfo.lastTransactionAt!,
-    })
+    // Find the bond last transaction date
+    if (
+      bondPData.doneDateUtc === null ||
+      bondPData.doneDateUtc < DateTime.fromJSDate(transaction.dateUtc)
+    ) {
+      bondPData.doneDateUtc = DateTime.fromJSDate(transaction.dateUtc)
+    }
+
+    // Sum all transaction costs and fees
+    bondPData.feesAndCosts = bondPData.feesAndCosts.add(transactionCosts)
+
+    // Get absolute value of transaction for both buy and sell, as sells shares amount is negative but we want the value to be positive for calculations
+    const absTransactionValue = transactionSharesAmount.abs().mul(transactionUnitPrice)
+
+    // Globally sum the bond shares
+    tempBondPInfo.sharesAmount = tempBondPInfo.sharesAmount.add(transactionSharesAmount)
+
+    switch (transaction.type) {
+      case TransactionTypes.buy:
+        tempBondPInfo.value = tempBondPInfo.value.add(absTransactionValue).add(transactionCosts)
+        // Avg price considers emoluments and fees as part of the cost of the asset, as they are costs necessary to acquire the asset
+        tempBondPInfo.avgPrice = tempBondPInfo.sharesAmount.gt(0)
+          ? tempBondPInfo.value.div(tempBondPInfo.sharesAmount)
+          : new Big(0)
+
+        bondPData.inputAmount = bondPData.inputAmount.add(absTransactionValue)
+        break
+
+      case TransactionTypes.sell:
+        tempBondPInfo.value = tempBondPInfo.sharesAmount.mul(tempBondPInfo.avgPrice)
+        bondPData.grossAmount = bondPData.grossAmount.add(absTransactionValue)
+        bondPData.netAmount = bondPData.netAmount.add(absTransactionValue.add(transactionCosts))
+        break
+
+      default:
+        break
+    }
   }
 
-  return bondsPerformance
+  for (const [bondId, bondPData] of bondsPerformance.entries()) {
+    const tempBondPInfo = tempBondsInfo.get(bondId)
+
+    if (applyLivePriceQuote && !bondPData.isDone && tempBondPInfo) {
+      // FIXME: Change this after service to get live price quote is ready
+      const livePriceQuote = tempBondPInfo.avgPrice
+      const liveValue = tempBondPInfo.sharesAmount.mul(livePriceQuote.sub(tempBondPInfo.avgPrice))
+      bondPData.grossAmount = bondPData.grossAmount.add(liveValue)
+      // TODO: Must calculate an avg costs to apply to live share value, instead of adding 0 as cost of the live value. This is necessary to not overestimate the profit of the asset while it is still active, as the live value is not a realized profit until the asset is sold.
+      bondPData.netAmount = bondPData.netAmount.add(liveValue).add(0)
+    }
+
+    if (bondPData.startDateUtc !== null && bondPData.doneDateUtc !== null) {
+      bondPData.daysRunning = bondPData.isDone
+        ? (bondPData.doneDateUtc.diff(bondPData.startDateUtc, 'days').days ?? 0)
+        : DateTime.now().diff(bondPData.doneDateUtc, 'days').days
+    }
+
+    bondsPerformance.set(bondId, bondPData)
+  }
+
+  return Array.from(bondsPerformance.values())
 }
+
+// async function getBondsProfitEvents(walletId?: string, bondId?: string): Promise<BondsProfitEvents> {
+
+// }
 
 export default {
-  getBondsChronologically,
-  getBondsPerformance,
+  getAllBondsPerformance,
 }
