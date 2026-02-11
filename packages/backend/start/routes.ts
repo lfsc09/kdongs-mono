@@ -23,9 +23,9 @@ router
  */
 router
   .group(() => {
+    router.get('/performance', '#controllers/investments/analytics_controller')
     router.resource('wallets', '#controllers/investments/wallets_controller')
     // router.resource('wallets.transactions', '#controllers/investments/wallet_transactions_controller')
-    router.get('/performance', '#controllers/investments/wallets_performance_controller')
   })
   .prefix('/investments')
   .middleware([middleware.cookieToAuthHeader(), middleware.auth()])

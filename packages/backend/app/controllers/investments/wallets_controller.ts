@@ -21,7 +21,7 @@ export default class WalletsController {
       ...request.qs(),
       userId: auth.user?.id ?? '',
     })
-    const output = await this.walletsService.walletsList(input)
+    const output = await this.walletsService.list(input)
     return response.status(200).json(output)
   }
 
@@ -30,7 +30,7 @@ export default class WalletsController {
    */
   async create({ response, bouncer }: HttpContext) {
     if (await bouncer.denies(anyUser)) return response.forbidden()
-    const output = await this.walletsService.walletCreate()
+    const output = await this.walletsService.create()
     return response.status(200).json(output)
   }
 
@@ -43,7 +43,7 @@ export default class WalletsController {
       ...request.body(),
       userId: auth.user?.id ?? '',
     })
-    const output = await this.walletsService.walletStore(input)
+    const output = await this.walletsService.store(input)
     return response.status(201).json(output)
   }
 
@@ -56,7 +56,7 @@ export default class WalletsController {
       userId: auth.user?.id ?? '',
       walletId: params.id,
     })
-    const output = await this.walletsService.walletShow(input)
+    const output = await this.walletsService.show(input)
     return response.status(200).json(output)
   }
 
@@ -70,7 +70,7 @@ export default class WalletsController {
       userId: auth.user?.id ?? '',
       walletId: params.id,
     })
-    const output = await this.walletsService.walletEdit(input)
+    const output = await this.walletsService.edit(input)
     return response.status(200).json(output)
   }
 
@@ -90,7 +90,7 @@ export default class WalletsController {
       userId: auth.user?.id ?? '',
       walletId: params.id,
     })
-    await this.walletsService.walletDelete(input)
+    await this.walletsService.softDelete(input)
     return response.status(204)
   }
 }
