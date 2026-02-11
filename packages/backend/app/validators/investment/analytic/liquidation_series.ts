@@ -1,7 +1,7 @@
 import vine from '@vinejs/vine'
 import { acceptedCurrencyCodes } from '../../../core/types/investment/currency.js'
 
-export const evolutionSeriesAnalyticsSchema = vine.object({
+export const liquidationSeriesAnalyticsSchema = vine.object({
   selectedCurrency: vine.string().in([...acceptedCurrencyCodes, 'Wallet']),
   useLivePriceQuote: vine
     .boolean()
@@ -11,4 +11,4 @@ export const evolutionSeriesAnalyticsSchema = vine.object({
   walletIds: vine.unionOfTypes([vine.array(vine.string().uuid()), vine.string().uuid()]).optional(),
 })
 
-export const evolutionSeriesAnalyticsValidator = vine.create(evolutionSeriesAnalyticsSchema)
+export const liquidationSeriesAnalyticsValidator = vine.create(liquidationSeriesAnalyticsSchema)

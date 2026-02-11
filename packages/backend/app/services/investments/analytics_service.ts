@@ -5,9 +5,9 @@ import { DateTime } from 'luxon'
 import Wallet from '#models/investment/wallet'
 import { PromiseBatch } from '#services/util/promise_batch'
 import {
-  EvolutionSeriesAnalyticsRequest,
-  EvolutionSeriesAnalyticsResponse,
-} from '../../core/dto/investment/analytic/evolution_series_dto.js'
+  LiquidationSeriesAnalyticsRequest,
+  LiquidationSeriesAnalyticsResponse,
+} from '../../core/dto/investment/analytic/liquidation_series_dto.js'
 import {
   PerformanceAnalayticsRequest,
   PerformanceAnalyticsResponse,
@@ -531,9 +531,9 @@ export default class AnalyticsService {
     }
   }
 
-  async evolutionSeries(
-    input: EvolutionSeriesAnalyticsRequest,
-  ): Promise<EvolutionSeriesAnalyticsResponse> {
+  async liquidationSeries(
+    input: LiquidationSeriesAnalyticsRequest,
+  ): Promise<LiquidationSeriesAnalyticsResponse> {
     const isWalletIdsArray = Array.isArray(input.walletIds)
     const wallets = await Wallet.query()
       .if(
@@ -586,7 +586,9 @@ export default class AnalyticsService {
       10,
     )
 
-    const performanceSeries = new Map<string, EvolutionSeriesAnalyticsResponse['data'][number]>([])
+    const performanceSeries = new Map<string, LiquidationSeriesAnalyticsResponse['data'][number]>(
+      [],
+    )
 
     for await (const walletInfo of walletsIterator.process()) {
       performanceSeries.set(walletInfo.wallet.id, {
