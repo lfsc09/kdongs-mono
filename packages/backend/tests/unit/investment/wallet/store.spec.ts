@@ -2,7 +2,7 @@ import { en, Faker, pt_BR } from '@faker-js/faker'
 import { test } from '@japa/runner'
 import { v7 as uuidv7 } from 'uuid'
 import { storeWalletValidator } from '#validators/investment/wallet/store'
-import { acceptedCurrencyCodes } from '../../../../app/core/types/investment/currencies.js'
+import { acceptedCurrencyCodes } from '../../../../app/core/types/investment/currency.js'
 
 test.group('Create a user wallet validator', () => {
   const faker = new Faker({

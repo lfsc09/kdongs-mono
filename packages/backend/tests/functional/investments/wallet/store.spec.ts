@@ -2,7 +2,7 @@ import { test } from '@japa/runner'
 import { WalletFactory } from '#database/factories/investment_wallet_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import User from '#models/user/user'
-import type { UserRole } from '../../../../app/core/types/user/user_roles.js'
+import type { UserRole } from '../../../../app/core/types/user/user_role.js'
 
 test.group('Create a user wallet', group => {
   group.each.setup(async () => {

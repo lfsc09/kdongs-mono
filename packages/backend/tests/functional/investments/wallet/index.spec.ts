@@ -3,7 +3,7 @@ import { WalletFactory } from '#database/factories/investment_wallet_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import User from '#models/user/user'
 import { IndexWalletsResponse } from '../../../../app/core/dto/investment/wallet/index_dto.js'
-import type { UserRole } from '../../../../app/core/types/user/user_roles.js'
+import type { UserRole } from '../../../../app/core/types/user/user_role.js'
 
 test.group('List user wallets', group => {
   group.each.setup(async () => {
@@ -100,7 +100,7 @@ test.group('List user wallets', group => {
         id: expect.any(String),
         initialBalance: expect.any(Number),
         name: expect.any(String),
-        profitInCurncy: expect.any(Number),
+        profitInCurrency: expect.any(Number),
         profitInPerc: expect.any(Number),
         trend: expect.any(String),
         updatedAt: expect.any(String),
