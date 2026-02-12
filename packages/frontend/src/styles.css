@@ -427,4 +427,20 @@
       @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
     }
   }
+
+  .emo-shrug::before {
+    content: '¯\\_(ツ)_/¯';
+  }
+  .emo-flip::before {
+    content: '(╯°□°)╯︵ ┻━┻';
+  }
+  .emo-fyou::before {
+    content: 't(-.-t)';
+  }
+  .emo-sparkles::before {
+    content: '☆.。.:*・°☆.。.:*・°☆.。.:*・°☆.。.:*・°☆';
+  }
+  .emo-creepy::before {
+    content: '( ° ͜ʖ °)';
+  }
 }

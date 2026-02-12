@@ -5,7 +5,7 @@
 } @else if (performance() === null) {
   <div class="error-box h-72">
     <div class="error-content">
-      <span>(╯°□°)╯︵ ┻━┻</span>
+      <span class="emo-flip"></span>
       <span>Failed to load Indicators</span>
     </div>
   </div>
@@ -242,7 +242,7 @@
         <span class="font-bold text-lime-500">Breakeven</span>
         <div class="flex w-full flex-1 flex-row items-center justify-evenly">
           @if (performance()?.breakeven === undefined) {
-            <span class="text-gray-500">¯\_(ツ)_/¯</span>
+            <span class="emo-shrug text-gray-500"></span>
           } @else {
             <kdongs-cp-gauge
               [value]="(performance()?.breakeven ?? 0) * 100"
@@ -262,7 +262,7 @@
         <span class="font-bold text-lime-500">Edge</span>
         <div class="flex w-full flex-1 flex-row items-center justify-evenly">
           @if (performance()?.edge === undefined) {
-            <span class="text-gray-500">¯\_(ツ)_/¯</span>
+            <span class="emo-shrug text-gray-500"></span>
           } @else {
             <kdongs-cp-gauge
               [value]="(performance()?.edge ?? 0) * 100"
