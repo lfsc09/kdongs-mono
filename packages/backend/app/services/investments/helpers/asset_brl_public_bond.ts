@@ -7,19 +7,9 @@ import {
   TransactionType,
   TransactionTypes,
 } from '../../../core/types/investment/brl_public_bond.js'
+import { BasePerformance } from '../analytics_service.js'
 
-export type BondPerformance = {
-  id: string
-  name: string
-  isDone: boolean
-  startDateUtc: DateTime | null
-  doneDateUtc: DateTime | null
-  inputAmount: Big
-  grossAmount: Big
-  feesAndCosts: Big
-  netAmount: Big
-  daysRunning: number
-}
+interface BondPerformance extends BasePerformance {}
 
 /**
  * Get bonds performance (done and current profits).
@@ -64,9 +54,9 @@ async function getAllBondsPerformance(
 
   for (const bondData of bondsData) {
     bondsPerformance.set(bondData.id, {
+      costs: new Big(0),
       daysRunning: 0,
       doneDateUtc: null,
-      feesAndCosts: new Big(0),
       grossAmount: new Big(0),
       id: bondData.id,
       inputAmount: new Big(0),
@@ -74,6 +64,7 @@ async function getAllBondsPerformance(
       name: bondData.bondName,
       netAmount: new Big(0),
       startDateUtc: null,
+      taxes: new Big(0),
     })
     tempBondsInfo.set(bondData.id, {
       avgPrice: new Big(0),
@@ -91,6 +82,7 @@ async function getAllBondsPerformance(
     sharesAmount?: string
     unitPrice?: string
     costs?: string | null
+    taxes?: string | null
   }>(
     db
       .from('investment_asset_brl_public_bond_buys')
@@ -101,6 +93,7 @@ async function getAllBondsPerformance(
         'shares_amount as sharesAmount',
         'unit_price as unitPrice',
         'fees as costs',
+        db.raw('0 as taxes'),
       )
       .whereIn('investment_asset_brl_public_bond_id', bondIds)
       .unionAll(
@@ -112,7 +105,8 @@ async function getAllBondsPerformance(
             'date_utc as dateUtc',
             'shares_amount as sharesAmount',
             'unit_price as unitPrice',
-            db.raw('fees + taxes as costs'),
+            db.raw('fees as costs'),
+            'taxes as taxes',
           )
           .whereIn('investment_asset_brl_public_bond_id', bondIds),
       )
@@ -137,7 +131,8 @@ async function getAllBondsPerformance(
       ? new Big(transaction.sharesAmount)
       : undefined
     const transactionUnitPrice = transaction.unitPrice ? new Big(transaction.unitPrice) : undefined
-    const transactionCosts = transaction.costs ? new Big(transaction.costs) : new Big(0)
+    const transactionCosts = new Big(transaction.costs ?? 0)
+    const transactionTaxes = new Big(transaction.taxes ?? 0)
 
     if (transactionSharesAmount === undefined || transactionUnitPrice === undefined) {
       if (logger) {
@@ -162,8 +157,9 @@ async function getAllBondsPerformance(
       bondPData.doneDateUtc = DateTime.fromJSDate(transaction.dateUtc)
     }
 
-    // Sum all transaction costs and fees
-    bondPData.feesAndCosts = bondPData.feesAndCosts.add(transactionCosts)
+    // Sum all transaction costs and taxes
+    bondPData.costs = bondPData.costs.add(transactionCosts)
+    bondPData.taxes = bondPData.taxes.add(transactionTaxes)
 
     // Get absolute value of transaction for both buy and sell, as sells shares amount is negative but we want the value to be positive for calculations
     const absTransactionValue = transactionSharesAmount.abs().mul(transactionUnitPrice)
@@ -185,7 +181,9 @@ async function getAllBondsPerformance(
       case TransactionTypes.sell:
         tempBondPInfo.value = tempBondPInfo.sharesAmount.mul(tempBondPInfo.avgPrice)
         bondPData.grossAmount = bondPData.grossAmount.add(absTransactionValue)
-        bondPData.netAmount = bondPData.netAmount.add(absTransactionValue.add(transactionCosts))
+        bondPData.netAmount = bondPData.netAmount.add(
+          absTransactionValue.add(transactionCosts).add(transactionTaxes),
+        )
         break
 
       default:
@@ -208,7 +206,9 @@ async function getAllBondsPerformance(
     if (bondPData.startDateUtc !== null && bondPData.doneDateUtc !== null) {
       bondPData.daysRunning = bondPData.isDone
         ? (bondPData.doneDateUtc.diff(bondPData.startDateUtc, 'days').days ?? 0)
-        : DateTime.now().diff(bondPData.doneDateUtc, 'days').days
+        : applyLivePriceQuote
+          ? DateTime.now().diff(bondPData.doneDateUtc, 'days').days
+          : 0
     }
 
     bondsPerformance.set(bondId, bondPData)

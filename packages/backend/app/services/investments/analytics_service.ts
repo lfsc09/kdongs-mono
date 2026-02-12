@@ -17,11 +17,80 @@ import AssetBrlPrivateBondUtils from './helpers/asset_brl_private_bond.js'
 import AssetBrlPublicBondUtils from './helpers/asset_brl_public_bond.js'
 import AssetSefbfrUtils from './helpers/asset_sefbfr.js'
 
+export interface BasePerformance {
+  id: string
+  name: string
+  isDone: boolean
+  startDateUtc: DateTime | null
+  doneDateUtc: DateTime | null
+  inputAmount: Big
+  grossAmount: Big
+  costs: Big
+  taxes: Big
+  netAmount: Big
+  daysRunning: number
+}
+
+type GlobalAnalytics = {
+  breakeven: Big | undefined
+  costs: {
+    max: Big | undefined
+    sum: Big
+  }
+  dateEndUtcAsset: DateTime | undefined
+  dateEndUtcGlobal: DateTime | undefined
+  dateEndUtcMovement: DateTime | undefined
+  dateStartUtcAsset: DateTime | undefined
+  dateStartUtcGlobal: DateTime | undefined
+  dateStartUtcMovement: DateTime | undefined
+  grossLosses: {
+    max: Big | undefined
+    sum: Big
+  }
+  grossProfits: {
+    max: Big | undefined
+    sum: Big
+  }
+  historyHigh: Big | undefined
+  historyLow: Big | undefined
+  movements: {
+    max: Big | undefined
+    min: Big | undefined
+    sum: Big
+  }
+  netLosses: {
+    avg: Big | undefined
+    max: Big | undefined
+    sum: Big
+  }
+  netProfits: {
+    avg: Big | undefined
+    max: Big | undefined
+    sum: Big
+  }
+  numberOfActiveAssets: number
+  numberOfActiveAssetsLoss: number
+  numberOfActiveAssetsProfit: number
+  numberOfAssets: number
+  numberOfAssetsLoss: number
+  numberOfAssetsProfit: number
+  numberOfMovements: number
+  numberOfMovementsDeposit: number
+  numberOfMovementsWithdrawal: number
+  sumDaysByAsset: Big
+  taxes: {
+    max: Big | undefined
+    sum: Big
+  }
+}
+
 @inject()
 export default class AnalyticsService {
   constructor(protected logger: Logger) {}
 
-  async performance(input: PerformanceAnalayticsRequest): Promise<PerformanceAnalyticsResponse> {
+  async performance(
+    input: PerformanceAnalayticsRequest,
+  ): Promise<PerformanceAnalyticsResponse | null> {
     const isWalletIdsArray = Array.isArray(input.walletIds)
     const wallets = await Wallet.query()
       .if(
@@ -45,6 +114,10 @@ export default class AnalyticsService {
       .preload('movements', movementQuery => {
         movementQuery.orderBy('dateUtc', 'asc')
       })
+
+    if (wallets.length === 0) {
+      return null
+    }
 
     const walletsIterator = new PromiseBatch(
       wallets.map(async wallet => {
@@ -74,55 +147,53 @@ export default class AnalyticsService {
       10,
     )
 
-    const globalAnalytics = {
-      breakeven: undefined as Big | undefined,
+    const walletCurrencies = wallets.map(wallet => wallet.currencyCode)
 
-      // Assets cost and tax analytics
+    const globalAnalytics: GlobalAnalytics = {
+      breakeven: undefined,
+      // Assets cost analytics
       costs: {
-        max: undefined as Big | undefined,
+        max: undefined,
         sum: new Big(0),
       },
-      dateEndUtcAsset: undefined as DateTime | undefined,
-      dateEndUtcGlobal: undefined as DateTime | undefined,
-      dateEndUtcMovement: undefined as DateTime | undefined,
+      dateEndUtcAsset: undefined,
+      dateEndUtcGlobal: undefined,
+      dateEndUtcMovement: undefined,
       // Only assets
-      dateStartUtcAsset: undefined as DateTime | undefined,
-
+      dateStartUtcAsset: undefined,
       // Global first and last dates
-      dateStartUtcGlobal: undefined as DateTime | undefined,
+      dateStartUtcGlobal: undefined,
       // Only movements
-      dateStartUtcMovement: undefined as DateTime | undefined,
+      dateStartUtcMovement: undefined,
+      // Asset's gross loss analytics
       grossLosses: {
-        max: undefined as Big | undefined,
+        max: undefined,
         sum: new Big(0),
       },
-
-      // Asset's gross profit and loss analytics
+      // Asset's gross profit analytics
       grossProfits: {
-        max: undefined as Big | undefined,
+        max: undefined,
         sum: new Big(0),
       },
-
       // History high and low
-      historyHigh: undefined as Big | undefined,
-      historyLow: undefined as Big | undefined,
-
+      historyHigh: undefined,
+      historyLow: undefined,
       // Wallet's movements analytics (deposits and withdrawals)
       movements: {
-        max: undefined as Big | undefined,
-        min: undefined as Big | undefined,
+        max: undefined,
+        min: undefined,
         sum: new Big(0),
       },
+      // Asset's net loss analytics (considering costs and taxes)
       netLosses: {
-        avg: undefined as Big | undefined,
-        max: undefined as Big | undefined,
+        avg: undefined,
+        max: undefined,
         sum: new Big(0),
       },
-
-      // Asset's net profit and loss analytics (considering costs and taxes)
+      // Asset's net profit analytics (considering costs and taxes)
       netProfits: {
-        avg: undefined as Big | undefined,
-        max: undefined as Big | undefined,
+        avg: undefined,
+        max: undefined,
         sum: new Big(0),
       },
       numberOfActiveAssets: 0,
@@ -131,15 +202,14 @@ export default class AnalyticsService {
       numberOfAssets: 0,
       numberOfAssetsLoss: 0,
       numberOfAssetsProfit: 0,
-
-      // Movement/Asset counters
       numberOfMovements: 0,
       numberOfMovementsDeposit: 0,
       numberOfMovementsWithdrawal: 0,
       // Used to calculate the average days until an asset is done, only for assets that are done
       sumDaysByAsset: new Big(0),
+      // Asset's tax analytics
       taxes: {
-        max: undefined as Big | undefined,
+        max: undefined,
         sum: new Big(0),
       },
     }
@@ -187,109 +257,13 @@ export default class AnalyticsService {
       }
 
       // Private bonds
-      for (const bond of walletInfo.brlPrivateBonds) {
-        globalAnalytics.dateStartUtcAsset = this.pickDate(
-          globalAnalytics.dateStartUtcAsset,
-          bond.startDateUtc,
-          'earliest',
-        )
-        globalAnalytics.dateEndUtcAsset = this.pickDate(
-          globalAnalytics.dateEndUtcAsset,
-          bond.doneDateUtc,
-          'latest',
-        )
+      this.calculateAssetTypePerformance(walletInfo.brlPrivateBonds, globalAnalytics)
 
-        // Bond had profit
-        if (bond.netAmount.gt(0)) {
-          globalAnalytics.numberOfAssetsProfit += 1
-          if (bond.isDone) {
-            globalAnalytics.numberOfActiveAssetsProfit += 1
-          }
-        } else if (bond.netAmount.lt(0)) {
-          globalAnalytics.numberOfAssetsLoss += 1
-          if (bond.isDone) {
-            globalAnalytics.numberOfActiveAssetsLoss += 1
-          }
-        }
+      // Public bonds
+      this.calculateAssetTypePerformance(walletInfo.brlPublicBonds, globalAnalytics)
 
-        // Done bond
-        if (bond.isDone) {
-          globalAnalytics.sumDaysByAsset = globalAnalytics.sumDaysByAsset.add(bond.daysRunning)
-        } else {
-          globalAnalytics.numberOfActiveAssets += 1
-        }
-
-        globalAnalytics.grossProfits.sum = globalAnalytics.grossProfits.sum.add(
-          bond.grossAmount.gt(0) ? bond.grossAmount : 0,
-        )
-        globalAnalytics.grossLosses.sum = globalAnalytics.grossLosses.sum.add(
-          bond.grossAmount.lt(0) ? bond.grossAmount : 0,
-        )
-        globalAnalytics.netProfits.sum = globalAnalytics.netProfits.sum.add(
-          bond.netAmount.gt(0) ? bond.netAmount : 0,
-        )
-        globalAnalytics.netLosses.sum = globalAnalytics.netLosses.sum.add(
-          bond.netAmount.lt(0) ? bond.netAmount : 0,
-        )
-        globalAnalytics.costs.sum = globalAnalytics.costs.sum.add(bond.feesAndCosts)
-        globalAnalytics.taxes.sum = globalAnalytics.taxes.sum.add(bond.feesAndCosts)
-
-        globalAnalytics.grossProfits.max = this.pickBig(
-          globalAnalytics.grossProfits.max,
-          bond.grossAmount.gt(0) ? bond.grossAmount : 0,
-          'greatest',
-          false,
-        )
-        globalAnalytics.grossLosses.max = this.pickBig(
-          globalAnalytics.grossLosses.max,
-          bond.grossAmount.lt(0) ? bond.grossAmount : 0,
-          'lowest',
-          false,
-        )
-        globalAnalytics.netProfits.max = this.pickBig(
-          globalAnalytics.netProfits.max,
-          bond.netAmount.gt(0) ? bond.netAmount : 0,
-          'greatest',
-          false,
-        )
-        globalAnalytics.netLosses.max = this.pickBig(
-          globalAnalytics.netLosses.max,
-          bond.netAmount.lt(0) ? bond.netAmount : 0,
-          'lowest',
-          false,
-        )
-        globalAnalytics.costs.max = this.pickBig(
-          globalAnalytics.costs.max,
-          bond.feesAndCosts,
-          'lowest',
-          false,
-        )
-        globalAnalytics.taxes.max = this.pickBig(
-          globalAnalytics.taxes.max,
-          bond.feesAndCosts,
-          'lowest',
-          false,
-        )
-
-        const localResultingBalance = globalAnalytics.movements.sum
-          .add(globalAnalytics.netProfits.sum)
-          .add(globalAnalytics.netLosses.sum)
-
-        globalAnalytics.historyHigh = this.pickBig(
-          globalAnalytics.historyHigh,
-          localResultingBalance,
-          'greatest',
-          false,
-        )
-        globalAnalytics.historyLow = this.pickBig(
-          globalAnalytics.historyLow,
-          localResultingBalance,
-          'lowest',
-          false,
-        )
-
-        globalAnalytics.numberOfAssets += 1
-      }
+      // SEFBFR assets
+      this.calculateAssetTypePerformance(walletInfo.sefbfrAssets, globalAnalytics)
     }
 
     // Total resulting profit and loss
@@ -297,21 +271,21 @@ export default class AnalyticsService {
 
     // Amount of days, months, quarters and years in the range between the first and last investment
     const totalDaysInRange =
-      globalAnalytics.dateStartUtcGlobal && globalAnalytics.dateEndUtcGlobal
-        ? globalAnalytics.dateEndUtcGlobal.diff(globalAnalytics.dateStartUtcGlobal, 'days').days
+      globalAnalytics.dateStartUtcAsset && globalAnalytics.dateEndUtcAsset
+        ? globalAnalytics.dateEndUtcAsset.diff(globalAnalytics.dateStartUtcAsset, 'days').days
         : 0
     const totalMonthsInRange =
-      globalAnalytics.dateStartUtcGlobal && globalAnalytics.dateEndUtcGlobal
-        ? globalAnalytics.dateEndUtcGlobal.diff(globalAnalytics.dateStartUtcGlobal, 'months').months
+      globalAnalytics.dateStartUtcAsset && globalAnalytics.dateEndUtcAsset
+        ? globalAnalytics.dateEndUtcAsset.diff(globalAnalytics.dateStartUtcAsset, 'months').months
         : 0
     const totalQuartersInRange =
-      globalAnalytics.dateStartUtcGlobal && globalAnalytics.dateEndUtcGlobal
-        ? globalAnalytics.dateEndUtcGlobal.diff(globalAnalytics.dateStartUtcGlobal, 'quarters')
+      globalAnalytics.dateStartUtcAsset && globalAnalytics.dateEndUtcAsset
+        ? globalAnalytics.dateEndUtcAsset.diff(globalAnalytics.dateStartUtcAsset, 'quarters')
             .quarters
         : 0
     const totalYearsInRange =
-      globalAnalytics.dateStartUtcGlobal && globalAnalytics.dateEndUtcGlobal
-        ? globalAnalytics.dateEndUtcGlobal.diff(globalAnalytics.dateStartUtcGlobal, 'years').years
+      globalAnalytics.dateStartUtcAsset && globalAnalytics.dateEndUtcAsset
+        ? globalAnalytics.dateEndUtcAsset.diff(globalAnalytics.dateStartUtcAsset, 'years').years
         : 0
 
     globalAnalytics.dateStartUtcGlobal = this.pickDate(
@@ -349,11 +323,10 @@ export default class AnalyticsService {
 
     return {
       data: {
-        currencyToShow: 'BRL',
+        currencyToShow: this.decideCurrencyToShow(walletCurrencies, input.selectedCurrency),
         indicators: {
           assetDateEndUtc: globalAnalytics.dateEndUtcAsset?.toISO() ?? undefined,
           assetDateStartUtc: globalAnalytics.dateStartUtcAsset?.toISO() ?? undefined,
-
           // Average cost per asset that can be expected for future assets
           avgCostByAsset:
             globalAnalytics.numberOfAssets > 0
@@ -362,7 +335,6 @@ export default class AnalyticsService {
                   .round(2, Big.roundHalfUp)
                   .toNumber()
               : undefined,
-
           // Average cost per <time period> that can be expected
           avgCostByDay:
             totalDaysInRange > 0
@@ -389,16 +361,14 @@ export default class AnalyticsService {
                   .round(2, Big.roundHalfUp)
                   .toNumber()
               : undefined,
-
           // Average days until an asset is done, only for assets that are done
           avgDaysByAsset:
             globalAnalytics.numberOfAssets > 0
               ? globalAnalytics.sumDaysByAsset
                   .div(globalAnalytics.numberOfAssets)
-                  .round(2, Big.roundHalfUp)
+                  .round(0, Big.roundHalfUp)
                   .toNumber()
               : undefined,
-
           // Average tax per asset that can be expected for future assets
           avgTaxByAsset:
             globalAnalytics.numberOfAssets > 0
@@ -407,7 +377,6 @@ export default class AnalyticsService {
                   .round(2, Big.roundHalfUp)
                   .toNumber()
               : undefined,
-
           // Average tax per <time period> that can be expected
           avgTaxByDay:
             totalDaysInRange > 0
@@ -434,13 +403,10 @@ export default class AnalyticsService {
                   .round(2, Big.roundHalfUp)
                   .toNumber()
               : undefined,
-
           // Percent of profitable assests it must reach/maintain to be profitable considering the average profit/loss of the wallets
           breakeven: globalAnalytics.breakeven?.round(2, Big.roundHalfUp).toNumber(),
           dateEndUtc: globalAnalytics.dateEndUtcGlobal?.toISO() ?? undefined,
-
           dateStartUtc: globalAnalytics.dateStartUtcGlobal?.toISO() ?? undefined,
-
           // How far the current profit percentage is from the breakeven point
           edge:
             globalAnalytics.breakeven && profitAssetsPerc
@@ -449,7 +415,6 @@ export default class AnalyticsService {
                   .round(2, Big.roundHalfUp)
                   .toNumber()
               : undefined,
-
           // Average profit/loss per asset that can be expected for future assets
           expectancyByAsset:
             globalAnalytics.numberOfAssets > 0
@@ -458,7 +423,6 @@ export default class AnalyticsService {
                   .round(2, Big.roundHalfUp)
                   .toNumber()
               : undefined,
-
           // Average profit/loss per <time period> that can be expected
           expectancyByDay:
             totalDaysInRange > 0
@@ -476,9 +440,12 @@ export default class AnalyticsService {
             totalYearsInRange > 0
               ? netProfitAndLossesSum.div(totalYearsInRange).round(2, Big.roundHalfUp).toNumber()
               : undefined,
-
           historyHigh: globalAnalytics.historyHigh?.round(2, Big.roundHalfUp).toNumber(),
-          historyLow: globalAnalytics.historyLow?.round(2, Big.roundHalfUp).toNumber(),
+          // Only show the history low if it's lower than the sum of movements, otherwise it is not relevant
+          historyLow:
+            (globalAnalytics.historyLow ?? 0) < globalAnalytics.movements.sum
+              ? globalAnalytics.historyLow?.round(2, Big.roundHalfUp).toNumber()
+              : undefined,
           movementDateEndUtc: globalAnalytics.dateEndUtcMovement?.toISO() ?? undefined,
           movementDateStartUtc: globalAnalytics.dateStartUtcMovement?.toISO() ?? undefined,
           // Average movement amount done in the wallets (considering deposits and withdraws)
@@ -491,15 +458,12 @@ export default class AnalyticsService {
               : undefined,
           movementsMax: globalAnalytics.movements.max?.round(2, Big.roundHalfUp).toNumber(),
           movementsMin: globalAnalytics.movements.min?.round(2, Big.roundHalfUp).toNumber(),
-
           movementsSum: globalAnalytics.movements.sum.round(2, Big.roundHalfUp).toNumber(),
           netLossAvg: globalAnalytics.netLosses.avg?.round(2, Big.roundHalfUp).toNumber(),
           netLossMax: globalAnalytics.netLosses.max?.round(2, Big.roundHalfUp).toNumber(),
-
           netLossSum: globalAnalytics.netLosses.sum.round(2, Big.roundHalfUp).toNumber(),
           netProfitAvg: globalAnalytics.netProfits.avg?.round(2, Big.roundHalfUp).toNumber(),
           netProfitMax: globalAnalytics.netProfits.max?.round(2, Big.roundHalfUp).toNumber(),
-
           netProfitSum: globalAnalytics.netProfits.sum.round(2, Big.roundHalfUp).toNumber(),
           numberOfActiveAssets: globalAnalytics.numberOfActiveAssets,
           numberOfActiveAssetsLoss: globalAnalytics.numberOfActiveAssetsLoss,
@@ -507,16 +471,14 @@ export default class AnalyticsService {
           numberOfAssets: globalAnalytics.numberOfAssets,
           numberOfAssetsLoss: globalAnalytics.numberOfAssetsLoss,
           numberOfAssetsProfit: globalAnalytics.numberOfAssetsProfit,
-
           numberOfMovements: globalAnalytics.numberOfMovements,
           numberOfMovementsDeposit: globalAnalytics.numberOfMovementsDeposit,
           numberOfMovementsWithdrawal: globalAnalytics.numberOfMovementsWithdrawal,
-          // Resuling balance considering profits, losses and movements (deposits and withdraws)
+          // Resulting balance considering profits, losses and movements (deposits and withdraws)
           resultingBalanceInCurrency: globalAnalytics.movements.sum
             .add(netProfitAndLossesSum)
             .round(2, Big.roundHalfUp)
             .toNumber(),
-
           resultingProfitInCurrency: netProfitAndLossesSum.round(2, Big.roundHalfUp).toNumber(),
           // Profit percentage compared to total amount invested (deposits and withdraws)
           resultingProfitInPerc: globalAnalytics.movements.sum.gt(0)
@@ -613,11 +575,19 @@ export default class AnalyticsService {
 
       // Private bonds
       for (const bond of walletInfo.brlPrivateBonds) {
-        // Add bond to performance series
-        performanceSeries.get(walletInfo.wallet.id)?.dataPoints.push({
+        const seriesPData = performanceSeries.get(walletInfo.wallet.id)
+
+        if (!seriesPData) {
+          continue
+        }
+        if (bond.doneDateUtc === null) {
+          continue
+        }
+
+        seriesPData.dataPoints.push({
           daysRunning: bond.daysRunning,
-          doneDateUtc: bond.doneDateUtc?.toMillis() ?? 0,
-          feesAndCosts: bond.feesAndCosts?.toNumber() ?? 0,
+          doneDateUtc: bond.doneDateUtc.toMillis(),
+          feesAndCosts: bond.costs.add(bond.taxes).toNumber(),
           grossAmount: bond.grossAmount.toNumber(),
           inputAmount: bond.inputAmount.toNumber(),
           netAmount: bond.netAmount.toNumber(),
@@ -632,7 +602,130 @@ export default class AnalyticsService {
   }
 
   /**
-   * Pick the earliest or latest date between two dates, no matter the order they are passed in
+   * Calculate the performance analytics for a given asset type (like bonds or stocks) and update the given global analytics with the results.
+   *
+   * It calculates:
+   *  - `dateStartUtcAsset` and `dateEndUtcAsset`: the first and last dates of the assets, used to calculate other analytics like average cost per day;
+   *  - `numberOfAssets`;
+   *  - `numberOfAssetsProfit` and `numberOfAssetsLoss`: how many assets had profit and loss, used to calculate the breakeven point;
+   *  - `numberOfActiveAssets`;
+   *  - `numberOfActiveAssetsProfit` and `numberOfActiveAssetsLoss`: how many active assets had profit and loss, used to calculate the breakeven point considering only active assets;
+   *  - `grossProfits` and `grossLosses`: the `sum` and `max` gross profit and loss, not considering costs and taxes;
+   *  - `netProfits` and `netLosses`: the `sum` and `max` net profit and loss, considering costs and taxes;
+   *  - `costs`: the `sum` and `max` costs of the assets;
+   *  - `taxes`: the `sum` and `max` taxes of the assets;
+   *  - `historyHigh` and `historyLow`: the highest and lowest resulting balance in the history of the wallets;
+   *
+   * @param aData - The performance data for the given asset type
+   * @param gA - The global analytics to be updated with the results
+   */
+  private calculateAssetTypePerformance(aData: BasePerformance[], gA: GlobalAnalytics): void {
+    for (const bond of aData) {
+      gA.dateStartUtcAsset = this.pickDate(gA.dateStartUtcAsset, bond.startDateUtc, 'earliest')
+      gA.dateEndUtcAsset = this.pickDate(gA.dateEndUtcAsset, bond.doneDateUtc, 'latest')
+
+      // Asset/Bond had profit
+      if (bond.netAmount.gt(0)) {
+        gA.numberOfAssetsProfit += 1
+        if (!bond.isDone) {
+          gA.numberOfActiveAssetsProfit += 1
+        }
+      } else if (bond.netAmount.lt(0)) {
+        gA.numberOfAssetsLoss += 1
+        if (!bond.isDone) {
+          gA.numberOfActiveAssetsLoss += 1
+        }
+      }
+
+      // Done asset/bond
+      if (bond.isDone) {
+        gA.sumDaysByAsset = gA.sumDaysByAsset.add(bond.daysRunning)
+      } else {
+        gA.numberOfActiveAssets += 1
+      }
+
+      gA.grossProfits.sum = gA.grossProfits.sum.add(bond.grossAmount.gt(0) ? bond.grossAmount : 0)
+      gA.grossLosses.sum = gA.grossLosses.sum.add(bond.grossAmount.lt(0) ? bond.grossAmount : 0)
+      gA.netProfits.sum = gA.netProfits.sum.add(bond.netAmount.gt(0) ? bond.netAmount : 0)
+      gA.netLosses.sum = gA.netLosses.sum.add(bond.netAmount.lt(0) ? bond.netAmount : 0)
+      gA.costs.sum = gA.costs.sum.add(bond.costs)
+      gA.taxes.sum = gA.taxes.sum.add(bond.taxes)
+
+      gA.grossProfits.max = this.pickBig(
+        gA.grossProfits.max,
+        bond.grossAmount.gt(0) ? bond.grossAmount : 0,
+        'greatest',
+        false,
+      )
+      gA.grossLosses.max = this.pickBig(
+        gA.grossLosses.max,
+        bond.grossAmount.lt(0) ? bond.grossAmount : 0,
+        'lowest',
+        false,
+      )
+      gA.netProfits.max = this.pickBig(
+        gA.netProfits.max,
+        bond.netAmount.gt(0) ? bond.netAmount : 0,
+        'greatest',
+        false,
+      )
+      gA.netLosses.max = this.pickBig(
+        gA.netLosses.max,
+        bond.netAmount.lt(0) ? bond.netAmount : 0,
+        'lowest',
+        false,
+      )
+      gA.costs.max = this.pickBig(gA.costs.max, bond.costs, 'lowest', false)
+      gA.taxes.max = this.pickBig(gA.taxes.max, bond.taxes, 'lowest', false)
+
+      const localResultingBalance = gA.movements.sum.add(gA.netProfits.sum).add(gA.netLosses.sum)
+
+      gA.historyHigh = this.pickBig(gA.historyHigh, localResultingBalance, 'greatest', false)
+      gA.historyLow = this.pickBig(gA.historyLow, localResultingBalance, 'lowest', false)
+
+      gA.numberOfAssets += 1
+    }
+  }
+
+  /**
+   * Decide the currency to show in the performance analytics, based on the wallet currencies and the selected currency.
+   *
+   * If selected currency is not "Wallet", it returns the selected currency.
+   *
+   * If the selected currency is "Wallet":
+   *  - It picks the most present currency in the wallets;
+   *  - If there is a tie, it picks the first one;
+   *  - If there are no wallets, it defaults to BRL.
+   *
+   * @param walletCurrencies - The list of wallet currencies
+   * @param selectedCurrency - The selected currency, can be a specific currency or "Wallet"
+   * @returns The decided currency to show in the performance analytics
+   */
+  private decideCurrencyToShow(walletCurrencies: string[], selectedCurrency: string): string {
+    if (selectedCurrency === 'Wallet') {
+      const currencyCount: Record<string, number> = {}
+      for (const currency of walletCurrencies) {
+        if (!currencyCount[currency]) {
+          currencyCount[currency] = 0
+        }
+        currencyCount[currency] += 1
+      }
+      const mostPresentCurrency = Object.entries(currencyCount).reduce((prev, curr) =>
+        curr[1] > prev[1] ? curr : prev,
+      )[0]
+      if (mostPresentCurrency) {
+        return mostPresentCurrency
+      }
+      if (walletCurrencies.length > 0) {
+        return walletCurrencies[0]
+      }
+      return 'BRL'
+    }
+    return selectedCurrency
+  }
+
+  /**
+   * Pick the earliest or latest date between two dates, no matter the order they are passed in.
    *
    * @param d1 - The first date
    * @param d2 - The second date
@@ -643,7 +736,7 @@ export default class AnalyticsService {
     d1: DateTime | null | undefined,
     d2: DateTime | null | undefined,
     pick: 'earliest' | 'latest',
-  ) {
+  ): DateTime | undefined {
     if (d1 === undefined || d1 === null) {
       return d2 ?? undefined
     }
@@ -659,7 +752,7 @@ export default class AnalyticsService {
   }
 
   /**
-   * Pick the lowest or greatest number between two numbers, no matter the order they are passed in
+   * Pick the lowest or greatest number between two numbers, no matter the order they are passed in.
    *
    * @param n1 - The first number
    * @param n2 - The second number

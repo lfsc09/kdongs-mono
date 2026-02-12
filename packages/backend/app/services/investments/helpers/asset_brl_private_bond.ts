@@ -1,20 +1,9 @@
 import db from '@adonisjs/lucid/services/db'
 import Big from 'big.js'
 import { DateTime } from 'luxon'
-import AssetBrlPrivateBond from '#models/investment/asset_brl_private_bond'
+import { BasePerformance } from '../analytics_service.js'
 
-export type BondPerformance = {
-  id: string
-  name: string
-  isDone: boolean
-  startDateUtc: DateTime | null
-  doneDateUtc: DateTime | null
-  inputAmount: Big
-  grossAmount: Big
-  feesAndCosts: Big
-  netAmount: Big
-  daysRunning: number
-}
+interface BondPerformance extends BasePerformance {}
 
 /**
  * Get bonds performance (done and current profits).
@@ -36,9 +25,29 @@ async function getAllBondsPerformance(
   }
 
   const bondsPerformance = new Map<string, BondPerformance>()
-  const bondsData: AssetBrlPrivateBond[] = await db
+  const bondsData: {
+    id: string
+    isDone: boolean
+    bondName: string
+    inputAmount: string
+    grossAmount: string | null
+    fees: string | null
+    taxes: string | null
+    enterDateUtc: Date
+    exitDateUtc: Date | null
+  }[] = await db
     .from('investment_asset_brl_private_bonds')
-    .select()
+    .select(
+      'id',
+      'is_done as isDone',
+      'bond_name as bondName',
+      'input_amount as inputAmount',
+      'gross_amount as grossAmount',
+      'fees',
+      'taxes',
+      'enter_date_utc as enterDateUtc',
+      'exit_date_utc as exitDateUtc',
+    )
     .if(
       bondId !== undefined,
       query => query.where('id', bondId!),
@@ -48,35 +57,47 @@ async function getAllBondsPerformance(
     .orderBy('exit_date_utc', 'asc')
 
   for (const bondData of bondsData) {
+    const enterDateUtc = DateTime.fromJSDate(bondData.enterDateUtc)
+    const exitDateUtc = bondData.exitDateUtc ? DateTime.fromJSDate(bondData.exitDateUtc) : null
+    const inputAmount = new Big(bondData.inputAmount)
+    const costsAmount = new Big(bondData.fees ?? 0)
+    const taxesAmount = new Big(bondData.taxes ?? 0)
     let grossAmount = new Big(0)
-    const feesAndCosts = new Big(0).add(bondData.fees ?? 0).add(bondData.taxes ?? 0)
     let netAmount = new Big(0)
 
-    if (applyLiveIndexRate && bondData.exitDateUtc === null) {
-      // FIXME: Remove this after bond have proper current index rate
-      const indexRate = 0
-      grossAmount = bondData.inputAmount.mul(new Big(1).add(indexRate))
-      netAmount = grossAmount.add(feesAndCosts)
-    } else if (bondData.exitDateUtc !== null) {
-      grossAmount = bondData.grossAmount!
-      netAmount = grossAmount.add(feesAndCosts)
+    if (bondData.isDone) {
+      if (bondData.grossAmount === null) {
+        // TODO: POST warning msg to user about invalid transaction data
+      }
+      grossAmount = new Big(bondData.grossAmount ?? 0)
+      netAmount = grossAmount.add(costsAmount).add(taxesAmount)
     }
 
-    const daysRunning = bondData.exitDateUtc
-      ? bondData.exitDateUtc.diff(bondData.enterDateUtc, 'days').days
-      : DateTime.now().diff(bondData.enterDateUtc, 'days').days
+    if (applyLiveIndexRate && !bondData.isDone) {
+      // FIXME: Remove this after bond have proper current index rate
+      const indexRate = 0
+      grossAmount = inputAmount.mul(new Big(1).add(indexRate))
+      netAmount = grossAmount.add(costsAmount).add(taxesAmount)
+    }
+
+    const daysRunning = exitDateUtc
+      ? exitDateUtc.diff(enterDateUtc, 'days').days
+      : applyLiveIndexRate
+        ? DateTime.now().diff(enterDateUtc, 'days').days
+        : 0
 
     bondsPerformance.set(bondData.id, {
+      costs: costsAmount,
       daysRunning,
-      doneDateUtc: bondData.exitDateUtc,
-      feesAndCosts,
+      doneDateUtc: exitDateUtc,
       grossAmount,
       id: bondData.id,
-      inputAmount: bondData.inputAmount,
-      isDone: bondData.exitDateUtc !== null,
+      inputAmount: inputAmount,
+      isDone: bondData.isDone,
       name: bondData.bondName,
       netAmount,
-      startDateUtc: bondData.enterDateUtc,
+      startDateUtc: enterDateUtc,
+      taxes: taxesAmount,
     })
   }
 

@@ -9,19 +9,9 @@ import {
   TransactionType,
   TransactionTypes,
 } from '../../../core/types/investment/sefbfr.js'
+import { BasePerformance } from '../analytics_service.js'
 
-export type AssetPerformance = {
-  id: string
-  name: string
-  isDone: boolean
-  startDateUtc: DateTime | null
-  doneDateUtc: DateTime | null
-  inputAmount: Big
-  grossAmount: Big
-  feesAndCosts: Big
-  netAmount: Big
-  daysRunning: number
-}
+interface AssetPerformance extends BasePerformance {}
 
 /**
  * Get assets performance (done and current profits).
@@ -66,9 +56,9 @@ async function getAllAssetsPerformance(
 
   for (const assetData of assetsData) {
     assetsPerformance.set(assetData.id, {
+      costs: new Big(0),
       daysRunning: 0,
       doneDateUtc: null,
-      feesAndCosts: new Big(0),
       grossAmount: new Big(0),
       id: assetData.id,
       inputAmount: new Big(0),
@@ -76,6 +66,7 @@ async function getAllAssetsPerformance(
       name: assetData.assetName,
       netAmount: new Big(0),
       startDateUtc: null,
+      taxes: new Big(0),
     })
     tempAssetsInfo.set(assetData.id, {
       avgPrice: new Big(0),
@@ -90,11 +81,12 @@ async function getAllAssetsPerformance(
     assetId: string
     type: TransactionType
     dateUtc: Date
-    sharesAmount?: Big
-    priceQuote?: Big
-    costs?: Big | null
-    value?: Big | null
-    factor?: Big | null
+    sharesAmount?: string
+    priceQuote?: string
+    costs?: string | null
+    taxes?: string | null
+    value?: string | null
+    factor?: string | null
   }>(
     db
       .from('investment_asset_sefbfr_buys')
@@ -105,6 +97,7 @@ async function getAllAssetsPerformance(
         'shares_amount as sharesAmount',
         'price_quote as priceQuote',
         'fees as costs',
+        db.raw('CAST(NULL as decimal(20, 6)) as taxes'),
         db.raw('CAST(NULL as decimal(20, 6)) as value'),
         db.raw('CAST(NULL as decimal(20, 6)) as factor'),
       )
@@ -118,7 +111,8 @@ async function getAllAssetsPerformance(
             'date_utc as dateUtc',
             'shares_amount as sharesAmount',
             'price_quote as priceQuote',
-            db.raw('cast(fees + taxes as decimal(20, 6)) as costs'),
+            'fees as costs',
+            'taxes',
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             db.raw('CAST(NULL as decimal(20, 6)) as factor'),
           )
@@ -134,6 +128,7 @@ async function getAllAssetsPerformance(
             'shares_amount as sharesAmount',
             'close_price_quote as priceQuote',
             db.raw('CAST(NULL as decimal(20, 6)) as costs'),
+            db.raw('CAST(NULL as decimal(20, 6)) as taxes'),
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             db.raw('CAST(NULL as decimal(20, 6)) as factor'),
           )
@@ -149,6 +144,7 @@ async function getAllAssetsPerformance(
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
             db.raw('CAST(NULL as decimal(20, 6)) as costs'),
+            db.raw('CAST(NULL as decimal(20, 6)) as taxes'),
             'value',
             'factor',
           )
@@ -164,6 +160,7 @@ async function getAllAssetsPerformance(
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
             db.raw('CAST(NULL as decimal(20, 6)) as costs'),
+            db.raw('CAST(NULL as decimal(20, 6)) as taxes'),
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             'factor',
           )
@@ -179,6 +176,7 @@ async function getAllAssetsPerformance(
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
             db.raw('CAST(NULL as decimal(20, 6)) as costs'),
+            db.raw('CAST(NULL as decimal(20, 6)) as taxes'),
             db.raw('CAST(NULL as decimal(20, 6)) as value'),
             'factor',
           )
@@ -193,7 +191,8 @@ async function getAllAssetsPerformance(
             'date_utc as dateUtc',
             db.raw('CAST(NULL as decimal(20, 6)) as sharesAmount'),
             db.raw('CAST(NULL as decimal(20, 6)) as priceQuote'),
-            'taxes as costs',
+            db.raw('CAST(NULL as decimal(20, 6)) as costs'),
+            'taxes',
             'value',
             db.raw('CAST(NULL as decimal(20, 6)) as factor'),
           )
@@ -222,12 +221,14 @@ async function getAllAssetsPerformance(
     const transactionPriceQuote = transaction.priceQuote
       ? new Big(transaction.priceQuote)
       : undefined
-    const transactionCosts = transaction.costs ? new Big(transaction.costs) : new Big(0)
+    const transactionCosts = new Big(transaction.costs ?? 0)
+    const transactionTaxes = new Big(transaction.taxes ?? 0)
     const transactionValue = transaction.value ? new Big(transaction.value) : undefined
     const transactionFactor = transaction.factor ? new Big(transaction.factor) : undefined
 
-    // Sum all transaction costs and fees
-    assetPData.feesAndCosts = assetPData.feesAndCosts.add(transactionCosts)
+    // Sum all transaction costs and taxes
+    assetPData.costs = assetPData.costs.add(transactionCosts)
+    assetPData.taxes = assetPData.taxes.add(transactionTaxes)
 
     // Get absolute value of transaction for both buy and sell, as sells shares amount is negative but we want the value to be positive for calculations
     let absTransactionValue = new Big(0)
@@ -400,7 +401,9 @@ async function getAllAssetsPerformance(
     if (assetPData.startDateUtc !== null && assetPData.doneDateUtc !== null) {
       assetPData.daysRunning = assetPData.isDone
         ? (assetPData.doneDateUtc.diff(assetPData.startDateUtc, 'days').days ?? 0)
-        : DateTime.now().diff(assetPData.doneDateUtc, 'days').days
+        : applyLivePriceQuote
+          ? DateTime.now().diff(assetPData.doneDateUtc, 'days').days
+          : 0
     }
 
     assetsPerformance.set(assetId, assetPData)

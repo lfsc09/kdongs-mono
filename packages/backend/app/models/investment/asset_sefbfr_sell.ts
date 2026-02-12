@@ -47,7 +47,7 @@ export default class AssetSefbfrSell extends BaseModel {
     consume: (value: string | null) => (value ? new Big(value) : null),
     prepare: (value: Big | null) => (value ? value.toString() : null),
   })
-  declare taxes: Big | null // Taxes associated with the sell transaction (negative)
+  declare taxes: Big | null // Taxes associated with the sell transaction (only negative)
 
   @column()
   declare details: string | null // Additional details about the sell transaction
