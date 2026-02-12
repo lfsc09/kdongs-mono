@@ -1,10 +1,12 @@
-import { CurrencyPipe, DatePipe, PercentPipe } from '@angular/common'
+import { DatePipe } from '@angular/common'
 import { Component, inject, linkedSignal, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { RouterLink } from '@angular/router'
 import { combineLatest, debounceTime, Subscription, switchMap } from 'rxjs'
 import { ListUserWalletDTO } from '../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../infra/gateways/investments/investments-gateway.service'
+import { MonetaryPipe } from '../../../../../infra/pipes/monetary.pipe'
+import { PercentPipe } from '../../../../../infra/pipes/percent.pipe'
 import { LoadingBar } from '../../../components/loading-bar/loading-bar'
 import { InvestmentsService } from '../investments.service'
 import { LocalSelectableWallets } from './wallet.model'
@@ -12,7 +14,7 @@ import { LocalSelectableWallets } from './wallet.model'
 @Component({
   selector: 'kdongs-wallet',
   templateUrl: './wallet.html',
-  imports: [RouterLink, DatePipe, CurrencyPipe, PercentPipe, LoadingBar],
+  imports: [RouterLink, DatePipe, MonetaryPipe, PercentPipe, LoadingBar],
   host: {
     'animate.leave': 'animate-fade-out',
   },

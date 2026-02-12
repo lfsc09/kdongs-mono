@@ -11,25 +11,6 @@ export class InvestmentsService {
   selectedCurrency = signal<SelectableCurrency>('Wallet')
   currencyToShow = signal<Currency | undefined>(undefined)
 
-  //
-  // FIXME: Esse calculo sera feito no backend
-  //
-  // currencyOnUse = computed<Currency>(() => {
-  //   // Default to BRL
-  //   if (this.selectedCurrency() === null || this.selectedWallets().size === 0) return 'BRL';
-  //   // Determine the most frequent currency among selected wallets if multiple wallets are selected, or the selected wallet's currency
-  // 	else if (this.selectedCurrency() === 'Wallet') {
-  // 		let moreFrequentCurrency: { [key: string]: number } = {};
-  // 		this.selectedWallets().forEach((sWValue) => {
-  // 			if (!(sWValue!.currency in moreFrequentCurrency)) moreFrequentCurrency[sWValue!.currency] = 0;
-  // 			moreFrequentCurrency[sWValue!.currency] += 1;
-  // 		});
-  // 		return Object.entries(moreFrequentCurrency).reduce((highest, curr) => (curr[1] > highest[1] ? curr : highest))[0] as Currency;
-  // 	}
-  //   // Otherwise, use the selected currency
-  // 	return this.selectedCurrency() as Currency;
-  // })
-
   /**
    * FUNCTIONS
    */

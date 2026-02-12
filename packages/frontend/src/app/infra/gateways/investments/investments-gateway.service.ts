@@ -3,10 +3,10 @@ import { catchError, map, Observable, throwError } from 'rxjs'
 import { GatewayError } from '../shared/default-gateway.model'
 import { DefaultGatewayService } from '../shared/default-gateway.service'
 import {
-  GetUserWalletsPerformanceRequestDTO,
-  GetUserWalletsPerformanceRequestDTOSchema,
-  GetUserWalletsPerformanceResponseDTO,
-  GetUserWalletsPerformanceResponseDTOSchema,
+  GetPerformanceAnalyticsRequestDTO,
+  GetPerformanceAnalyticsRequestDTOSchema,
+  GetPerformanceAnalyticsResponseDTO,
+  GetPerformanceAnalyticsResponseDTOSchema,
   ListUserWalletRequestDTO,
   ListUserWalletRequestDTOSchema,
   ListUserWalletResponseDTO,
@@ -43,21 +43,19 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
       )
   }
 
-  getUserWalletsPerformance(
-    request: GetUserWalletsPerformanceRequestDTO
-  ): Observable<GetUserWalletsPerformanceResponseDTO> {
-    const parsedRequest = GetUserWalletsPerformanceRequestDTOSchema.parse(request)
+  getPerformanceAnalytics(
+    request: GetPerformanceAnalyticsRequestDTO
+  ): Observable<GetPerformanceAnalyticsResponseDTO> {
+    const parsedRequest = GetPerformanceAnalyticsRequestDTOSchema.parse(request)
     return this.http
-      .get<GetUserWalletsPerformanceResponseDTO>(`${this.apiUrl}/investments/performance`, {
+      .get<GetPerformanceAnalyticsResponseDTO>(`${this.apiUrl}/investments/performance`, {
         observe: 'response',
         withCredentials: true,
         params: parsedRequest,
       })
       .pipe(
         map(response => {
-          const validationResult = GetUserWalletsPerformanceResponseDTOSchema.safeParse(
-            response.body
-          )
+          const validationResult = GetPerformanceAnalyticsResponseDTOSchema.safeParse(response.body)
 
           if (!validationResult.success) {
             throw new GatewayError(

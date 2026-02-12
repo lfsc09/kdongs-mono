@@ -40,80 +40,112 @@ export type ListUserWalletRequestDTO = z.infer<typeof ListUserWalletRequestDTOSc
 export type ListUserWalletResponseDTO = z.infer<typeof ListUserWalletResponseDTOSchema>
 
 /**
- * Get User Wallet's Performance DTO
+ * Get Performance Analytics DTO
  */
-export const GetUserWalletsPerformanceIndicatorsDTOSchema = z.object({
+export const PerformanceAnalyticsIndicatorsDTOSchema = z.object({
   resultingBalanceInCurrency: z.number(),
   resultingProfitInCurrency: z.number(),
-  resultingProfitInPerc: z.number(),
-  dateStartUtc: z.string(),
-  dateEndUtc: z.string(),
-  avgDaysByAsset: z.number(),
+  resultingProfitInPerc: z.number().optional(),
+  dateStartUtc: z.string().optional(),
+  dateEndUtc: z.string().optional(),
+  assetDateStartUtc: z.string().optional(),
+  assetDateEndUtc: z.string().optional(),
+  movementDateStartUtc: z.string().optional(),
+  movementDateEndUtc: z.string().optional(),
+  avgDaysByAsset: z.number().optional(),
+  numberOfMovements: z.number(),
+  numberOfMovementsDeposit: z.number(),
+  numberOfMovementsWithdrawal: z.number(),
   numberOfAssets: z.number(),
   numberOfAssetsProfit: z.number(),
   numberOfAssetsLoss: z.number(),
   numberOfActiveAssets: z.number(),
   numberOfActiveAssetsProfit: z.number(),
   numberOfActiveAssetsLoss: z.number(),
-  expectancyByAsset: z.number(),
-  expectancyByDay: z.number(),
-  expectancyByMonth: z.number(),
-  expectancyByQuarter: z.number(),
-  expectancyByYear: z.number(),
-  avgCostByAsset: z.number(),
-  avgCostByDay: z.number(),
-  avgCostByMonth: z.number(),
-  avgCostByQuarter: z.number(),
-  avgCostByYear: z.number(),
-  avgTaxByAsset: z.number(),
-  avgTaxByDay: z.number(),
-  avgTaxByMonth: z.number(),
-  avgTaxByQuarter: z.number(),
-  avgTaxByYear: z.number(),
-  breakeven: z.number(),
-  edge: z.number(),
-  profitSum: z.number(),
-  profitAvg: z.number(),
-  profitMax: z.number(),
-  lossSum: z.number(),
-  lossAvg: z.number(),
-  lossMax: z.number(),
-  historyHigh: z.number(),
-  historyLow: z.number(),
+  expectancyByAsset: z.number().optional(),
+  expectancyByDay: z.number().optional(),
+  expectancyByMonth: z.number().optional(),
+  expectancyByQuarter: z.number().optional(),
+  expectancyByYear: z.number().optional(),
+  avgCostByAsset: z.number().optional(),
+  avgCostByDay: z.number().optional(),
+  avgCostByMonth: z.number().optional(),
+  avgCostByQuarter: z.number().optional(),
+  avgCostByYear: z.number().optional(),
+  avgTaxByAsset: z.number().optional(),
+  avgTaxByDay: z.number().optional(),
+  avgTaxByMonth: z.number().optional(),
+  avgTaxByQuarter: z.number().optional(),
+  avgTaxByYear: z.number().optional(),
+  movementsSum: z.number(),
+  movementsAvg: z.number().optional(),
+  movementsMax: z.number().optional(),
+  movementsMin: z.number().optional(),
+  netProfitSum: z.number(),
+  netProfitAvg: z.number().optional(),
+  netProfitMax: z.number().optional(),
+  netLossSum: z.number(),
+  netLossAvg: z.number().optional(),
+  netLossMax: z.number().optional(),
+  breakeven: z.number().optional(),
+  edge: z.number().optional(),
+  historyHigh: z.number().optional(),
+  historyLow: z.number().optional(),
 })
-export const GetUserWalletsPerformanceSerieDTOSchema = z.object({
+export const GetPerformanceAnalyticsRequestDTOSchema = z.object({
+  useLivePriceQuote: z.boolean(),
+  walletIds: z.array(z.string()).optional(),
+  selectedCurrency: SelectableCurrencySchema,
+})
+export const GetPerformanceAnalyticsResponseDTOSchema = z.object({
+  data: z.object({
+    currencyToShow: z.string(),
+    walletIds: z.array(z.string()),
+    indicators: PerformanceAnalyticsIndicatorsDTOSchema,
+  }),
+})
+
+export type PerformanceAnalyticsIndicatorsDTO = z.infer<
+  typeof PerformanceAnalyticsIndicatorsDTOSchema
+>
+export type GetPerformanceAnalyticsRequestDTO = z.infer<
+  typeof GetPerformanceAnalyticsRequestDTOSchema
+>
+export type GetPerformanceAnalyticsResponseDTO = z.infer<
+  typeof GetPerformanceAnalyticsResponseDTOSchema
+>
+
+/**
+ * Get Liquidation Series Analytics DTO
+ */
+export const LiquidationSerieDataPointDTOSchema = z.object({
   type: z.enum(['movement', 'brl_private_bond', 'brl_public_bond', 'sefbfr']),
-  walletId: z.string(),
-  exitDateUtc: z.string(),
+  exitTimestampUtc: z.number(),
   inputAmount: z.number(),
   grossProfit: z.number(),
   netProfit: z.number(),
   costsAndTaxes: z.number(),
   daysRunning: z.number(),
 })
-export const GetUserWalletsPerformanceDTOSchema = z.object({
-  currencyToShow: z.string(),
-  walletIds: z.array(z.string()),
-  indicators: GetUserWalletsPerformanceIndicatorsDTOSchema,
-  series: z.array(GetUserWalletsPerformanceSerieDTOSchema),
+export const LiquidationSerieDTOSchema = z.object({
+  walletId: z.string(),
+  walletName: z.string(),
+  dataPoints: z.array(LiquidationSerieDataPointDTOSchema),
 })
-export const GetUserWalletsPerformanceRequestDTOSchema = z.object({
+export const GetLiquidationSeriesAnalyticsRequestDTOSchema = z.object({
+  useLivePriceQuote: z.boolean(),
   walletIds: z.array(z.string()).optional(),
   selectedCurrency: SelectableCurrencySchema,
 })
-export const GetUserWalletsPerformanceResponseDTOSchema = z.object({
-  data: GetUserWalletsPerformanceDTOSchema,
+export const GetLiquidationSeriesAnalyticsResponseDTOSchema = z.object({
+  data: z.array(LiquidationSerieDTOSchema),
 })
 
-export type GetUserWalletsPerformanceIndicatorsDTO = z.infer<
-  typeof GetUserWalletsPerformanceIndicatorsDTOSchema
+export type LiquidationSerieDataPointDTO = z.infer<typeof LiquidationSerieDataPointDTOSchema>
+export type LiquidationSerieDTO = z.infer<typeof LiquidationSerieDTOSchema>
+export type GetLiquidationSeriesAnalyticsRequestDTO = z.infer<
+  typeof GetLiquidationSeriesAnalyticsRequestDTOSchema
 >
-export type GetUserWalletsPerformanceSerieDTO = z.infer<
-  typeof GetUserWalletsPerformanceSerieDTOSchema
->
-export type GetUserWalletsPerformanceRequestDTO = z.infer<
-  typeof GetUserWalletsPerformanceRequestDTOSchema
->
-export type GetUserWalletsPerformanceResponseDTO = z.infer<
-  typeof GetUserWalletsPerformanceResponseDTOSchema
+export type GetLiquidationSeriesAnalyticsResponseDTO = z.infer<
+  typeof GetLiquidationSeriesAnalyticsResponseDTOSchema
 >
