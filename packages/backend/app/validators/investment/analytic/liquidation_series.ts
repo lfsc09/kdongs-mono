@@ -2,7 +2,7 @@ import vine from '@vinejs/vine'
 import { acceptedCurrencyCodes } from '../../../core/types/investment/currency.js'
 
 export const liquidationSeriesAnalyticsSchema = vine.object({
-  selectedCurrency: vine.string().in([...acceptedCurrencyCodes, 'Wallet']),
+  selectedCurrency: vine.string().in([...acceptedCurrencyCodes]),
   useLivePriceQuote: vine
     .boolean()
     .optional()

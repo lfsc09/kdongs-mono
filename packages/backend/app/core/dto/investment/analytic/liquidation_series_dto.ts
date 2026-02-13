@@ -8,20 +8,25 @@ export type LiquidationSeriesAnalyticsRequest = InferInput<
   useLivePriceQuote: boolean
 }
 
-type SerieType = 'movement' | 'brl_private_bond' | 'brl_public_bond' | 'sefbfr'
+export type AnalyticSerieDataPointType =
+  | 'movement'
+  | 'brl_private_bond'
+  | 'brl_public_bond'
+  | 'sefbfr'
+export type AnalyticSerieDataPoint = {
+  type: AnalyticSerieDataPointType
+  dateUtc: number
+  inputAmount: number
+  grossAmount: number
+  netAmount: number
+  costsAndTaxes: number
+}
+export type AnalyticSerie = {
+  walletId: string
+  walletName: string
+  dataPoints: AnalyticSerieDataPoint[]
+}
 
 export type LiquidationSeriesAnalyticsResponse = {
-  data: {
-    walletId: string
-    walletName: string
-    dataPoints: {
-      type: SerieType
-      doneDateUtc: number
-      inputAmount: number
-      grossAmount: number
-      netAmount: number
-      feesAndCosts: number
-      daysRunning: number
-    }[]
-  }[]
+  data: AnalyticSerie[]
 }

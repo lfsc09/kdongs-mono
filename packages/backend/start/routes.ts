@@ -24,6 +24,10 @@ router
 router
   .group(() => {
     router.get('/performance', '#controllers/investments/analytics_controller.performance')
+    router.get(
+      '/liquidation-series',
+      '#controllers/investments/analytics_controller.liquidationSeries',
+    )
     router.resource('wallets', '#controllers/investments/wallets_controller')
     // router.resource('wallets.transactions', '#controllers/investments/wallet_transactions_controller')
   })

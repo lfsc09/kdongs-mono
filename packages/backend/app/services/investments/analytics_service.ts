@@ -5,6 +5,8 @@ import { DateTime } from 'luxon'
 import Wallet from '#models/investment/wallet'
 import { PromiseBatch } from '#services/util/promise_batch'
 import {
+  AnalyticSerie,
+  AnalyticSerieDataPoint,
   LiquidationSeriesAnalyticsRequest,
   LiquidationSeriesAnalyticsResponse,
 } from '../../core/dto/investment/analytic/liquidation_series_dto.js'
@@ -75,6 +77,7 @@ type GlobalAnalytics = {
 export default class AnalyticsService {
   constructor(protected logger: Logger) {}
 
+  // TODO: use input.selectedCurrency to convert values to the selected currency
   async performance(
     input: PerformanceAnalayticsRequest,
   ): Promise<PerformanceAnalyticsResponse | null> {
@@ -135,6 +138,7 @@ export default class AnalyticsService {
     )
 
     const walletCurrencies = wallets.map(wallet => wallet.currencyCode)
+    const usedCurrency = this.decideCurrencyToShow(walletCurrencies, input.selectedCurrency)
 
     const globalAnalytics: GlobalAnalytics = {
       breakeven: undefined,
@@ -310,7 +314,7 @@ export default class AnalyticsService {
 
     return {
       data: {
-        currencyToShow: this.decideCurrencyToShow(walletCurrencies, input.selectedCurrency),
+        currencyToShow: usedCurrency,
         indicators: {
           assetDateEndUtc: globalAnalytics.dateEndUtcAsset?.toISO() ?? undefined,
           assetDateStartUtc: globalAnalytics.dateStartUtcAsset?.toISO() ?? undefined,
@@ -480,6 +484,7 @@ export default class AnalyticsService {
     }
   }
 
+  // TODO: use input.selectedCurrency to convert values to the selected currency
   async liquidationSeries(
     input: LiquidationSeriesAnalyticsRequest,
   ): Promise<LiquidationSeriesAnalyticsResponse> {
@@ -535,56 +540,192 @@ export default class AnalyticsService {
       10,
     )
 
-    const performanceSeries = new Map<string, LiquidationSeriesAnalyticsResponse['data'][number]>(
-      [],
-    )
+    const performanceSeriesMap = new Map<
+      string,
+      Omit<AnalyticSerie, 'dataPoints'> & { dataPoints: Map<string, AnalyticSerieDataPoint> }
+    >([])
 
     for await (const walletInfo of walletsIterator.process()) {
-      performanceSeries.set(walletInfo.wallet.id, {
-        dataPoints: [],
+      performanceSeriesMap.set(walletInfo.wallet.id, {
+        dataPoints: new Map<string, AnalyticSerieDataPoint>(),
         walletId: walletInfo.wallet.id,
         walletName: walletInfo.wallet.name,
       })
 
       // Wallet movements
       for (const movement of walletInfo.wallet.movements) {
-        // Add movement to performance series
-        performanceSeries.get(walletInfo.wallet.id)?.dataPoints.push({
-          daysRunning: 0,
-          feesAndCosts: 0,
-          grossAmount: 0,
-          inputAmount: movement.resultAmount.toNumber(),
-          latestDateUtc: movement.dateUtc.toMillis(),
-          netAmount: 0,
-          type: 'movement',
-        })
+        const timelessDate = movement.dateUtc.toISODate()
+
+        if (!performanceSeriesMap.has(walletInfo.wallet.id) || timelessDate === null) {
+          continue
+        }
+
+        const dpKey = `movement-${timelessDate}`
+
+        if (!performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.has(dpKey)) {
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
+            costsAndTaxes: 0,
+            dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            grossAmount: 0,
+            inputAmount: movement.resultAmount.toNumber(),
+            netAmount: 0,
+            type: 'movement',
+          })
+        } else {
+          const existingDataPoint = performanceSeriesMap
+            .get(walletInfo.wallet.id)!
+            .dataPoints.get(dpKey)!
+          existingDataPoint.inputAmount = movement.resultAmount
+            .add(existingDataPoint.inputAmount)
+            .toNumber()
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
+        }
       }
 
       // Private bonds
       for (const bond of walletInfo.brlPrivateBonds) {
-        const seriesPData = performanceSeries.get(walletInfo.wallet.id)
+        const timelessDate = bond.latestDateUtc?.toISODate() ?? null
 
-        if (!seriesPData) {
+        if (
+          !performanceSeriesMap.has(walletInfo.wallet.id) ||
+          timelessDate === null ||
+          !bond.isDone
+        ) {
           continue
         }
-        if (bond.latestDateUtc === null) {
+
+        const dpKey = `brl_private_bond-${timelessDate}`
+
+        if (!performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.has(dpKey)) {
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
+            costsAndTaxes: bond.costs.add(bond.taxes).toNumber(),
+            dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            grossAmount: bond.grossAmount.toNumber(),
+            inputAmount: bond.inputAmount.toNumber(),
+            netAmount: bond.netAmount.toNumber(),
+            type: 'brl_private_bond',
+          })
+        } else {
+          const existingDataPoint = performanceSeriesMap
+            .get(walletInfo.wallet.id)!
+            .dataPoints.get(dpKey)!
+          existingDataPoint.costsAndTaxes = bond.costs
+            .add(bond.taxes)
+            .add(existingDataPoint.costsAndTaxes)
+            .toNumber()
+          existingDataPoint.grossAmount = bond.grossAmount
+            .add(existingDataPoint.grossAmount)
+            .toNumber()
+          existingDataPoint.inputAmount = bond.inputAmount
+            .add(existingDataPoint.inputAmount)
+            .toNumber()
+          existingDataPoint.netAmount = bond.netAmount.add(existingDataPoint.netAmount).toNumber()
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
+        }
+      }
+
+      // Public bonds
+      for (const bond of walletInfo.brlPublicBonds) {
+        const timelessDate = bond.latestDateUtc?.toISODate() ?? null
+
+        if (
+          !performanceSeriesMap.has(walletInfo.wallet.id) ||
+          timelessDate === null ||
+          !bond.isDone
+        ) {
           continue
         }
 
-        seriesPData.dataPoints.push({
-          daysRunning: bond.daysRunning,
-          feesAndCosts: bond.costs.add(bond.taxes).toNumber(),
-          grossAmount: bond.grossAmount.toNumber(),
-          inputAmount: bond.inputAmount.toNumber(),
-          latestDateUtc: bond.latestDateUtc.toMillis(),
-          netAmount: bond.netAmount.toNumber(),
-          type: 'brl_private_bond',
-        })
+        const dpKey = `brl_public_bond-${timelessDate}`
+
+        if (!performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.has(dpKey)) {
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
+            costsAndTaxes: bond.costs.add(bond.taxes).toNumber(),
+            dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            grossAmount: bond.grossAmount.toNumber(),
+            inputAmount: bond.inputAmount.toNumber(),
+            netAmount: bond.netAmount.toNumber(),
+            type: 'brl_public_bond',
+          })
+        } else {
+          const existingDataPoint = performanceSeriesMap
+            .get(walletInfo.wallet.id)!
+            .dataPoints.get(dpKey)!
+          existingDataPoint.costsAndTaxes = bond.costs
+            .add(bond.taxes)
+            .add(existingDataPoint.costsAndTaxes)
+            .toNumber()
+          existingDataPoint.grossAmount = bond.grossAmount
+            .add(existingDataPoint.grossAmount)
+            .toNumber()
+          existingDataPoint.inputAmount = bond.inputAmount
+            .add(existingDataPoint.inputAmount)
+            .toNumber()
+          existingDataPoint.netAmount = bond.netAmount.add(existingDataPoint.netAmount).toNumber()
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
+        }
+      }
+
+      // SEFBFR assets
+      for (const asset of walletInfo.sefbfrAssets) {
+        const timelessDate = asset.latestDateUtc?.toISODate() ?? null
+
+        if (
+          !performanceSeriesMap.has(walletInfo.wallet.id) ||
+          timelessDate === null ||
+          !asset.isDone
+        ) {
+          continue
+        }
+
+        const dpKey = `sefbfr-${timelessDate}`
+
+        if (!performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.has(dpKey)) {
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
+            costsAndTaxes: asset.costs.add(asset.taxes).toNumber(),
+            dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            grossAmount: asset.grossAmount.toNumber(),
+            inputAmount: asset.inputAmount.toNumber(),
+            netAmount: asset.netAmount.toNumber(),
+            type: 'sefbfr',
+          })
+        } else {
+          const existingDataPoint = performanceSeriesMap
+            .get(walletInfo.wallet.id)!
+            .dataPoints.get(dpKey)!
+          existingDataPoint.costsAndTaxes = asset.costs
+            .add(asset.taxes)
+            .add(existingDataPoint.costsAndTaxes)
+            .toNumber()
+          existingDataPoint.grossAmount = asset.grossAmount
+            .add(existingDataPoint.grossAmount)
+            .toNumber()
+          existingDataPoint.inputAmount = asset.inputAmount
+            .add(existingDataPoint.inputAmount)
+            .toNumber()
+          existingDataPoint.netAmount = asset.netAmount.add(existingDataPoint.netAmount).toNumber()
+          performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
+        }
       }
     }
 
+    const performanceSeries: AnalyticSerie[] = []
+
+    // Convert data points map to array and sort by date
+    for (const series of performanceSeriesMap.values()) {
+      const sortedDataPoints = Array.from(series.dataPoints.values()).sort(
+        (a, b) => a.dateUtc - b.dateUtc,
+      )
+
+      performanceSeries.push({
+        dataPoints: sortedDataPoints,
+        walletId: series.walletId,
+        walletName: series.walletName,
+      })
+    }
+
     return {
-      data: Array.from(performanceSeries.values()),
+      data: performanceSeries,
     }
   }
 
