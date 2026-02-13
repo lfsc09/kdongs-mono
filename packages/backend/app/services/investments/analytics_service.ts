@@ -567,7 +567,7 @@ export default class AnalyticsService {
             costsAndTaxes: 0,
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
             grossAmount: 0,
-            inputAmount: movement.resultAmount.toNumber(),
+            inputAmount: movement.resultAmount.round(2, Big.roundHalfUp).toNumber(),
             netAmount: 0,
             type: 'movement',
           })
@@ -577,6 +577,7 @@ export default class AnalyticsService {
             .dataPoints.get(dpKey)!
           existingDataPoint.inputAmount = movement.resultAmount
             .add(existingDataPoint.inputAmount)
+            .round(2, Big.roundHalfUp)
             .toNumber()
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
         }
@@ -598,11 +599,11 @@ export default class AnalyticsService {
 
         if (!performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.has(dpKey)) {
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
-            costsAndTaxes: bond.costs.add(bond.taxes).toNumber(),
+            costsAndTaxes: bond.costs.add(bond.taxes).round(2, Big.roundHalfUp).toNumber(),
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
-            grossAmount: bond.grossAmount.toNumber(),
-            inputAmount: bond.inputAmount.toNumber(),
-            netAmount: bond.netAmount.toNumber(),
+            grossAmount: bond.grossAmount.round(2, Big.roundHalfUp).toNumber(),
+            inputAmount: bond.inputAmount.round(2, Big.roundHalfUp).toNumber(),
+            netAmount: bond.netAmount.round(2, Big.roundHalfUp).toNumber(),
             type: 'brl_private_bond',
           })
         } else {
@@ -612,14 +613,20 @@ export default class AnalyticsService {
           existingDataPoint.costsAndTaxes = bond.costs
             .add(bond.taxes)
             .add(existingDataPoint.costsAndTaxes)
+            .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.grossAmount = bond.grossAmount
             .add(existingDataPoint.grossAmount)
+            .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.inputAmount = bond.inputAmount
             .add(existingDataPoint.inputAmount)
+            .round(2, Big.roundHalfUp)
             .toNumber()
-          existingDataPoint.netAmount = bond.netAmount.add(existingDataPoint.netAmount).toNumber()
+          existingDataPoint.netAmount = bond.netAmount
+            .add(existingDataPoint.netAmount)
+            .round(2, Big.roundHalfUp)
+            .toNumber()
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
         }
       }
@@ -640,11 +647,11 @@ export default class AnalyticsService {
 
         if (!performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.has(dpKey)) {
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
-            costsAndTaxes: bond.costs.add(bond.taxes).toNumber(),
+            costsAndTaxes: bond.costs.add(bond.taxes).round(2, Big.roundHalfUp).toNumber(),
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
-            grossAmount: bond.grossAmount.toNumber(),
-            inputAmount: bond.inputAmount.toNumber(),
-            netAmount: bond.netAmount.toNumber(),
+            grossAmount: bond.grossAmount.round(2, Big.roundHalfUp).toNumber(),
+            inputAmount: bond.inputAmount.round(2, Big.roundHalfUp).toNumber(),
+            netAmount: bond.netAmount.round(2, Big.roundHalfUp).toNumber(),
             type: 'brl_public_bond',
           })
         } else {
@@ -654,14 +661,20 @@ export default class AnalyticsService {
           existingDataPoint.costsAndTaxes = bond.costs
             .add(bond.taxes)
             .add(existingDataPoint.costsAndTaxes)
+            .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.grossAmount = bond.grossAmount
             .add(existingDataPoint.grossAmount)
+            .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.inputAmount = bond.inputAmount
             .add(existingDataPoint.inputAmount)
+            .round(2, Big.roundHalfUp)
             .toNumber()
-          existingDataPoint.netAmount = bond.netAmount.add(existingDataPoint.netAmount).toNumber()
+          existingDataPoint.netAmount = bond.netAmount
+            .add(existingDataPoint.netAmount)
+            .round(2, Big.roundHalfUp)
+            .toNumber()
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
         }
       }
@@ -682,11 +695,11 @@ export default class AnalyticsService {
 
         if (!performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.has(dpKey)) {
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
-            costsAndTaxes: asset.costs.add(asset.taxes).toNumber(),
+            costsAndTaxes: asset.costs.add(asset.taxes).round(2, Big.roundHalfUp).toNumber(),
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
-            grossAmount: asset.grossAmount.toNumber(),
-            inputAmount: asset.inputAmount.toNumber(),
-            netAmount: asset.netAmount.toNumber(),
+            grossAmount: asset.grossAmount.round(2, Big.roundHalfUp).toNumber(),
+            inputAmount: asset.inputAmount.round(2, Big.roundHalfUp).toNumber(),
+            netAmount: asset.netAmount.round(2, Big.roundHalfUp).toNumber(),
             type: 'sefbfr',
           })
         } else {
@@ -696,14 +709,20 @@ export default class AnalyticsService {
           existingDataPoint.costsAndTaxes = asset.costs
             .add(asset.taxes)
             .add(existingDataPoint.costsAndTaxes)
+            .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.grossAmount = asset.grossAmount
             .add(existingDataPoint.grossAmount)
+            .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.inputAmount = asset.inputAmount
             .add(existingDataPoint.inputAmount)
+            .round(2, Big.roundHalfUp)
             .toNumber()
-          existingDataPoint.netAmount = asset.netAmount.add(existingDataPoint.netAmount).toNumber()
+          existingDataPoint.netAmount = asset.netAmount
+            .add(existingDataPoint.netAmount)
+            .round(2, Big.roundHalfUp)
+            .toNumber()
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
         }
       }
