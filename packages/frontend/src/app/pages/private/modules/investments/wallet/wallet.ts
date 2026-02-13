@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common'
 import { Component, inject, linkedSignal, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { RouterLink } from '@angular/router'
-import { combineLatest, debounceTime, Subscription, switchMap } from 'rxjs'
+import { combineLatest, debounceTime, Subscription, switchMap, tap } from 'rxjs'
 import { ListUserWalletDTO } from '../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../infra/gateways/investments/investments-gateway.service'
 import { MonetaryPipe } from '../../../../../infra/pipes/monetary.pipe'
@@ -51,8 +51,8 @@ export class Wallet implements OnDestroy {
     this._investmentsSubscription = combineLatest([page$, pageSize$])
       .pipe(
         debounceTime(150),
+        tap(() => this.loading.set(true)),
         switchMap(([page, pageSize]) => {
-          this.loading.set(true)
           return this._investmentsGatewayService.listUserWallets({ page, limit: pageSize })
         })
       )

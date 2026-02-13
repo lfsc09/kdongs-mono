@@ -3,6 +3,10 @@ import { catchError, map, Observable, throwError } from 'rxjs'
 import { GatewayError } from '../shared/default-gateway.model'
 import { DefaultGatewayService } from '../shared/default-gateway.service'
 import {
+  GetLiquidationSeriesAnalyticsRequestDTO,
+  GetLiquidationSeriesAnalyticsRequestDTOSchema,
+  GetLiquidationSeriesAnalyticsResponseDTO,
+  GetLiquidationSeriesAnalyticsResponseDTOSchema,
   GetPerformanceAnalyticsRequestDTO,
   GetPerformanceAnalyticsRequestDTOSchema,
   GetPerformanceAnalyticsResponseDTO,
@@ -68,6 +72,42 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
           return validationResult.data
         }),
         catchError(error => {
+          return throwError(() => this.handleHttpError(error))
+        })
+      )
+  }
+
+  getLiquidationSeriesAnalytics(
+    request: GetLiquidationSeriesAnalyticsRequestDTO
+  ): Observable<GetLiquidationSeriesAnalyticsResponseDTO> {
+    const parsedRequest = GetLiquidationSeriesAnalyticsRequestDTOSchema.parse(request)
+    return this.http
+      .get<GetLiquidationSeriesAnalyticsResponseDTO>(
+        `${this.apiUrl}/investments/liquidation-series`,
+        {
+          observe: 'response',
+          withCredentials: true,
+          params: parsedRequest,
+        }
+      )
+      .pipe(
+        map(response => {
+          const validationResult = GetLiquidationSeriesAnalyticsResponseDTOSchema.safeParse(
+            response.body
+          )
+
+          if (!validationResult.success) {
+            throw new GatewayError(
+              response.status,
+              validationResult.error.issues.map(e => e.message).join(', '),
+              'Invalid liquidation series response structure'
+            )
+          }
+
+          return validationResult.data
+        }),
+        catchError(error => {
+          console.log(error)
           return throwError(() => this.handleHttpError(error))
         })
       )

@@ -19,7 +19,7 @@
           <span>Error loading your wallets</span>
         </div>
       </div>
-    } @else {
+    } @else if (wallets() !== undefined) {
       @for (item of wallets(); track item.id) {
         <div
           class="card cursor-pointer space-y-4 border border-slate-200 px-4 py-2 select-none dark:border-slate-700"

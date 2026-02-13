@@ -9,7 +9,7 @@
       <span>Failed to load Indicators</span>
     </div>
   </div>
-} @else {
+} @else if (performance() !== undefined) {
   <div class="flex flex-col gap-6">
     <div class="flex flex-col gap-2">
       <span class="text-2xl font-medium text-lime-500 select-none">Indicators</span>

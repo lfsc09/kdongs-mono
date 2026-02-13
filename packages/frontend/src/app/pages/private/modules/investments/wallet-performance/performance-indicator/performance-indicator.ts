@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common'
 import { Component, inject, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
-import { combineLatest, debounceTime, Subscription, switchMap } from 'rxjs'
+import { combineLatest, debounceTime, Subscription, switchMap, tap } from 'rxjs'
 import { PerformanceAnalyticsIndicatorsDTO } from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { MonetaryPipe } from '../../../../../../infra/pipes/monetary.pipe'
@@ -42,8 +42,8 @@ export class PerformanceIndicator implements OnDestroy {
     this._investmentsSubscription = combineLatest([selectedWalletIds$, selectedCurrency$])
       .pipe(
         debounceTime(150),
+        tap(() => this.loading.set(true)),
         switchMap(([walletIds, selectedCurrency]) => {
-          this.loading.set(true)
           return this._investmentsGatewayService.getPerformanceAnalytics({
             useLivePriceQuote: false,
             walletIds,

@@ -1,5 +1,8 @@
 import z from 'zod'
-import { SelectableCurrencySchema } from '../../../pages/private/modules/investments/investments.model'
+import {
+  CurrencySchema,
+  SelectableCurrencySchema,
+} from '../../../pages/private/modules/investments/investments.model'
 import {
   PaginationRequestSchema,
   PaginationResponseSchema,
@@ -120,12 +123,11 @@ export type GetPerformanceAnalyticsResponseDTO = z.infer<
  */
 export const LiquidationSerieDataPointDTOSchema = z.object({
   type: z.enum(['movement', 'brl_private_bond', 'brl_public_bond', 'sefbfr']),
-  exitTimestampUtc: z.number(),
+  dateUtc: z.number(),
   inputAmount: z.number(),
-  grossProfit: z.number(),
-  netProfit: z.number(),
+  grossAmount: z.number(),
+  netAmount: z.number(),
   costsAndTaxes: z.number(),
-  daysRunning: z.number(),
 })
 export const LiquidationSerieDTOSchema = z.object({
   walletId: z.string(),
@@ -135,7 +137,7 @@ export const LiquidationSerieDTOSchema = z.object({
 export const GetLiquidationSeriesAnalyticsRequestDTOSchema = z.object({
   useLivePriceQuote: z.boolean(),
   walletIds: z.array(z.string()).optional(),
-  selectedCurrency: SelectableCurrencySchema,
+  selectedCurrency: CurrencySchema,
 })
 export const GetLiquidationSeriesAnalyticsResponseDTOSchema = z.object({
   data: z.array(LiquidationSerieDTOSchema),
