@@ -10,7 +10,7 @@ export type IndexWalletsResponse = {
       id: string
       name: string
       currencyCode: string
-      trend: 'up' | 'down' | 'stable'
+      trend: 'up' | 'down' | 'stable' | 'unknown'
       initialBalance: number
       currentBalance: number
       profitInCurrency: number

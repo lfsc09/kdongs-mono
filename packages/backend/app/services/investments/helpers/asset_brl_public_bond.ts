@@ -7,7 +7,7 @@ import {
   TransactionType,
   TransactionTypes,
 } from '../../../core/types/investment/brl_public_bond.js'
-import { BasePerformance } from '../analytics_service.js'
+import { BasePerformance, basePerformanceSorter } from './base_performance.js'
 
 interface BondPerformance extends BasePerformance {}
 
@@ -51,16 +51,17 @@ async function getAllBondsPerformance(
       query => query.where('wallet_id', walletId!),
       query => query.where('id', bondId!),
     )
+    .orderBy('created_at', 'asc')
 
   for (const bondData of bondsData) {
     bondsPerformance.set(bondData.id, {
       costs: new Big(0),
       daysRunning: 0,
-      doneDateUtc: null,
       grossAmount: new Big(0),
       id: bondData.id,
       inputAmount: new Big(0),
       isDone: bondData.isDone,
+      latestDateUtc: null,
       name: bondData.bondName,
       netAmount: new Big(0),
       startDateUtc: null,
@@ -151,10 +152,10 @@ async function getAllBondsPerformance(
 
     // Find the bond last transaction date
     if (
-      bondPData.doneDateUtc === null ||
-      bondPData.doneDateUtc < DateTime.fromJSDate(transaction.dateUtc)
+      bondPData.latestDateUtc === null ||
+      bondPData.latestDateUtc < DateTime.fromJSDate(transaction.dateUtc)
     ) {
-      bondPData.doneDateUtc = DateTime.fromJSDate(transaction.dateUtc)
+      bondPData.latestDateUtc = DateTime.fromJSDate(transaction.dateUtc)
     }
 
     // Sum all transaction costs and taxes
@@ -203,18 +204,18 @@ async function getAllBondsPerformance(
       bondPData.netAmount = bondPData.netAmount.add(liveValue).add(0)
     }
 
-    if (bondPData.startDateUtc !== null && bondPData.doneDateUtc !== null) {
+    if (bondPData.startDateUtc !== null && bondPData.latestDateUtc !== null) {
       bondPData.daysRunning = bondPData.isDone
-        ? (bondPData.doneDateUtc.diff(bondPData.startDateUtc, 'days').days ?? 0)
+        ? (bondPData.latestDateUtc.diff(bondPData.startDateUtc, 'days').days ?? 0)
         : applyLivePriceQuote
-          ? DateTime.now().diff(bondPData.doneDateUtc, 'days').days
+          ? DateTime.now().diff(bondPData.startDateUtc, 'days').days
           : 0
     }
 
     bondsPerformance.set(bondId, bondPData)
   }
 
-  return Array.from(bondsPerformance.values())
+  return Array.from(bondsPerformance.values()).sort((a, b) => basePerformanceSorter(a, b, 'asc'))
 }
 
 // async function getBondsProfitEvents(walletId?: string, bondId?: string): Promise<BondsProfitEvents> {

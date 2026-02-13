@@ -16,20 +16,7 @@ import { WalletMovementTypes } from '../../core/types/investment/wallet_movement
 import AssetBrlPrivateBondUtils from './helpers/asset_brl_private_bond.js'
 import AssetBrlPublicBondUtils from './helpers/asset_brl_public_bond.js'
 import AssetSefbfrUtils from './helpers/asset_sefbfr.js'
-
-export interface BasePerformance {
-  id: string
-  name: string
-  isDone: boolean
-  startDateUtc: DateTime | null
-  doneDateUtc: DateTime | null
-  inputAmount: Big
-  grossAmount: Big
-  costs: Big
-  taxes: Big
-  netAmount: Big
-  daysRunning: number
-}
+import { BasePerformance } from './helpers/base_performance.js'
 
 type GlobalAnalytics = {
   breakeven: Big | undefined
@@ -564,10 +551,10 @@ export default class AnalyticsService {
         // Add movement to performance series
         performanceSeries.get(walletInfo.wallet.id)?.dataPoints.push({
           daysRunning: 0,
-          doneDateUtc: movement.dateUtc.toMillis(),
           feesAndCosts: 0,
           grossAmount: 0,
           inputAmount: movement.resultAmount.toNumber(),
+          latestDateUtc: movement.dateUtc.toMillis(),
           netAmount: 0,
           type: 'movement',
         })
@@ -580,16 +567,16 @@ export default class AnalyticsService {
         if (!seriesPData) {
           continue
         }
-        if (bond.doneDateUtc === null) {
+        if (bond.latestDateUtc === null) {
           continue
         }
 
         seriesPData.dataPoints.push({
           daysRunning: bond.daysRunning,
-          doneDateUtc: bond.doneDateUtc.toMillis(),
           feesAndCosts: bond.costs.add(bond.taxes).toNumber(),
           grossAmount: bond.grossAmount.toNumber(),
           inputAmount: bond.inputAmount.toNumber(),
+          latestDateUtc: bond.latestDateUtc.toMillis(),
           netAmount: bond.netAmount.toNumber(),
           type: 'brl_private_bond',
         })
@@ -622,7 +609,7 @@ export default class AnalyticsService {
   private calculateAssetTypePerformance(aData: BasePerformance[], gA: GlobalAnalytics): void {
     for (const bond of aData) {
       gA.dateStartUtcAsset = this.pickDate(gA.dateStartUtcAsset, bond.startDateUtc, 'earliest')
-      gA.dateEndUtcAsset = this.pickDate(gA.dateEndUtcAsset, bond.doneDateUtc, 'latest')
+      gA.dateEndUtcAsset = this.pickDate(gA.dateEndUtcAsset, bond.latestDateUtc, 'latest')
 
       // Asset/Bond had profit
       if (bond.netAmount.gt(0)) {

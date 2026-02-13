@@ -13,7 +13,7 @@ export const ListUserWalletDTOSchema = z.object({
   id: z.string(),
   name: z.string(),
   currencyCode: z.string(),
-  trend: z.enum(['up', 'down', 'stable']),
+  trend: z.enum(['up', 'down', 'stable', 'unknown']),
   initialBalance: z.number(),
   currentBalance: z.number(),
   profitInCurrency: z.number(),

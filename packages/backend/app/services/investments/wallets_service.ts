@@ -19,6 +19,7 @@ import { WalletMovementTypes } from '../../core/types/investment/wallet_movement
 import AssetBrlPrivateBondUtils from './helpers/asset_brl_private_bond.js'
 import AssetBrlPublicBondUtils from './helpers/asset_brl_public_bond.js'
 import AssetSefbfrUtils from './helpers/asset_sefbfr.js'
+import { discoverTrend } from './helpers/base_performance.js'
 
 @inject()
 export default class WalletsService {
@@ -111,8 +112,7 @@ export default class WalletsService {
               name: wallet.name,
               profitInCurrency: profitInCurrency.round(2, Big.roundHalfEven).toNumber(),
               profitInPerc: profitInPerc.round(2, Big.roundHalfEven).toNumber(),
-              // FIXME: implement trend calculation
-              trend: 'up',
+              trend: discoverTrend(brlPrivateBonds, brlPublicBonds, sefbfrAssets, 2, 5),
               updatedAt: wallet.updatedAt?.toISO() ?? undefined,
             }
           }),

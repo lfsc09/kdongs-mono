@@ -9,7 +9,7 @@ import {
   TransactionType,
   TransactionTypes,
 } from '../../../core/types/investment/sefbfr.js'
-import { BasePerformance } from '../analytics_service.js'
+import { BasePerformance, basePerformanceSorter } from './base_performance.js'
 
 interface AssetPerformance extends BasePerformance {}
 
@@ -53,16 +53,17 @@ async function getAllAssetsPerformance(
       query => query.where('wallet_id', walletId!),
       query => query.where('id', assetId!),
     )
+    .orderBy('created_at', 'asc')
 
   for (const assetData of assetsData) {
     assetsPerformance.set(assetData.id, {
       costs: new Big(0),
       daysRunning: 0,
-      doneDateUtc: null,
       grossAmount: new Big(0),
       id: assetData.id,
       inputAmount: new Big(0),
       isDone: assetData.doneState !== DoneStates.active,
+      latestDateUtc: null,
       name: assetData.assetName,
       netAmount: new Big(0),
       startDateUtc: null,
@@ -379,10 +380,10 @@ async function getAllAssetsPerformance(
 
     // Find the asset last transaction date
     if (
-      assetPData.doneDateUtc === null ||
-      assetPData.doneDateUtc < DateTime.fromJSDate(transaction.dateUtc)
+      assetPData.latestDateUtc === null ||
+      assetPData.latestDateUtc < DateTime.fromJSDate(transaction.dateUtc)
     ) {
-      assetPData.doneDateUtc = DateTime.fromJSDate(transaction.dateUtc)
+      assetPData.latestDateUtc = DateTime.fromJSDate(transaction.dateUtc)
     }
   }
 
@@ -398,18 +399,18 @@ async function getAllAssetsPerformance(
       assetPData.netAmount = assetPData.netAmount.add(liveValue).add(0)
     }
 
-    if (assetPData.startDateUtc !== null && assetPData.doneDateUtc !== null) {
+    if (assetPData.startDateUtc !== null && assetPData.latestDateUtc !== null) {
       assetPData.daysRunning = assetPData.isDone
-        ? (assetPData.doneDateUtc.diff(assetPData.startDateUtc, 'days').days ?? 0)
+        ? (assetPData.latestDateUtc.diff(assetPData.startDateUtc, 'days').days ?? 0)
         : applyLivePriceQuote
-          ? DateTime.now().diff(assetPData.doneDateUtc, 'days').days
+          ? DateTime.now().diff(assetPData.startDateUtc, 'days').days
           : 0
     }
 
     assetsPerformance.set(assetId, assetPData)
   }
 
-  return Array.from(assetsPerformance.values())
+  return Array.from(assetsPerformance.values()).sort((a, b) => basePerformanceSorter(a, b, 'asc'))
 }
 
 export default {

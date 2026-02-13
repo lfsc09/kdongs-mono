@@ -1,7 +1,7 @@
 import db from '@adonisjs/lucid/services/db'
 import Big from 'big.js'
 import { DateTime } from 'luxon'
-import { BasePerformance } from '../analytics_service.js'
+import { BasePerformance, basePerformanceSorter } from './base_performance.js'
 
 interface BondPerformance extends BasePerformance {}
 
@@ -53,12 +53,12 @@ async function getAllBondsPerformance(
       query => query.where('id', bondId!),
       query => query.where('wallet_id', walletId!),
     )
-    .orderBy('enter_date_utc', 'asc')
-    .orderBy('exit_date_utc', 'asc')
 
   for (const bondData of bondsData) {
     const enterDateUtc = DateTime.fromJSDate(bondData.enterDateUtc)
-    const exitDateUtc = bondData.exitDateUtc ? DateTime.fromJSDate(bondData.exitDateUtc) : null
+    const exitDateUtc = bondData.exitDateUtc
+      ? DateTime.fromJSDate(bondData.exitDateUtc)
+      : enterDateUtc
     const inputAmount = new Big(bondData.inputAmount)
     const costsAmount = new Big(bondData.fees ?? 0)
     const taxesAmount = new Big(bondData.taxes ?? 0)
@@ -80,7 +80,7 @@ async function getAllBondsPerformance(
       netAmount = grossAmount.add(costsAmount).add(taxesAmount)
     }
 
-    const daysRunning = exitDateUtc
+    const daysRunning = bondData.isDone
       ? exitDateUtc.diff(enterDateUtc, 'days').days
       : applyLiveIndexRate
         ? DateTime.now().diff(enterDateUtc, 'days').days
@@ -89,11 +89,11 @@ async function getAllBondsPerformance(
     bondsPerformance.set(bondData.id, {
       costs: costsAmount,
       daysRunning,
-      doneDateUtc: exitDateUtc,
       grossAmount,
       id: bondData.id,
       inputAmount: inputAmount,
       isDone: bondData.isDone,
+      latestDateUtc: exitDateUtc,
       name: bondData.bondName,
       netAmount,
       startDateUtc: enterDateUtc,
@@ -101,7 +101,7 @@ async function getAllBondsPerformance(
     })
   }
 
-  return Array.from(bondsPerformance.values())
+  return Array.from(bondsPerformance.values()).sort((a, b) => basePerformanceSorter(a, b, 'asc'))
 }
 
 export default {
