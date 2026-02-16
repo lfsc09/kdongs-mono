@@ -405,6 +405,8 @@ async function getAllAssetsPerformance(
         : applyLivePriceQuote
           ? DateTime.now().diff(assetPData.startDateUtc, 'days').days
           : 0
+
+      assetPData.daysRunning = new Big(assetPData.daysRunning).round(2, Big.roundHalfUp).toNumber()
     }
 
     assetsPerformance.set(assetId, assetPData)

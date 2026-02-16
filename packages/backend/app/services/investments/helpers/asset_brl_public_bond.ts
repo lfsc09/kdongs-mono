@@ -210,6 +210,8 @@ async function getAllBondsPerformance(
         : applyLivePriceQuote
           ? DateTime.now().diff(bondPData.startDateUtc, 'days').days
           : 0
+
+      bondPData.daysRunning = new Big(bondPData.daysRunning).round(2, Big.roundHalfUp).toNumber()
     }
 
     bondsPerformance.set(bondId, bondPData)

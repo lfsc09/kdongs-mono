@@ -20,6 +20,7 @@ export type AnalyticSerieDataPoint = {
   grossAmount: number
   netAmount: number
   costsAndTaxes: number
+  daysRunning: number
 }
 export type AnalyticSerie = {
   walletId: string

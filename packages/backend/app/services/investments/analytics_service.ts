@@ -566,6 +566,7 @@ export default class AnalyticsService {
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
             costsAndTaxes: 0,
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            daysRunning: 0,
             grossAmount: 0,
             inputAmount: movement.resultAmount.round(2, Big.roundHalfUp).toNumber(),
             netAmount: 0,
@@ -601,6 +602,7 @@ export default class AnalyticsService {
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
             costsAndTaxes: bond.costs.add(bond.taxes).round(2, Big.roundHalfUp).toNumber(),
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            daysRunning: bond.daysRunning,
             grossAmount: bond.grossAmount.round(2, Big.roundHalfUp).toNumber(),
             inputAmount: bond.inputAmount.round(2, Big.roundHalfUp).toNumber(),
             netAmount: bond.netAmount.round(2, Big.roundHalfUp).toNumber(),
@@ -627,6 +629,7 @@ export default class AnalyticsService {
             .add(existingDataPoint.netAmount)
             .round(2, Big.roundHalfUp)
             .toNumber()
+          existingDataPoint.daysRunning += bond.daysRunning
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
         }
       }
@@ -649,6 +652,7 @@ export default class AnalyticsService {
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
             costsAndTaxes: bond.costs.add(bond.taxes).round(2, Big.roundHalfUp).toNumber(),
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            daysRunning: bond.daysRunning,
             grossAmount: bond.grossAmount.round(2, Big.roundHalfUp).toNumber(),
             inputAmount: bond.inputAmount.round(2, Big.roundHalfUp).toNumber(),
             netAmount: bond.netAmount.round(2, Big.roundHalfUp).toNumber(),
@@ -675,6 +679,7 @@ export default class AnalyticsService {
             .add(existingDataPoint.netAmount)
             .round(2, Big.roundHalfUp)
             .toNumber()
+          existingDataPoint.daysRunning += bond.daysRunning
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
         }
       }
@@ -697,6 +702,7 @@ export default class AnalyticsService {
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, {
             costsAndTaxes: asset.costs.add(asset.taxes).round(2, Big.roundHalfUp).toNumber(),
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
+            daysRunning: asset.daysRunning,
             grossAmount: asset.grossAmount.round(2, Big.roundHalfUp).toNumber(),
             inputAmount: asset.inputAmount.round(2, Big.roundHalfUp).toNumber(),
             netAmount: asset.netAmount.round(2, Big.roundHalfUp).toNumber(),
@@ -723,6 +729,7 @@ export default class AnalyticsService {
             .add(existingDataPoint.netAmount)
             .round(2, Big.roundHalfUp)
             .toNumber()
+          existingDataPoint.daysRunning += asset.daysRunning
           performanceSeriesMap.get(walletInfo.wallet.id)!.dataPoints.set(dpKey, existingDataPoint)
         }
       }

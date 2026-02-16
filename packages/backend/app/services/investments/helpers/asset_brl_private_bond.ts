@@ -88,7 +88,7 @@ async function getAllBondsPerformance(
 
     bondsPerformance.set(bondData.id, {
       costs: costsAmount,
-      daysRunning,
+      daysRunning: new Big(daysRunning).round(2, Big.roundHalfUp).toNumber(),
       grossAmount,
       id: bondData.id,
       inputAmount: inputAmount,
