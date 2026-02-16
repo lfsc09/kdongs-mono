@@ -1,89 +1,85 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-2">
   <div class="flex flex-col gap-2">
     <span class="text-2xl font-medium text-lime-500 select-none">Profit - Evolution</span>
-    <button
-      type="button"
-      [cdkMenuTriggerFor]="options"
-      class="group/btn flex flex-row items-center justify-center rounded-lg bg-neutral-50 px-3 py-2 text-sm transition-transform select-none active:scale-95 dark:bg-neutral-900"
+    <div
+      class="bg-background-1 flex flex-row items-center justify-end gap-2 rounded px-6 py-3 shadow"
     >
-      <i class="fa-solid fa-angle-down"></i>
-      <span class="font-medium group-hover/btn:text-lime-500">Options</span>
-    </button>
-    <ng-template #options>
-      <div
-        class="my-1.5 flex min-w-[300px] flex-col items-start justify-center gap-1.5 rounded-lg border border-slate-300/40 bg-neutral-50 p-2 dark:border-slate-50/10 dark:bg-neutral-800"
-        cdkMenu
+      <button
+        type="button"
+        [cdkMenuTriggerFor]="options"
+        class="group/btn btn btn-sm w-fit transition-transform active:scale-95"
       >
+        <i class="fa-solid fa-angle-down"></i>
+        <span class="ml-2">Options</span>
+      </button>
+      <ng-template #options>
         <div
-          class="group/info relative w-full rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-700"
+          class="bg-background-0 my-1.5 flex min-w-[300px] flex-col items-start justify-center gap-1.5 rounded p-2 shadow"
+          cdkMenu
         >
-          <div
-            class="absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded-md border border-gray-600/40 bg-gray-500 p-2 group-hover/info:block"
-          >
-            <div class="flex flex-col gap-1">
-              <p class="font-kds-mono text-xs leading-normal text-white">
+          <div class="group/info hover:bg-background-1 relative w-full rounded">
+            <div
+              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+            >
+              <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info"></i>
                 Unify or separate the wallets into different datasets on the chart.
               </p>
             </div>
+            <button
+              type="button"
+              class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
+              (click)="handleUnifyDatasets()"
+              [disabled]="data().length <= 1"
+            >
+              <span class="text-xs font-medium text-lime-500 capitalize">{{
+                unifyDatasets() ? 'Unified' : 'Separate'
+              }}</span>
+              <div class="flex flex-1 flex-row items-center justify-end text-sm">
+                <i
+                  class="fa-solid fa-code-merge mr-2 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                ></i>
+                <span
+                  class="font-medium group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                  >Data Series</span
+                >
+              </div>
+            </button>
           </div>
-          <button
-            type="button"
-            class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded-lg px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
-            (click)="handleUnifyDatasets()"
-            [disabled]="data().length <= 1"
-          >
-            <span class="text-xs font-medium text-lime-500 capitalize dark:text-lime-400">{{
-              unifyDatasets() ? 'Unified' : 'Separate'
-            }}</span>
-            <div class="flex flex-1 flex-row items-center justify-end text-sm">
-              <i
-                class="fa-solid fa-code-merge mr-2 group-hover/btn:text-lime-500 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
-              ></i>
-              <span
-                class="font-medium group-hover/btn:text-lime-500 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
-                >Data Series</span
-              >
-            </div>
-          </button>
-        </div>
-        <div
-          class="group/info relative w-full rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-700"
-        >
-          <div
-            class="absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded-md border border-gray-600/40 bg-gray-500 p-2 group-hover/info:block"
-          >
-            <div class="flex flex-col gap-1">
-              <p class="font-kds-mono text-xs leading-normal text-white">
+          <div class="group/info hover:bg-background-1 relative w-full rounded">
+            <div
+              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+            >
+              <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info text-xs"></i>
-                Compare Net profits with Gross profits. (<b class="text-white">Unified</b> only)
+                Compare Net profits with Gross profits. (<b>Unified</b> only)
               </p>
             </div>
+            <button
+              type="button"
+              class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
+              (click)="handleCompareNetGross()"
+              [disabled]="!unifyDatasets()"
+            >
+              <span class="text-xs font-medium text-lime-500 capitalize">{{
+                compareNetGross() ? 'On' : 'Off'
+              }}</span>
+              <div class="flex flex-1 flex-row items-center justify-end text-sm">
+                <i
+                  class="fa-regular fa-eye mr-2 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                ></i>
+                <span
+                  class="font-medium group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                  >Net & Gross</span
+                >
+              </div>
+            </button>
           </div>
-          <button
-            type="button"
-            class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded-lg px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
-            (click)="handleCompareNetGross()"
-            [disabled]="!unifyDatasets()"
-          >
-            <span class="text-xs font-medium text-lime-500 capitalize dark:text-lime-400">{{
-              compareNetGross() ? 'On' : 'Off'
-            }}</span>
-            <div class="flex flex-1 flex-row items-center justify-end text-sm">
-              <i
-                class="fa-regular fa-eye mr-2 group-hover/btn:text-lime-500 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
-              ></i>
-              <span
-                class="font-medium group-hover/btn:text-lime-500 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
-                >Net & Gross</span
-              >
-            </div>
-          </button>
         </div>
-      </div>
-    </ng-template>
+      </ng-template>
+    </div>
   </div>
-  <div class="flex flex-col gap-1">
+  <div class="bg-background-1 flex flex-col gap-1 rounded p-4 shadow">
     <div class="flex flex-row items-center">
       <div id="evolutionChart"></div>
     </div>

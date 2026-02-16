@@ -46,6 +46,10 @@ export class PerformanceSeries implements OnDestroy {
    * SIGNALS
    */
   protected loading = signal<boolean>(false)
+  /**
+   * IMPORTANT: Wallet dataPoints received from the backend will be aggregated by dataPoint[type] and dataPoint[dateUtc],
+   * meaning, types will not be mixed, only same dates from the same types will be aggregated.
+   */
   protected series = signal<LiquidationSerieDTO[] | null | undefined>(undefined)
 
   /**

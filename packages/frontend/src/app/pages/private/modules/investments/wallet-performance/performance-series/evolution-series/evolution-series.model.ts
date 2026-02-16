@@ -1,3 +1,5 @@
+import { LiquidationSerieDataPointDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
+
 export type ChartDataSerie = [string, ...number[]]
 
 export type ChartGeneratedData = {
@@ -14,3 +16,5 @@ export type ChartGeneratedData = {
   classes?: string[]
   area?: { [key: string]: any }
 }
+
+export type UnifiedLiquidationSerieDataPointDTO = Omit<LiquidationSerieDataPointDTO, 'type'>

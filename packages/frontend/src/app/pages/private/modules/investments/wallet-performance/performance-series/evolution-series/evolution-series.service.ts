@@ -1,13 +1,16 @@
-import { formatCurrency, formatDate } from '@angular/common'
+import { formatDate } from '@angular/common'
 import { Injectable } from '@angular/core'
+import Big from 'big.js'
 import bb, { area, ChartOptions, line } from 'billboard.js'
 import cloneDeep from 'lodash/cloneDeep'
-import {
-  LiquidationSerieDataPointDTO,
-  LiquidationSerieDTO,
-} from '../../../../../../../infra/gateways/investments/investments-gateway.model'
+import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
+import { formatMonetary } from '../../../../../../../infra/pipes/monetary.pipe'
 import { Currency } from '../../../investments.model'
-import { ChartDataSerie, ChartGeneratedData } from './evolution-series.model'
+import {
+  ChartDataSerie,
+  ChartGeneratedData,
+  UnifiedLiquidationSerieDataPointDTO,
+} from './evolution-series.model'
 
 @Injectable()
 export class EvolutionSeriesService {
@@ -51,7 +54,7 @@ export class EvolutionSeriesService {
       contents: {
         bindto: '#evolutionChartLegend',
         template: (id: string, color: string) => {
-          return `<span class="flex flex-row items-center justify-center gap-1.5 p-2 rounded-lg bg-neutral-50 dark:bg-neutral-700">
+          return `<span class="flex flex-row items-center justify-center gap-1.5 p-2 rounded-lg bg-background-0">
             <span class="rounded-full h-2 w-2" style="background-color:${color}"></span>
             <span class="text-xs">${id}</span>
           </span>`
@@ -93,7 +96,8 @@ export class EvolutionSeriesService {
     if (unifyDatasets) {
       let unifiedSeries = this.unifyDataset(data)
       unifiedSeries.sort(
-        (a: LiquidationSerieDataPointDTO, b: LiquidationSerieDataPointDTO) => a.dateUtc - b.dateUtc
+        (a: UnifiedLiquidationSerieDataPointDTO, b: UnifiedLiquidationSerieDataPointDTO) =>
+          a.dateUtc - b.dateUtc
       )
       // Generate comparison of Net & Gross profit
       if (compareNetGross) {
@@ -116,8 +120,9 @@ export class EvolutionSeriesService {
     } else {
       // Configure the Y axis to show values in the selected currency format
       this.chartConfigs.axis!.y!.tick!.format = (value: unknown) => {
-        if (typeof value === 'number') return formatCurrency(value, 'pt-br', currencyOnUse, '0.0-2')
-        return `${currencyOnUse} ${value}`
+        if (typeof value === 'number' || typeof value === 'string')
+          return formatMonetary(value, currencyOnUse, 'code', '1.0-2', 'pt-BR')
+        return `${value}`
       }
       // Configure data and classes per the generated chart data config
       this.chartConfigs.data = chartDataConfig?.data ?? {}
@@ -130,21 +135,48 @@ export class EvolutionSeriesService {
 
   /**
    * Generate a unified dataset, merging all wallets' assets in a single timeline.
-   * And if two or more assets from different wallets have the same `exitTimestampUtc`, they will be merged in a single data point, summing their `netAmount`, `grossAmount` and `daysRunning`.
+   *
+   * Since this will aggregate different wallets and dataPoint types, by `dateUtc`, there is no need to maintain `type` property.
    */
-  private unifyDataset(data: LiquidationSerieDTO[]): LiquidationSerieDataPointDTO[] {
-    let unifiedSeriesMap = new Map<number, LiquidationSerieDataPointDTO>()
+  private unifyDataset(data: LiquidationSerieDTO[]): UnifiedLiquidationSerieDataPointDTO[] {
+    let unifiedSeriesMap = new Map<number, UnifiedLiquidationSerieDataPointDTO>()
     for (let wallet of data) {
       for (let dataPoint of wallet.dataPoints) {
         // Merge wallet assets into a Map, to merge equal dates to same dataPoint
         if (unifiedSeriesMap.has(dataPoint.dateUtc)) {
-          const previousMapValue = unifiedSeriesMap.get(dataPoint.dateUtc)
+          const previousMapValue = unifiedSeriesMap.get(dataPoint.dateUtc)!
           unifiedSeriesMap.set(dataPoint.dateUtc, {
-            ...dataPoint,
-            grossAmount: previousMapValue!.grossAmount + dataPoint.grossAmount,
-            netAmount: previousMapValue!.netAmount + dataPoint.netAmount,
+            dateUtc: dataPoint.dateUtc,
+            inputAmount: new Big(previousMapValue.inputAmount)
+              .add(dataPoint.inputAmount)
+              .round(2, Big.roundHalfUp)
+              .toNumber(),
+            grossAmount: new Big(previousMapValue.grossAmount)
+              .add(dataPoint.grossAmount)
+              .round(2, Big.roundHalfUp)
+              .toNumber(),
+            netAmount: new Big(previousMapValue.netAmount)
+              .add(dataPoint.netAmount)
+              .round(2, Big.roundHalfUp)
+              .toNumber(),
+            costsAndTaxes: new Big(previousMapValue.costsAndTaxes)
+              .add(dataPoint.costsAndTaxes)
+              .round(2, Big.roundHalfUp)
+              .toNumber(),
+            daysRunning: new Big(previousMapValue.daysRunning)
+              .add(dataPoint.daysRunning)
+              .round(2, Big.roundHalfUp)
+              .toNumber(),
           })
-        } else unifiedSeriesMap.set(dataPoint.dateUtc, { ...dataPoint })
+        } else
+          unifiedSeriesMap.set(dataPoint.dateUtc, {
+            dateUtc: dataPoint.dateUtc,
+            inputAmount: dataPoint.inputAmount,
+            grossAmount: dataPoint.grossAmount,
+            netAmount: dataPoint.netAmount,
+            costsAndTaxes: dataPoint.costsAndTaxes,
+            daysRunning: dataPoint.daysRunning,
+          })
       }
     }
     return Array.from(unifiedSeriesMap.values())
@@ -157,52 +189,59 @@ export class EvolutionSeriesService {
    * @param dataSerie: Will be the unified array of assets ordered by `date`.
    */
   private chartDataUnifiedWalletsNetGrossProfits(
-    dataSerie: LiquidationSerieDataPointDTO[]
+    dataSerie: UnifiedLiquidationSerieDataPointDTO[]
   ): ChartGeneratedData {
     if (dataSerie.length === 0) return {} as ChartGeneratedData
-    let netEvolutionValue = 0
-    let grossEvolutionValue = 0
+    let netEvolutionValue = new Big(0)
+    let grossEvolutionValue = new Big(0)
     let netEvolution: ChartDataSerie = ['Summed Net Profit']
     let grossEvolution: ChartDataSerie = ['Summed Gross Profit']
     let xAxis: ChartDataSerie = ['x']
     let forecastAverage: {
-      daysRunning: number
-      netProfit: number
-      grossProfit: number
-      netProfitPerDay: number
-      grossProfitPerDay: number
+      daysRunning: Big
+      netProfit: Big
+      grossProfit: Big
+      netProfitPerDay: Big
+      grossProfitPerDay: Big
     } = {
-      daysRunning: 0,
-      netProfit: 0,
-      grossProfit: 0,
-      netProfitPerDay: 0,
-      grossProfitPerDay: 0,
+      daysRunning: new Big(0),
+      netProfit: new Big(0),
+      grossProfit: new Big(0),
+      netProfitPerDay: new Big(0),
+      grossProfitPerDay: new Big(0),
     }
 
     for (let dataPoint of dataSerie) {
       xAxis.push(dataPoint.dateUtc)
-      netEvolutionValue += dataPoint.netAmount
-      grossEvolutionValue += dataPoint.grossAmount
+      netEvolutionValue = netEvolutionValue.add(dataPoint.netAmount)
+      grossEvolutionValue = grossEvolutionValue.add(dataPoint.grossAmount)
       netEvolution.push(netEvolutionValue.toFixed(2))
       grossEvolution.push(grossEvolutionValue.toFixed(2))
-      forecastAverage.netProfit += dataPoint.netAmount
-      forecastAverage.grossProfit += dataPoint.grossAmount
+      forecastAverage.netProfit = forecastAverage.netProfit.add(dataPoint.netAmount)
+      forecastAverage.grossProfit = forecastAverage.grossProfit.add(dataPoint.grossAmount)
+      forecastAverage.daysRunning = forecastAverage.daysRunning.add(dataPoint.daysRunning)
     }
 
-    forecastAverage.daysRunning /= dataSerie.length
-    forecastAverage.netProfit /= dataSerie.length
-    forecastAverage.grossProfit /= dataSerie.length
-    forecastAverage.netProfitPerDay = forecastAverage.netProfit / forecastAverage.daysRunning
-    forecastAverage.grossProfitPerDay = forecastAverage.grossProfit / forecastAverage.daysRunning
+    forecastAverage.daysRunning = forecastAverage.daysRunning.div(dataSerie.length)
+    forecastAverage.netProfit = forecastAverage.netProfit.div(dataSerie.length)
+    forecastAverage.grossProfit = forecastAverage.grossProfit.div(dataSerie.length)
+    forecastAverage.netProfitPerDay = forecastAverage.netProfit.div(forecastAverage.daysRunning)
+    forecastAverage.grossProfitPerDay = forecastAverage.grossProfit.div(forecastAverage.daysRunning)
 
     // Add a forecast of next data
     for (let fIdx = 1; fIdx <= this.forecastTimes; fIdx++) {
       xAxis.push(dataSerie.at(-1)!.dateUtc + this.thirdyDaysMS * fIdx)
       netEvolution.push(
-        (netEvolutionValue + forecastAverage.netProfitPerDay * (30 * fIdx)).toFixed(2)
+        netEvolutionValue
+          .add(forecastAverage.netProfitPerDay.mul(30 * fIdx))
+          .round(2, Big.roundHalfUp)
+          .toFixed(2)
       )
       grossEvolution.push(
-        (grossEvolutionValue + forecastAverage.grossProfitPerDay * (30 * fIdx)).toFixed(2)
+        grossEvolutionValue
+          .add(forecastAverage.grossProfitPerDay.mul(30 * fIdx))
+          .round(2, Big.roundHalfUp)
+          .toFixed(2)
       )
     }
 
@@ -237,32 +276,33 @@ export class EvolutionSeriesService {
    * @param dataSerie: Will be the unified array of assets ordered by `date`.
    */
   private chartDataUnifiedWalletsNetWithTendency(
-    dataSerie: LiquidationSerieDataPointDTO[]
+    dataSerie: UnifiedLiquidationSerieDataPointDTO[]
   ): ChartGeneratedData {
     if (dataSerie.length === 0) return {} as ChartGeneratedData
-    let netEvolutionValue = 0
+    let netEvolutionValue = new Big(0)
     let netEvolution: ChartDataSerie = ['Summed Net Profit']
     let xAxis: ChartDataSerie = ['x']
     let forecastAverage: {
-      daysToProfit: number
-      netProfit: number
-      netProfitPerDay: number
+      daysRunning: Big
+      netProfit: Big
+      netProfitPerDay: Big
     } = {
-      daysToProfit: 0,
-      netProfit: 0,
-      netProfitPerDay: 0,
+      daysRunning: new Big(0),
+      netProfit: new Big(0),
+      netProfitPerDay: new Big(0),
     }
 
     for (let dataPoint of dataSerie) {
       xAxis.push(dataPoint.dateUtc)
-      netEvolutionValue += dataPoint.netAmount
+      netEvolutionValue = netEvolutionValue.add(dataPoint.netAmount)
       netEvolution.push(netEvolutionValue.toFixed(2))
-      forecastAverage.netProfit += dataPoint.netAmount
+      forecastAverage.netProfit = forecastAverage.netProfit.add(dataPoint.netAmount)
+      forecastAverage.daysRunning = forecastAverage.daysRunning.add(dataPoint.daysRunning)
     }
 
-    forecastAverage.daysToProfit /= dataSerie.length
-    forecastAverage.netProfit /= dataSerie.length
-    forecastAverage.netProfitPerDay = forecastAverage.netProfit / forecastAverage.daysToProfit
+    forecastAverage.daysRunning = forecastAverage.daysRunning.div(dataSerie.length)
+    forecastAverage.netProfit = forecastAverage.netProfit.div(dataSerie.length)
+    forecastAverage.netProfitPerDay = forecastAverage.netProfit.div(forecastAverage.daysRunning)
 
     /**
      * TODO: Add the two tendency lines.
@@ -272,7 +312,10 @@ export class EvolutionSeriesService {
     for (let fIdx = 1; fIdx <= this.forecastTimes; fIdx++) {
       xAxis.push(dataSerie.at(-1)!.dateUtc + this.thirdyDaysMS * fIdx)
       netEvolution.push(
-        (netEvolutionValue + forecastAverage.netProfitPerDay * (30 * fIdx)).toFixed(2)
+        netEvolutionValue
+          .add(forecastAverage.netProfitPerDay.mul(30 * fIdx))
+          .round(2, Big.roundHalfUp)
+          .toFixed(2)
       )
     }
 
@@ -306,17 +349,17 @@ export class EvolutionSeriesService {
 
     for (let [idx, serie] of data.entries()) {
       if (serie.dataPoints.length === 0) continue
-      let netEvolutionValue = 0
+      let netEvolutionValue = new Big(0)
       let netEvolution: ChartDataSerie = [serie.walletName]
       let xAxis: ChartDataSerie = [`x${idx}`]
       let forecastAverage: {
-        daysToProfit: number
-        netProfit: number
-        netProfitPerDay: number
+        daysRunning: Big
+        netProfit: Big
+        netProfitPerDay: Big
       } = {
-        daysToProfit: 0,
-        netProfit: 0,
-        netProfitPerDay: 0,
+        daysRunning: new Big(0),
+        netProfit: new Big(0),
+        netProfitPerDay: new Big(0),
       }
 
       dataXSMap[serie.walletName] = `x${idx}`
@@ -324,20 +367,24 @@ export class EvolutionSeriesService {
 
       for (let dataPoint of serie.dataPoints) {
         xAxis.push(dataPoint.dateUtc)
-        netEvolutionValue += dataPoint.netAmount
+        netEvolutionValue = netEvolutionValue.add(dataPoint.netAmount)
         netEvolution.push(netEvolutionValue.toFixed(2))
-        forecastAverage.netProfit += dataPoint.netAmount
+        forecastAverage.netProfit = forecastAverage.netProfit.add(dataPoint.netAmount)
+        forecastAverage.daysRunning = forecastAverage.daysRunning.add(dataPoint.daysRunning)
       }
 
-      forecastAverage.daysToProfit /= serie.dataPoints.length
-      forecastAverage.netProfit /= serie.dataPoints.length
-      forecastAverage.netProfitPerDay = forecastAverage.netProfit / forecastAverage.daysToProfit
+      forecastAverage.daysRunning = forecastAverage.daysRunning.div(serie.dataPoints.length)
+      forecastAverage.netProfit = forecastAverage.netProfit.div(serie.dataPoints.length)
+      forecastAverage.netProfitPerDay = forecastAverage.netProfit.div(forecastAverage.daysRunning)
 
       // Add a forecast of next data
       for (let fIdx = 1; fIdx <= this.forecastTimes; fIdx++) {
         xAxis.push(serie.dataPoints.at(-1)!.dateUtc + this.thirdyDaysMS * fIdx)
         netEvolution.push(
-          (netEvolutionValue + forecastAverage.netProfitPerDay * (30 * fIdx)).toFixed(2)
+          netEvolutionValue
+            .add(forecastAverage.netProfitPerDay.mul(30 * fIdx))
+            .round(2, Big.roundHalfUp)
+            .toFixed(2)
         )
       }
       dataColumns.push([...netEvolution])

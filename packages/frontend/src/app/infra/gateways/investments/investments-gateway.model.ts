@@ -128,6 +128,7 @@ export const LiquidationSerieDataPointDTOSchema = z.object({
   grossAmount: z.number(),
   netAmount: z.number(),
   costsAndTaxes: z.number(),
+  daysRunning: z.number(),
 })
 export const LiquidationSerieDTOSchema = z.object({
   walletId: z.string(),

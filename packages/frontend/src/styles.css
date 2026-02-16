@@ -1,3 +1,5 @@
+@import '@angular/cdk/overlay-prebuilt.css';
+
 @import 'tailwindcss';
 
 @custom-variant dark (&:is(.dark *));
@@ -315,6 +317,19 @@
   body {
     @apply font-cascadia bg-background-0 text-foreground-0;
   }
+
+  /* Change default billboard tick and axis colors */
+  .bb .bb-main .tick text {
+    fill: var(--foreground-0);
+  }
+
+  .bb .bb-main .tick line {
+    stroke: var(--foreground-2) !important;
+  }
+
+  .bb .bb-main .bb-axis path.domain {
+    stroke: var(--foreground-2) !important;
+  }
 }
 
 @layer components {
@@ -381,7 +396,7 @@
   }
 
   .btn {
-    @apply bg-portage-300 dark:bg-portage-400 cursor-pointer rounded px-3 py-2 text-slate-900 transition-colors hover:text-slate-100 dark:text-slate-100 dark:hover:text-slate-800;
+    @apply bg-portage-300 dark:bg-portage-400 cursor-pointer rounded px-3 py-2 text-slate-900 transition-colors select-none hover:text-slate-100 dark:text-slate-100 dark:hover:text-slate-800;
 
     &.btn-ghost {
       @apply hover:bg-background-2 dark:hover:bg-background-3 text-foreground-1 dark:text-foreground-1 bg-transparent transition-colors;
@@ -442,5 +457,16 @@
   }
   .emo-creepy::before {
     content: '( ° ͜ʖ °)';
+  }
+}
+
+@layer utilities {
+  .billboard-lines-thick {
+    stroke-width: 2px !important;
+  }
+
+  .billboard-lines-dashed {
+    stroke-dasharray: 4 6;
+    stroke-width: 2px !important;
   }
 }
