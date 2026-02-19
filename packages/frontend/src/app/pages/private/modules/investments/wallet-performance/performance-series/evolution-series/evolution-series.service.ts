@@ -1,11 +1,8 @@
-import { formatDate } from '@angular/common'
 import { Injectable } from '@angular/core'
 import Big from 'big.js'
-import bb, { area, ChartOptions, line } from 'billboard.js'
+import { area, line } from 'billboard.js'
 import cloneDeep from 'lodash/cloneDeep'
 import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
-import { formatMonetary } from '../../../../../../../infra/pipes/monetary.pipe'
-import { Currency } from '../../../investments.model'
 import {
   ChartDataSerie,
   ChartGeneratedData,
@@ -17,7 +14,7 @@ export class EvolutionSeriesService {
   /**
    * CONSTS
    */
-  private thirdyDaysMS = 2592000000 // 30 days in milliseconds
+  private thirdyDaysMS = 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
   private forecastTimes = 2
   private tendenciesValues = {
     shorter: { short: 5, long: 20 },
@@ -25,120 +22,15 @@ export class EvolutionSeriesService {
   }
 
   /**
-   * VARS
-   */
-  chartInstance: unknown = undefined
-  chartConfigs: ChartOptions = {
-    axis: {
-      x: {
-        type: 'timeseries',
-        tick: {
-          format: (value: string | number) => {
-            return formatDate(value, 'MMM yy', 'en_US')
-          },
-          culling: {
-            lines: false,
-          },
-        },
-      },
-      y: {
-        tick: {
-          culling: {
-            lines: false,
-          },
-        },
-      },
-    },
-    grid: { y: { show: true } },
-    legend: {
-      contents: {
-        bindto: '#evolutionChartLegend',
-        template: (id: string, color: string) => {
-          return `<span class="flex flex-row items-center justify-center gap-1.5 p-2 rounded-lg bg-background-0">
-            <span class="rounded-full h-2 w-2" style="background-color:${color}"></span>
-            <span class="text-xs">${id}</span>
-          </span>`
-        },
-      },
-    },
-    line: {
-      classes: ['billboard-lines-thick'],
-    },
-    padding: {
-      right: 20,
-    },
-    point: {
-      focus: {
-        only: true,
-      },
-    },
-    tooltip: {
-      format: {
-        title: (title: number | string) => {
-          return formatDate(title, 'dd MMM yy', 'en_US')
-        },
-      },
-    },
-    bindto: '#evolutionChart',
-  }
-
-  /**
    * FUNCTIONS
    */
-  chartGenerateOrUpdate(
-    unifyDatasets: boolean,
-    compareNetGross: boolean,
-    currencyOnUse: Currency,
-    data: LiquidationSerieDTO[]
-  ): void {
-    let chartDataConfig: ChartGeneratedData = {} as ChartGeneratedData
-    // User selected to merge wallets' evolution
-    if (unifyDatasets) {
-      let unifiedSeries = this.unifyDataset(data)
-      unifiedSeries.sort(
-        (a: UnifiedLiquidationSerieDataPointDTO, b: UnifiedLiquidationSerieDataPointDTO) =>
-          a.dateUtc - b.dateUtc
-      )
-      // Generate comparison of Net & Gross profit
-      if (compareNetGross) {
-        chartDataConfig = this.chartDataUnifiedWalletsNetGrossProfits(unifiedSeries)
-      } else {
-        chartDataConfig = this.chartDataUnifiedWalletsNetWithTendency(unifiedSeries)
-      }
-    }
-    // User selected to see evolution of wallets separately, so we generate a chart with a line for each wallet
-    else {
-      chartDataConfig = this.chartDataSeparatedWalletsNet(data)
-    }
-
-    // Update or generate the chart with the new config
-    if (this.chartInstance) {
-      this.chartConfigs.data = chartDataConfig?.data ?? {}
-      if (chartDataConfig.classes !== undefined)
-        this.chartConfigs.line!.classes = chartDataConfig.classes
-      if (chartDataConfig.area !== undefined) this.chartConfigs.area = chartDataConfig.area
-    } else {
-      // Configure the Y axis to show values in the selected currency format
-      this.chartConfigs.axis!.y!.tick!.format = (value: unknown) => {
-        if (typeof value === 'number' || typeof value === 'string')
-          return formatMonetary(value, currencyOnUse, 'code', '1.0-2', 'pt-BR')
-        return `${value}`
-      }
-      // Configure data and classes per the generated chart data config
-      this.chartConfigs.data = chartDataConfig?.data ?? {}
-      if (chartDataConfig.classes !== undefined)
-        this.chartConfigs.line!.classes = chartDataConfig.classes
-      if (chartDataConfig.area !== undefined) this.chartConfigs.area = chartDataConfig.area
-      this.chartInstance = bb.generate(this.chartConfigs)
-    }
-  }
 
   /**
    * Generate a unified dataset, merging all wallets' assets in a single timeline.
    *
    * Since this will aggregate different wallets and dataPoint types, by `dateUtc`, there is no need to maintain `type` property.
    */
-  private unifyDataset(data: LiquidationSerieDTO[]): UnifiedLiquidationSerieDataPointDTO[] {
+  unifyDataset(data: LiquidationSerieDTO[]): UnifiedLiquidationSerieDataPointDTO[] {
     let unifiedSeriesMap = new Map<number, UnifiedLiquidationSerieDataPointDTO>()
     for (let wallet of data) {
       for (let dataPoint of wallet.dataPoints) {
@@ -188,7 +80,7 @@ export class EvolutionSeriesService {
    *
    * @param dataSerie: Will be the unified array of assets ordered by `date`.
    */
-  private chartDataUnifiedWalletsNetGrossProfits(
+  chartDataUnifiedWalletsNetGrossProfits(
     dataSerie: UnifiedLiquidationSerieDataPointDTO[]
   ): ChartGeneratedData {
     if (dataSerie.length === 0) return {} as ChartGeneratedData
@@ -275,7 +167,7 @@ export class EvolutionSeriesService {
    *
    * @param dataSerie: Will be the unified array of assets ordered by `date`.
    */
-  private chartDataUnifiedWalletsNetWithTendency(
+  chartDataUnifiedWalletsNetWithTendency(
     dataSerie: UnifiedLiquidationSerieDataPointDTO[]
   ): ChartGeneratedData {
     if (dataSerie.length === 0) return {} as ChartGeneratedData
@@ -340,7 +232,7 @@ export class EvolutionSeriesService {
   /**
    * Generate Chart data and options for the `Separate Wallets Net Profits`, which will calculate Net profit of each wallet individualy.
    */
-  private chartDataSeparatedWalletsNet(data: LiquidationSerieDTO[]): ChartGeneratedData {
+  chartDataSeparatedWalletsNet(data: LiquidationSerieDTO[]): ChartGeneratedData {
     if (data.length === 0) return {} as ChartGeneratedData
     let dataColumns: ChartDataSerie[] = []
     let dataXSMap: { [key: string]: string } = {}
