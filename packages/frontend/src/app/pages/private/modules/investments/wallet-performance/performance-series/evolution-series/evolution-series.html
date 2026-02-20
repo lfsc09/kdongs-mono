@@ -1,9 +1,20 @@
 <div class="flex flex-col gap-2">
   <div class="flex flex-col gap-2">
-    <span class="text-2xl font-medium text-lime-500 select-none">Profit - Evolution</span>
+    <span class="text-2xl font-medium text-lime-500 select-none">Evolution Charts</span>
     <div
-      class="bg-background-1 flex flex-row items-center justify-end gap-2 rounded px-6 py-3 shadow"
+      class="bg-background-1 flex flex-row items-center justify-between gap-2 rounded px-6 py-3 shadow"
     >
+      <div class="flex gap-2">
+        <span class="chip chip-xs select-none">{{
+          unifyDatasets() ? 'Unified' : 'Separated'
+        }}</span>
+        @if (unifyDatasets()) {
+          <span class="chip chip-xs select-none">
+            {{ showProfitsOnly() ? 'Profits Only' : 'Balance' }}
+          </span>
+          <span class="chip chip-xs select-none"> {{ tendencyType() | capitalize }} averages </span>
+        }
+      </div>
       <button
         type="button"
         [cdkMenuTriggerFor]="options"
@@ -17,6 +28,7 @@
           class="bg-background-0 my-1.5 flex min-w-[300px] flex-col items-start justify-center gap-1.5 rounded p-2 shadow"
           cdkMenu
         >
+          <!-- Unify Datasets -->
           <div class="group/info hover:bg-background-1 relative w-full rounded">
             <div
               class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
@@ -32,46 +44,116 @@
               (click)="handleUnifyDatasets()"
               [disabled]="data().length <= 1"
             >
-              <span class="text-xs font-medium text-lime-500 capitalize">{{
-                unifyDatasets() ? 'Unified' : 'Separate'
-              }}</span>
+              <span class="text-xs font-medium text-lime-500 capitalize">
+                {{ unifyDatasets() ? 'Unified' : 'Separate' }}
+              </span>
               <div class="flex flex-1 flex-row items-center justify-end text-sm">
                 <i
                   class="fa-solid fa-code-merge mr-2 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
                 ></i>
                 <span
                   class="font-medium group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
-                  >Data Series</span
                 >
+                  Data Series
+                </span>
               </div>
             </button>
           </div>
+
+          <!-- Generate Balance or Profits only -->
           <div class="group/info hover:bg-background-1 relative w-full rounded">
             <div
               class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
             >
               <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info text-xs"></i>
-                Compare Net profits with Gross profits. (<b>Unified</b> only)
+                Show resulting balance or profits only. (<b>Unified</b> datasets only)
               </p>
             </div>
             <button
               type="button"
               class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
-              (click)="handleCompareNetGross()"
+              (click)="handleShowProfitsOnly()"
               [disabled]="!unifyDatasets()"
             >
-              <span class="text-xs font-medium text-lime-500 capitalize">{{
-                compareNetGross() ? 'On' : 'Off'
-              }}</span>
+              <span class="text-xs font-medium text-lime-500 capitalize">
+                {{ !unifyDatasets() ? '--' : showProfitsOnly() ? 'On' : 'Off' }}
+              </span>
               <div class="flex flex-1 flex-row items-center justify-end text-sm">
                 <i
                   class="fa-regular fa-eye mr-2 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
                 ></i>
                 <span
                   class="font-medium group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
-                  >Net & Gross</span
                 >
+                  Profits Only
+                </span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Tendency Type -->
+          <div class="group/info hover:bg-background-1 relative w-full rounded">
+            <div
+              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+            >
+              <p class="text-xs leading-normal">
+                <i class="fa-solid fa-circle-info text-xs"></i>
+                Which type of tendency to use in calculations <b>Shorter</b> ("5" for short-term and
+                "20" for long-term) or <b>Longer</b> ("21" for short-term and "100" for long-term).
+                (<b>Unified</b> datasets only)
+              </p>
+            </div>
+            <button
+              type="button"
+              class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
+              (click)="handleShowProfitsOnly()"
+              [disabled]="!unifyDatasets()"
+            >
+              <span class="text-xs font-medium text-lime-500 capitalize">
+                {{ !unifyDatasets() ? '--' : (tendencyType() | capitalize) }}
+              </span>
+              <div class="flex flex-1 flex-row items-center justify-end text-sm">
+                <i
+                  class="fa-regular fa-eye mr-2 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                ></i>
+                <span
+                  class="font-medium group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                >
+                  Tendency Type
+                </span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Compare Input/Gross/Net -->
+          <div class="group/info hover:bg-background-1 relative w-full rounded">
+            <div
+              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+            >
+              <p class="text-xs leading-normal">
+                <i class="fa-solid fa-circle-info text-xs"></i>
+                Compare Net profits with Gross profits. (<b>Separate</b> datasets only)
+              </p>
+            </div>
+            <button
+              type="button"
+              class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
+              (click)="handleCompareNetOnly()"
+              [disabled]="unifyDatasets()"
+            >
+              <span class="text-xs font-medium text-lime-500 capitalize">
+                {{ unifyDatasets() ? '--' : compareNetOnly() ? 'On' : 'Off' }}
+              </span>
+              <div class="flex flex-1 flex-row items-center justify-end text-sm">
+                <i
+                  class="fa-regular fa-eye mr-2 group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                ></i>
+                <span
+                  class="font-medium group-disabled/btn:text-gray-300 group-disabled/btn:dark:text-gray-600"
+                >
+                  Net Only
+                </span>
               </div>
             </button>
           </div>

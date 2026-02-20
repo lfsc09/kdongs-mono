@@ -3,15 +3,17 @@ import { formatDate } from '@angular/common'
 import { Component, effect, inject, input, OnDestroy, signal } from '@angular/core'
 import bb, { Chart, ChartOptions } from 'billboard.js'
 import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
+import { CapitalizePipe } from '../../../../../../../infra/pipes/capitalize.pipe'
 import { formatMonetary } from '../../../../../../../infra/pipes/monetary.pipe'
 import { Currency } from '../../../investments.model'
-import { ChartGeneratedData, UnifiedLiquidationSerieDataPointDTO } from './evolution-series.model'
+import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
+import { ChartGeneratedData, TendencyType } from './evolution-series.model'
 import { EvolutionSeriesService } from './evolution-series.service'
 
 @Component({
   selector: 'kdongs-evolution-series',
   templateUrl: './evolution-series.html',
-  imports: [CdkMenuTrigger, CdkMenu],
+  imports: [CdkMenuTrigger, CdkMenu, CapitalizePipe],
   providers: [EvolutionSeriesService],
 })
 export class EvolutionSeries implements OnDestroy {
@@ -25,14 +27,17 @@ export class EvolutionSeries implements OnDestroy {
    */
   currencyOnUse = input.required<Currency>()
   data = input.required<LiquidationSerieDTO[]>()
+  unifiedData = input.required<UnifiedLiquidationSerieDataPointDTO[]>()
   protected unifyDatasets = signal<boolean>(true)
-  protected compareNetGross = signal<boolean>(false)
+  protected showProfitsOnly = signal<boolean>(false)
+  protected compareNetOnly = signal<boolean>(true)
+  protected tendencyType = signal<TendencyType>(TendencyType.Shorter)
 
   /**
    * VARS
    */
-  chartInstance: Chart | undefined = undefined
-  chartConfigs: ChartOptions = {
+  private _chartInstance: Chart | undefined = undefined
+  private _chartConfigs: ChartOptions = {
     axis: {
       x: {
         type: 'timeseries',
@@ -90,49 +95,44 @@ export class EvolutionSeries implements OnDestroy {
     effect(() => {
       let newChartDataConfig: ChartGeneratedData = {} as ChartGeneratedData
 
-      // Merge wallets' evolution
+      // Merge wallets' evolution, for chart with tendency lines (short & long) and bollinger bands
       if (this.unifyDatasets()) {
-        let unifiedSeries = this._evolutionSeriesService.unifyDataset(this.data())
-        unifiedSeries.sort(
-          (a: UnifiedLiquidationSerieDataPointDTO, b: UnifiedLiquidationSerieDataPointDTO) =>
-            a.dateUtc - b.dateUtc
+        newChartDataConfig = this._evolutionSeriesService.chartDataUnifiedWallets(
+          this.unifiedData(),
+          this.showProfitsOnly(),
+          this.tendencyType()
         )
-        // Generate comparison of Net & Gross profit
-        if (this.compareNetGross()) {
-          newChartDataConfig =
-            this._evolutionSeriesService.chartDataUnifiedWalletsNetGrossProfits(unifiedSeries)
-        } else {
-          newChartDataConfig =
-            this._evolutionSeriesService.chartDataUnifiedWalletsNetWithTendency(unifiedSeries)
-        }
       }
-      // Generate evolution of wallets separately (line for each wallet)
+      // Generate evolution of wallets separately (line for each wallet) (Net only or Input/Gross/Net)
       else {
-        newChartDataConfig = this._evolutionSeriesService.chartDataSeparatedWalletsNet(this.data())
+        newChartDataConfig = this._evolutionSeriesService.chartDataSeparatedWallets(
+          this.data(),
+          this.compareNetOnly()
+        )
       }
 
       // Configure the Y axis to show values in the selected currency format
-      this.chartConfigs.axis!.y!.tick!.format = (value: unknown) => {
+      this._chartConfigs.axis!.y!.tick!.format = (value: unknown) => {
         if (typeof value === 'number' || typeof value === 'string')
           return formatMonetary(value, this.currencyOnUse(), 'code', '1.0-2', 'pt-BR')
         return `${value}`
       }
       // Configure data and classes per the generated chart data config
-      this.chartConfigs.data = newChartDataConfig?.data ?? {}
+      this._chartConfigs.data = newChartDataConfig?.data ?? {}
       if (newChartDataConfig.classes !== undefined)
-        this.chartConfigs.line!.classes = newChartDataConfig.classes
-      if (newChartDataConfig.area !== undefined) this.chartConfigs.area = newChartDataConfig.area
+        this._chartConfigs.line!.classes = newChartDataConfig.classes
+      if (newChartDataConfig.area !== undefined) this._chartConfigs.area = newChartDataConfig.area
 
-      if (this.chartInstance) {
-        this.chartInstance.destroy()
+      if (this._chartInstance) {
+        this._chartInstance.destroy()
       }
-      this.chartInstance = bb.generate(this.chartConfigs)
+      this._chartInstance = bb.generate(this._chartConfigs)
     })
   }
 
   ngOnDestroy(): void {
-    if (this.chartInstance) {
-      this.chartInstance.destroy()
+    if (this._chartInstance) {
+      this._chartInstance.destroy()
     }
   }
 
@@ -141,10 +141,19 @@ export class EvolutionSeries implements OnDestroy {
    */
   protected handleUnifyDatasets(): void {
     this.unifyDatasets.update(state => !state)
-    this.compareNetGross.set(false)
   }
 
-  protected handleCompareNetGross(): void {
-    this.compareNetGross.update(state => !state)
+  protected handleShowProfitsOnly(): void {
+    this.showProfitsOnly.update(state => !state)
+  }
+
+  protected handleTendencyTypeChange(): void {
+    this.tendencyType.update(state =>
+      state === TendencyType.Shorter ? TendencyType.Longer : TendencyType.Shorter
+    )
+  }
+
+  protected handleCompareNetOnly(): void {
+    this.compareNetOnly.update(state => !state)
   }
 }

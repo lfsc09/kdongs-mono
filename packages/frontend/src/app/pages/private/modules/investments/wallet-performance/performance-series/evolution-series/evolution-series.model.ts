@@ -1,6 +1,4 @@
-import { LiquidationSerieDataPointDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
-
-export type ChartDataSerie = [string, ...number[]]
+export type ChartDataSerie = [string, ...(number | null)[]]
 
 export type ChartGeneratedData = {
   data: {
@@ -17,4 +15,12 @@ export type ChartGeneratedData = {
   area?: { [key: string]: any }
 }
 
-export type UnifiedLiquidationSerieDataPointDTO = Omit<LiquidationSerieDataPointDTO, 'type'>
+export enum TendencyType {
+  Shorter = 'Shorter',
+  Longer = 'Longer',
+}
+
+export type ForecastDeltaPoint = {
+  dateUtc: number
+  netAmount: number
+}

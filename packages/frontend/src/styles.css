@@ -338,7 +338,7 @@
   }
 
   .chip {
-    @apply bg-background-2 text-foreground-2 inline-block rounded px-2 py-1 text-sm;
+    @apply bg-background-2 text-foreground-2 inline-block rounded px-2 py-1 text-sm shadow-sm;
 
     &.chip-xs {
       @apply text-xs;

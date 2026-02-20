@@ -3,10 +3,12 @@ import Big from 'big.js'
 import { area, line } from 'billboard.js'
 import cloneDeep from 'lodash/cloneDeep'
 import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
+import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
 import {
   ChartDataSerie,
   ChartGeneratedData,
-  UnifiedLiquidationSerieDataPointDTO,
+  ForecastDeltaPoint,
+  TendencyType,
 } from './evolution-series.model'
 
 @Injectable()
@@ -14,9 +16,14 @@ export class EvolutionSeriesService {
   /**
    * CONSTS
    */
-  private thirdyDaysMS = 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
-  private forecastTimes = 2
-  private tendenciesValues = {
+  // 30 days in milliseconds
+  private _thirdyDaysMS = 1000 * 60 * 60 * 24 * 30
+  private _forecast = {
+    halfLifeDays: 45,
+    cutoffDays: 180,
+    steps: 2,
+  }
+  private _tendenciesValues = {
     shorter: { short: 5, long: 20 },
     longer: { short: 21, long: 100 },
   }
@@ -25,133 +32,48 @@ export class EvolutionSeriesService {
    * FUNCTIONS
    */
 
-  /**
-   * Generate a unified dataset, merging all wallets' assets in a single timeline.
-   *
-   * Since this will aggregate different wallets and dataPoint types, by `dateUtc`, there is no need to maintain `type` property.
-   */
-  unifyDataset(data: LiquidationSerieDTO[]): UnifiedLiquidationSerieDataPointDTO[] {
-    let unifiedSeriesMap = new Map<number, UnifiedLiquidationSerieDataPointDTO>()
-    for (let wallet of data) {
-      for (let dataPoint of wallet.dataPoints) {
-        // Merge wallet assets into a Map, to merge equal dates to same dataPoint
-        if (unifiedSeriesMap.has(dataPoint.dateUtc)) {
-          const previousMapValue = unifiedSeriesMap.get(dataPoint.dateUtc)!
-          unifiedSeriesMap.set(dataPoint.dateUtc, {
-            dateUtc: dataPoint.dateUtc,
-            inputAmount: new Big(previousMapValue.inputAmount)
-              .add(dataPoint.inputAmount)
-              .round(2, Big.roundHalfUp)
-              .toNumber(),
-            grossAmount: new Big(previousMapValue.grossAmount)
-              .add(dataPoint.grossAmount)
-              .round(2, Big.roundHalfUp)
-              .toNumber(),
-            netAmount: new Big(previousMapValue.netAmount)
-              .add(dataPoint.netAmount)
-              .round(2, Big.roundHalfUp)
-              .toNumber(),
-            costsAndTaxes: new Big(previousMapValue.costsAndTaxes)
-              .add(dataPoint.costsAndTaxes)
-              .round(2, Big.roundHalfUp)
-              .toNumber(),
-            daysRunning: new Big(previousMapValue.daysRunning)
-              .add(dataPoint.daysRunning)
-              .round(2, Big.roundHalfUp)
-              .toNumber(),
-          })
-        } else
-          unifiedSeriesMap.set(dataPoint.dateUtc, {
-            dateUtc: dataPoint.dateUtc,
-            inputAmount: dataPoint.inputAmount,
-            grossAmount: dataPoint.grossAmount,
-            netAmount: dataPoint.netAmount,
-            costsAndTaxes: dataPoint.costsAndTaxes,
-            daysRunning: dataPoint.daysRunning,
-          })
-      }
-    }
-    return Array.from(unifiedSeriesMap.values())
-  }
-
-  /**
-   * Generate Chart data and options for the `Unified Wallets Comparing Net & Gross Amounts`, which will calculate Net and Gross amounts of wallets unified.
-   * This means that will take all the assets from the wallets and unify them in a single timeline.
-   *
-   * @param dataSerie: Will be the unified array of assets ordered by `date`.
-   */
-  chartDataUnifiedWalletsNetGrossProfits(
-    dataSerie: UnifiedLiquidationSerieDataPointDTO[]
+  chartDataUnifiedWallets(
+    dataSerie: UnifiedLiquidationSerieDataPointDTO[],
+    showProfitsOnly: boolean,
+    tendencyType: TendencyType
   ): ChartGeneratedData {
     if (dataSerie.length === 0) return {} as ChartGeneratedData
-    let netEvolutionValue = new Big(0)
-    let grossEvolutionValue = new Big(0)
-    let netEvolution: ChartDataSerie = ['Summed Net Profit']
-    let grossEvolution: ChartDataSerie = ['Summed Gross Profit']
+
+    const columnName = showProfitsOnly ? 'Summed Net' : 'Summed Balance'
+    let evolutionColumn: ChartDataSerie = [columnName]
     let xAxis: ChartDataSerie = ['x']
-    let forecastAverage: {
-      daysRunning: Big
-      netProfit: Big
-      grossProfit: Big
-      netProfitPerDay: Big
-      grossProfitPerDay: Big
-    } = {
-      daysRunning: new Big(0),
-      netProfit: new Big(0),
-      grossProfit: new Big(0),
-      netProfitPerDay: new Big(0),
-      grossProfitPerDay: new Big(0),
-    }
+    let evolutionValue = new Big(0)
 
-    for (let dataPoint of dataSerie) {
+    for (const dataPoint of dataSerie) {
       xAxis.push(dataPoint.dateUtc)
-      netEvolutionValue = netEvolutionValue.add(dataPoint.netAmount)
-      grossEvolutionValue = grossEvolutionValue.add(dataPoint.grossAmount)
-      netEvolution.push(netEvolutionValue.toFixed(2))
-      grossEvolution.push(grossEvolutionValue.toFixed(2))
-      forecastAverage.netProfit = forecastAverage.netProfit.add(dataPoint.netAmount)
-      forecastAverage.grossProfit = forecastAverage.grossProfit.add(dataPoint.grossAmount)
-      forecastAverage.daysRunning = forecastAverage.daysRunning.add(dataPoint.daysRunning)
+      evolutionValue = evolutionValue
+        .add(dataPoint.netAmount)
+        .add(showProfitsOnly ? 0 : dataPoint.inputAmount)
+      evolutionColumn.push(evolutionValue.round(2, Big.roundHalfUp).toNumber())
     }
 
-    forecastAverage.daysRunning = forecastAverage.daysRunning.div(dataSerie.length)
-    forecastAverage.netProfit = forecastAverage.netProfit.div(dataSerie.length)
-    forecastAverage.grossProfit = forecastAverage.grossProfit.div(dataSerie.length)
-    forecastAverage.netProfitPerDay = forecastAverage.netProfit.div(forecastAverage.daysRunning)
-    forecastAverage.grossProfitPerDay = forecastAverage.grossProfit.div(forecastAverage.daysRunning)
-
-    // Add a forecast of next data
-    for (let fIdx = 1; fIdx <= this.forecastTimes; fIdx++) {
-      xAxis.push(dataSerie.at(-1)!.dateUtc + this.thirdyDaysMS * fIdx)
-      netEvolution.push(
-        netEvolutionValue
-          .add(forecastAverage.netProfitPerDay.mul(30 * fIdx))
-          .round(2, Big.roundHalfUp)
-          .toFixed(2)
-      )
-      grossEvolution.push(
-        grossEvolutionValue
-          .add(forecastAverage.grossProfitPerDay.mul(30 * fIdx))
-          .round(2, Big.roundHalfUp)
-          .toFixed(2)
-      )
+    const forecastValues = this._forecastHybrid(
+      dataSerie,
+      this._forecast.halfLifeDays,
+      this._forecast.cutoffDays,
+      this._forecast.steps
+    )
+    const now = new Date().getTime()
+    for (let fIdx = 1; fIdx <= this._forecast.steps; fIdx++) {
+      xAxis.push(now + this._thirdyDaysMS * fIdx)
+      evolutionValue = evolutionValue.add(forecastValues[fIdx - 1])
+      evolutionColumn.push(evolutionValue.round(2, Big.roundHalfUp).toNumber())
     }
 
     return {
       data: {
         x: 'x',
-        columns: [xAxis, grossEvolution, netEvolution],
+        columns: [xAxis, evolutionColumn],
         types: {
-          'Summed Gross Profit': area(),
-          'Summed Net Profit': area(),
-        },
-        colors: {
-          'Summed Gross Profit': '#f97316',
-          'Summed Net Profit': '#22c55e',
+          [columnName]: area(),
         },
         regions: {
-          'Summed Gross Profit': [{ start: xAxis.at(-3), style: { dasharray: '4 4' } }],
-          'Summed Net Profit': [{ start: xAxis.at(-3), style: { dasharray: '4 4' } }],
+          [columnName]: [{ start: xAxis.at(-3), style: { dasharray: '4 4' } }],
         },
       },
       classes: ['billboard-lines-thick', 'billboard-lines-thick'],
@@ -161,97 +83,34 @@ export class EvolutionSeriesService {
     }
   }
 
-  /**
-   * Generate Chart data and options for the `Unified Wallets Net Profits with Tendency`, which will calculate Net profit of wallets unifed.
-   * This means that will take all the assets from the wallets and unify them in a single timeline.
-   *
-   * @param dataSerie: Will be the unified array of assets ordered by `date`.
-   */
-  chartDataUnifiedWalletsNetWithTendency(
-    dataSerie: UnifiedLiquidationSerieDataPointDTO[]
+  chartDataSeparatedWallets(
+    dataSeries: LiquidationSerieDTO[],
+    compareNetOnly: boolean
   ): ChartGeneratedData {
-    if (dataSerie.length === 0) return {} as ChartGeneratedData
-    let netEvolutionValue = new Big(0)
-    let netEvolution: ChartDataSerie = ['Summed Net Profit']
-    let xAxis: ChartDataSerie = ['x']
-    let forecastAverage: {
-      daysRunning: Big
-      netProfit: Big
-      netProfitPerDay: Big
-    } = {
-      daysRunning: new Big(0),
-      netProfit: new Big(0),
-      netProfitPerDay: new Big(0),
-    }
+    if (dataSeries.length === 0) return {} as ChartGeneratedData
 
-    for (let dataPoint of dataSerie) {
-      xAxis.push(dataPoint.dateUtc)
-      netEvolutionValue = netEvolutionValue.add(dataPoint.netAmount)
-      netEvolution.push(netEvolutionValue.toFixed(2))
-      forecastAverage.netProfit = forecastAverage.netProfit.add(dataPoint.netAmount)
-      forecastAverage.daysRunning = forecastAverage.daysRunning.add(dataPoint.daysRunning)
-    }
-
-    forecastAverage.daysRunning = forecastAverage.daysRunning.div(dataSerie.length)
-    forecastAverage.netProfit = forecastAverage.netProfit.div(dataSerie.length)
-    forecastAverage.netProfitPerDay = forecastAverage.netProfit.div(forecastAverage.daysRunning)
-
-    /**
-     * TODO: Add the two tendency lines.
-     */
-
-    // Add a forecast of next data
-    for (let fIdx = 1; fIdx <= this.forecastTimes; fIdx++) {
-      xAxis.push(dataSerie.at(-1)!.dateUtc + this.thirdyDaysMS * fIdx)
-      netEvolution.push(
-        netEvolutionValue
-          .add(forecastAverage.netProfitPerDay.mul(30 * fIdx))
-          .round(2, Big.roundHalfUp)
-          .toFixed(2)
-      )
-    }
-
-    return {
-      data: {
-        x: 'x',
-        columns: [xAxis, netEvolution],
-        types: {
-          'Summed Net Profit': area(),
-        },
-        regions: {
-          'Summed Net Profit': [{ start: xAxis.at(-3), style: { dasharray: '4 4' } }],
-        },
-      },
-      classes: ['billboard-lines-thick'],
-      area: {
-        linearGradient: true,
-      },
-    }
-  }
-
-  /**
-   * Generate Chart data and options for the `Separate Wallets Net Profits`, which will calculate Net profit of each wallet individualy.
-   */
-  chartDataSeparatedWalletsNet(data: LiquidationSerieDTO[]): ChartGeneratedData {
-    if (data.length === 0) return {} as ChartGeneratedData
     let dataColumns: ChartDataSerie[] = []
     let dataXSMap: { [key: string]: string } = {}
     let dataRegions: { [key: string]: any[] } = {}
     let dataClasses: string[] = []
 
-    for (let [idx, serie] of data.entries()) {
+    for (const [idx, serie] of dataSeries.entries()) {
       if (serie.dataPoints.length === 0) continue
-      let netEvolutionValue = new Big(0)
-      let netEvolution: ChartDataSerie = [serie.walletName]
-      let xAxis: ChartDataSerie = [`x${idx}`]
-      let forecastAverage: {
-        daysRunning: Big
-        netProfit: Big
-        netProfitPerDay: Big
+
+      let evolutionColumns: {
+        net: ChartDataSerie
+        input?: ChartDataSerie
+        gross?: ChartDataSerie
       } = {
-        daysRunning: new Big(0),
-        netProfit: new Big(0),
-        netProfitPerDay: new Big(0),
+        net: [`Net ${serie.walletName}`],
+        ...(!compareNetOnly ? { input: [`Input ${serie.walletName}`] } : {}),
+        ...(!compareNetOnly ? { gross: [`Gross ${serie.walletName}`] } : {}),
+      }
+      let xAxis: ChartDataSerie = [`x${idx}`]
+      let evolutionValues = {
+        net: new Big(0),
+        ...(!compareNetOnly ? { input: new Big(0) } : {}),
+        ...(!compareNetOnly ? { gross: new Big(0) } : {}),
       }
 
       dataXSMap[serie.walletName] = `x${idx}`
@@ -259,29 +118,53 @@ export class EvolutionSeriesService {
 
       for (let dataPoint of serie.dataPoints) {
         xAxis.push(dataPoint.dateUtc)
-        netEvolutionValue = netEvolutionValue.add(dataPoint.netAmount)
-        netEvolution.push(netEvolutionValue.toFixed(2))
-        forecastAverage.netProfit = forecastAverage.netProfit.add(dataPoint.netAmount)
-        forecastAverage.daysRunning = forecastAverage.daysRunning.add(dataPoint.daysRunning)
+        evolutionValues.net = evolutionValues.net.add(dataPoint.netAmount)
+        evolutionColumns.net.push(evolutionValues.net.round(2, Big.roundHalfUp).toNumber())
+        if (!compareNetOnly) {
+          evolutionValues.input = evolutionValues.input!.add(dataPoint.inputAmount)
+          evolutionValues.gross = evolutionValues.gross!.add(dataPoint.grossAmount)
+          evolutionColumns.input!.push(evolutionValues.input!.round(2, Big.roundHalfUp).toNumber())
+          evolutionColumns.gross!.push(evolutionValues.gross!.round(2, Big.roundHalfUp).toNumber())
+        }
       }
 
-      forecastAverage.daysRunning = forecastAverage.daysRunning.div(serie.dataPoints.length)
-      forecastAverage.netProfit = forecastAverage.netProfit.div(serie.dataPoints.length)
-      forecastAverage.netProfitPerDay = forecastAverage.netProfit.div(forecastAverage.daysRunning)
-
-      // Add a forecast of next data
-      for (let fIdx = 1; fIdx <= this.forecastTimes; fIdx++) {
-        xAxis.push(serie.dataPoints.at(-1)!.dateUtc + this.thirdyDaysMS * fIdx)
-        netEvolution.push(
-          netEvolutionValue
-            .add(forecastAverage.netProfitPerDay.mul(30 * fIdx))
-            .round(2, Big.roundHalfUp)
-            .toFixed(2)
-        )
+      const forecastValues = {
+        net: this._forecastHybrid(
+          serie.dataPoints,
+          this._forecast.halfLifeDays,
+          this._forecast.cutoffDays,
+          this._forecast.steps
+        ),
+        ...(!compareNetOnly
+          ? {
+              gross: this._forecastHybrid(
+                serie.dataPoints.map(dp => ({ ...dp, netAmount: dp.grossAmount })),
+                this._forecast.halfLifeDays,
+                this._forecast.cutoffDays,
+                this._forecast.steps
+              ),
+            }
+          : {}),
       }
-      dataColumns.push([...netEvolution])
+      const now = new Date().getTime()
+
+      for (let fIdx = 1; fIdx <= this._forecast.steps; fIdx++) {
+        xAxis.push(now + this._thirdyDaysMS * fIdx)
+        evolutionColumns.net.push(forecastValues.net[fIdx - 1])
+        if (!compareNetOnly) {
+          evolutionColumns.input!.push(null)
+          evolutionColumns.gross!.push(forecastValues.gross![fIdx - 1])
+        }
+      }
+
+      dataColumns.push(...Object.values(evolutionColumns))
       dataColumns.push([...xAxis])
-      dataRegions[serie.walletName] = [{ start: xAxis.at(-3), style: { dasharray: '4 4' } }]
+      dataRegions[evolutionColumns.net[0]] = [{ start: xAxis.at(-3), style: { dasharray: '4 4' } }]
+      if (!compareNetOnly) {
+        dataRegions[evolutionColumns.gross![0]] = [
+          { start: xAxis.at(-3), style: { dasharray: '4 4' } },
+        ]
+      }
     }
 
     return {
@@ -293,5 +176,126 @@ export class EvolutionSeriesService {
       },
       classes: [...dataClasses],
     }
+  }
+
+  /**
+   * Forecast next values using a hybrid method that combines Linear Regression and Exponential Smoothing, giving more weight to recent data.
+   *
+   * @param deltas: The data serie to be forecasted, ordered by date ascending.
+   * @param halfLifeDays: The number of days for the weight to reduce by half. For example, if 30, the data from 30 days ago will have half the weight of the most recent data.
+   * @param cutoffDays: The number of days after which the data will be ignored for the forecast. For example, if 90, the data from more than 90 days ago will not be considered in the forecast.
+   * @param steps: The number of future points to forecast.
+   * @return An array of forecasted values for the next `steps` points.
+   */
+  private _forecastHybrid(
+    deltas: ForecastDeltaPoint[],
+    halfLifeDays: number,
+    cutoffDays: number,
+    steps: number
+  ): number[] {
+    const lrs = this._forecastLinearRegression(deltas, halfLifeDays, cutoffDays, steps)
+    const ess = this._forecastExpSmoothing(deltas, halfLifeDays, cutoffDays, steps)
+
+    let hybridForecast: number[] = []
+    for (let i = 0; i < steps; i++) {
+      hybridForecast.push((lrs[i] + ess[i]) / 2)
+    }
+    return hybridForecast
+  }
+
+  /**
+   * Forecast next values using Exponential Smoothing method, giving more weight to recent data.
+   *
+   * @param deltas: The data serie to be forecasted, ordered by date ascending.
+   * @param halfLifeDays: The number of days for the weight to reduce by half. For example, if 30, the data from 30 days ago will have half the weight of the most recent data.
+   * @param cutoffDays: The number of days after which the data will be ignored for the forecast. For example, if 90, the data from more than 90 days ago will not be considered in the forecast.
+   * @param steps: The number of future points to forecast.
+   * @return An array of forecasted values for the next `steps` points.
+   */
+  private _forecastExpSmoothing(
+    deltas: ForecastDeltaPoint[],
+    halfLifeDays: number,
+    cutoffDays: number,
+    steps: number
+  ): number[] {
+    const now = new Date().getTime()
+    const halfLifeMillis = halfLifeDays * 24 * 60 * 60 * 1000
+    const cutoffMillis = cutoffDays * 24 * 60 * 60 * 1000
+    const lambda = Math.log(2) / halfLifeMillis
+    let smoothedValues: number[] = []
+    let lastSmoothedValue = deltas[0].netAmount
+
+    for (let i = 1; i < deltas.length; i++) {
+      const dt = now - deltas[i].dateUtc
+
+      // If the data point is older than the cutoff, ignore it
+      if (dt > cutoffMillis) {
+        continue
+      }
+
+      const alpha = 1 - Math.exp(-lambda * dt)
+      const smoothedValue = alpha * deltas[i].netAmount + (1 - alpha) * lastSmoothedValue
+      smoothedValues.push(smoothedValue)
+      lastSmoothedValue = smoothedValue
+    }
+
+    return smoothedValues.slice(-steps)
+  }
+
+  /**
+   * Forecast next values using Linear Regression method, giving more weight to recent data through an exponential decay function.
+   *
+   * @param deltas: The data serie to be forecasted, ordered by date ascending.
+   * @param halfLifeDays: The number of days for the weight to reduce by half. For example, if 30, the data from 30 days ago will have half the weight of the most recent data.
+   * @param cutoffDays: The number of days after which the data will be ignored for the forecast. For example, if 90, the data from more than 90 days ago will not be considered in the forecast.
+   * @param steps: The number of future points to forecast.
+   * @return An array of forecasted values for the next `steps` points.
+   */
+  private _forecastLinearRegression(
+    deltas: ForecastDeltaPoint[],
+    halfLifeDays: number,
+    cutoffDays: number,
+    steps: number
+  ): number[] {
+    const now = new Date().getTime()
+    const halfLifeMillis = halfLifeDays * 24 * 60 * 60 * 1000
+    const cutoffMillis = cutoffDays * 24 * 60 * 60 * 1000
+    const lambda = Math.log(2) / halfLifeMillis
+
+    let weightedSumX = 0
+    let weightedSumY = 0
+    let weightedSumXY = 0
+    let weightedSumXX = 0
+    let totalWeight = 0
+
+    for (let i = 0; i < deltas.length; i++) {
+      const dt = now - deltas[i].dateUtc
+
+      // If the data point is older than the cutoff, ignore it
+      if (dt > cutoffMillis) {
+        continue
+      }
+
+      const weight = Math.exp(-lambda * dt)
+      weightedSumX += weight * deltas[i].dateUtc
+      weightedSumY += weight * deltas[i].netAmount
+      weightedSumXY += weight * deltas[i].dateUtc * deltas[i].netAmount
+      weightedSumXX += weight * deltas[i].dateUtc * deltas[i].dateUtc
+      totalWeight += weight
+    }
+
+    const slope =
+      (totalWeight * weightedSumXY - weightedSumX * weightedSumY) /
+      (totalWeight * weightedSumXX - weightedSumX * weightedSumX)
+    const intercept = (weightedSumY - slope * weightedSumX) / totalWeight
+
+    let forecast: number[] = []
+    const lastDate = deltas[deltas.length - 1].dateUtc
+    for (let i = 1; i <= steps; i++) {
+      const futureDate = lastDate + this._thirdyDaysMS * i
+      const predictedValue = intercept + slope * futureDate
+      forecast.push(predictedValue)
+    }
+    return forecast
   }
 }
