@@ -9,7 +9,7 @@ export default class extends BaseSchema {
       table.uuid('id').primary().notNullable()
       table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE')
 
-      table.string('name').notNullable() // Name of the investment wallet
+      table.string('name').notNullable().unique() // Name of the investment wallet
       table.string('currency_code', 3).notNullable().checkIn(acceptedCurrencyCodes) // Wallet currency code (e.g., USD, BRL)
 
       table.timestamp('created_at').notNullable()
