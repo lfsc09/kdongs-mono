@@ -49,13 +49,15 @@ export function formatMonetary(
   /**
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat
    */
-  return new Intl.NumberFormat(locale ?? 'pt-BR', {
+  const formatted = new Intl.NumberFormat(locale ?? 'pt-BR', {
     style: 'currency',
     currency: currency ?? '***',
     currencyDisplay: currencyDisplay ?? 'code',
-    currencySign: 'accounting',
+    signDisplay: 'never',
     minimumIntegerDigits: isNaN(minInt) ? undefined : minInt,
     minimumFractionDigits: isNaN(minFrac) ? undefined : minFrac,
     maximumFractionDigits: isNaN(maxFrac) ? undefined : maxFrac,
   }).format(val)
+
+  return val < 0 ? `(${formatted})` : formatted
 }
