@@ -11,8 +11,9 @@
     "test": "node ace test",
     "biome:check": "biome check --write --no-errors-on-unmatched",
     "typecheck": "tsc --noEmit",
-    "migration:fresh": "node ace migration:fresh --seed --force",
-    "test:migration:force": "NODE_ENV=test node ace migration:fresh --force"
+    "migration:fresh": "node ace migration:fresh --force",
+    "migration:fresh:seed": "node ace migration:fresh --seed --force",
+    "test:migration:fresh": "NODE_ENV=test node ace migration:fresh --force"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",

@@ -14,11 +14,12 @@
     "dev:frontend": "npm start --workspace frontend",
     "dev:frontend:format": "npm run format --workspace frontend",
     "dev:backend": "npm run dev --workspace backend",
-    "dev:backend:migrate": "npm run migration:fresh --workspace backend",
+    "dev:backend:migrate-fresh": "npm run migration:fresh --workspace backend",
+    "dev:backend:migrate-with-seed": "npm run migration:fresh:seed --workspace backend",
     "dev:backend:format": "npm run biome:check --workspace backend",
     "test:frontend": "npm run test --workspace frontend",
     "test:backend": "npm run test --workspace backend",
-    "test:backend:migrate": "npm run test:migration:force --workspace backend"
+    "test:backend:migrate-fresh": "npm run test:migration:fresh --workspace backend"
   },
   "repository": {
     "type": "git",

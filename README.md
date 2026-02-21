@@ -384,8 +384,11 @@ npm run dev:docker-full-up
 ##### regular migrations
 
 ```bash
-# migrate with .env
-npm run dev:backend:migrate
+# migrate with .env (with fake data)
+npm run dev:backend:migrate-with-seed
+
+# migrate with .env (no data)
+npm run dev:backend:migrate-fresh
 ```
 
 ##### migrations for testing purposes
@@ -394,7 +397,7 @@ npm run dev:backend:migrate
 
 ```bash
 # migrate with .env.test
-npm run test:backend:migrate
+npm run test:backend:migrate-fresh
 ```
 
 </br>
@@ -428,7 +431,7 @@ npm run dev:mono
 > Migrate the test-db first
 
 ```bash
-npm run test:backend:migrate
+npm run test:backend:migrate-fresh
 ```
 
 ```bash
