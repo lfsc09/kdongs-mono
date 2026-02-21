@@ -32,7 +32,7 @@ const movementGenerator = (
         const originExchOpFeePercent = new Big(
           faker.number.float({ fractionDigits: 2, max: 0.04, min: 0 }),
         )
-        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent)
+        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent).abs().neg()
         originExchVetRate = originExchGrossRate.plus(originExchOpFee)
       }
 
@@ -51,7 +51,7 @@ const movementGenerator = (
         const originExchOpFeePercent = new Big(
           faker.number.float({ fractionDigits: 2, max: 0.04, min: 0 }),
         )
-        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent)
+        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent).abs().neg()
         originExchVetRate = originExchGrossRate.plus(originExchOpFee)
       }
 

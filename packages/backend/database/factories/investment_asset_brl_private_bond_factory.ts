@@ -159,14 +159,14 @@ const regularBondGenerator = (
           )
     grossAmount = calculateFutureValue(inputAmount, dailyRate, bondYieldDays)
     yieldAmount = grossAmount.minus(inputAmount)
-    iofAmount = yieldAmount.times(getIofFee(bondYieldDays))
+    iofAmount = yieldAmount.times(getIofFee(bondYieldDays)).abs().neg()
     // Taxes are applied only for certain bond types
     if (
       acceptedBondTypes
         .filter<BondType>(v => v === BondTypes.LCA || v === BondTypes.LCI)
         .includes(bondType)
     ) {
-      taxesAmount = yieldAmount.minus(iofAmount).times(getTaxFee(bondYieldDays))
+      taxesAmount = yieldAmount.add(iofAmount).times(getTaxFee(bondYieldDays)).abs().neg()
     }
   }
 
@@ -226,7 +226,7 @@ export const AssetBrlPrivateBondFactory = factory
     b.enterDateUtc = DateTime.fromJSDate(getEnterDateUtc(maturityDateUtc, ctx.faker))
     b.merge({
       ...regularBondGenerator(
-        true,
+        b.isDone,
         b.bondType,
         b.interestType,
         b.maturityDateUtc.toJSDate(),
@@ -245,7 +245,7 @@ export const AssetBrlPrivateBondFactory = factory
     b.enterDateUtc = DateTime.fromJSDate(getEnterDateUtc(maturityDateUtc, ctx.faker))
     b.merge({
       ...regularBondGenerator(
-        true,
+        b.isDone,
         b.bondType,
         b.interestType,
         b.maturityDateUtc.toJSDate(),

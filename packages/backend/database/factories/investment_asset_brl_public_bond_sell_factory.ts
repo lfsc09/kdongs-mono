@@ -13,13 +13,15 @@ const getFees = (
 ) => {
   switch (bondType) {
     case BondTypes.LTN:
-      return unitPrice.times(sharesAmount).times(0.003) // Usually around 0.6% of (unit price * shares amount) (Buy + Sell)
+      return unitPrice.times(sharesAmount).times(0.003).abs().neg() // Usually around 0.6% of (unit price * shares amount) (Buy + Sell)
     case BondTypes.LFT:
-      return unitPrice.times(sharesAmount).times(0.0019) // Usually around 0.38% of (unit price * shares amount) (Buy + Sell)
+      return unitPrice.times(sharesAmount).times(0.0019).abs().neg() // Usually around 0.38% of (unit price * shares amount) (Buy + Sell)
     default:
       return unitPrice
         .times(sharesAmount)
         .times(new Big(faker.number.float({ fractionDigits: 4, max: 0.003, min: 0.0019 }))) // Fees around 0.38% to 0.6% of (unit price * shares amount) (Buy + Sell)
+        .abs()
+        .neg()
   }
 }
 
@@ -29,6 +31,8 @@ const getTaxes = (unitPrice: Big, sharesAmount: Big, faker: Faker) =>
     .times(sharesAmount)
     .times(0.33)
     .times(new Big(faker.number.float({ fractionDigits: 4, max: 0.22, min: 0.15 })))
+    .abs()
+    .neg()
 
 export const AssetBrlPublicBondSellFactory = factory
   .define(AssetBrlPublicBondSell, async ({ faker }) => {
