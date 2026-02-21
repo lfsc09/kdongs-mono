@@ -18,10 +18,10 @@
         {{ performance()?.dateEndUtc | date: 'MMM yyyy' }}</span
       >
     </div>
-    <div class="grid grid-cols-8 gap-4">
-      <div class="card col-span-2 flex flex-col justify-center gap-4">
+    <div class="grid grid-cols-8 gap-6">
+      <div class="card col-span-2 flex flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">N° of Assets</span>
-        <div class="flex w-full flex-1 flex-col justify-start gap-4">
+        <div class="flex w-full flex-1 flex-col justify-center gap-6">
           <div class="flex flex-col gap-1">
             <div class="flex flex-row justify-between gap-2">
               <span class="text-xs font-bold">Total:</span>
@@ -52,207 +52,188 @@
           </div>
         </div>
       </div>
-      <div class="card col-span-2 flex flex-col justify-center gap-4">
+      <div class="card col-span-2 flex flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">Net Expectancy</span>
-        <div class="flex w-full flex-1 flex-col justify-start gap-1">
+        <div class="flex w-full flex-1 flex-col justify-center gap-3">
           <div class="flex flex-row justify-between gap-2">
             <span class="text-xs font-bold">By Asset</span>
-            <span class="text-[.7rem]">{{
+            <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByAsset">{{
               performance()?.expectancyByAsset
                 | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="text-xs font-bold">Avg. Days</span>
-            <span class="text-[.7rem]">~{{ performance()?.avgDaysByAsset }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Day:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.expectancyByDay
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Month:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.expectancyByMonth
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Quarter:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.expectancyByQuarter
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Year:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.expectancyByYear
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row justify-between gap-2">
+              <span class="text-xs font-bold">Avg. Days</span>
+              <span class="text-[.7rem]">~{{ performance()?.avgDaysByAsset }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Day:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByDay">{{
+                performance()?.expectancyByDay
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Month:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByMonth">{{
+                performance()?.expectancyByMonth
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Quarter:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByQuarter">{{
+                performance()?.expectancyByQuarter
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Year:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByYear">{{
+                performance()?.expectancyByYear
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
           </div>
         </div>
       </div>
-      <div class="card col-span-2 flex flex-col justify-center gap-4">
+      <div class="card col-span-2 flex flex-col justify-start gap-6">
         <span class="font-bold text-red-400">Avg. Cost</span>
-        <div class="flex w-full flex-1 flex-col justify-start gap-1">
+        <div class="flex w-full flex-1 flex-col justify-center gap-3">
           <div class="flex flex-row justify-between gap-2">
             <span class="text-xs font-bold">By Asset</span>
-            <span class="text-[.7rem]">{{
+            <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByAsset">{{
               performance()?.avgCostByAsset
                 | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="text-xs font-bold">Avg. Days</span>
-            <span class="text-[.7rem]">{{ performance()?.avgDaysByAsset }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Day:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgCostByDay
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Month:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgCostByMonth
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Quarter:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgCostByQuarter
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Year:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgCostByYear
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row justify-between gap-2">
+              <span class="text-xs font-bold">Avg. Days</span>
+              <span class="text-[.7rem]">~{{ performance()?.avgDaysByAsset }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Day:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByDay">{{
+                performance()?.avgCostByDay
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Month:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByMonth">{{
+                performance()?.avgCostByMonth
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Quarter:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByQuarter">{{
+                performance()?.avgCostByQuarter
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Year:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByYear">{{
+                performance()?.avgCostByYear
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
           </div>
           <div class="flex flex-row justify-between gap-2">
             <span class="text-xs font-bold">Total Costs</span>
-            <span class="text-[.7rem]">{{
+            <span class="text-[.7rem]" [kdongsMonetary]="performance()?.sumCosts">{{
               performance()?.sumCosts
                 | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
         </div>
       </div>
-      <div class="card col-span-2 flex flex-col justify-center gap-4">
+      <div class="card col-span-2 flex flex-col justify-start gap-6">
         <span class="font-bold text-red-400">Avg. Taxes</span>
-        <div class="flex w-full flex-1 flex-col justify-start gap-1">
+        <div class="flex w-full flex-1 flex-col justify-center gap-3">
           <div class="flex flex-row justify-between gap-2">
             <span class="text-xs font-bold">By Asset</span>
-            <span class="text-[.7rem]">{{
+            <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByAsset">{{
               performance()?.avgTaxByAsset
                 | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="text-xs font-bold">Avg. Days</span>
-            <span class="text-[.7rem]">{{ performance()?.avgDaysByAsset }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Day:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgTaxByDay
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Month:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgTaxByMonth
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Quarter:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgTaxByQuarter
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
-          </div>
-          <div class="flex flex-row justify-between gap-2">
-            <span class="ml-4 text-xs">By Year:</span>
-            <span class="text-[.7rem]">{{
-              performance()?.avgTaxByYear
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex flex-row justify-between gap-2">
+              <span class="text-xs font-bold">Avg. Days</span>
+              <span class="text-[.7rem]">~{{ performance()?.avgDaysByAsset }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Day:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByDay">{{
+                performance()?.avgTaxByDay
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Month:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByMonth">{{
+                performance()?.avgTaxByMonth
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Quarter:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByQuarter">{{
+                performance()?.avgTaxByQuarter
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
+            <div class="flex flex-row justify-between gap-2">
+              <span class="ml-4 text-xs">By Year:</span>
+              <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByYear">{{
+                performance()?.avgTaxByYear
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}</span>
+            </div>
           </div>
           <div class="flex flex-row justify-between gap-2">
             <span class="text-xs font-bold">Total Taxes</span>
-            <span class="text-[.7rem]">{{
+            <span class="text-[.7rem]" [kdongsMonetary]="performance()?.sumTaxes">{{
               performance()?.sumTaxes
                 | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
         </div>
       </div>
-      <div class="card col-span-2 flex flex-col justify-center gap-4">
+      <div class="card col-span-2 flex h-fit flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">Profit Balance</span>
-        <div class="flex w-full flex-1 flex-row items-center justify-center">
-          <span
-            class="font-bold"
-            [class]="{
-              'text-lime-500':
-                (performance()?.resultingBalanceInCurrency ?? 0) >
-                (performance()?.movementsSum ?? 0),
-              'dark:text-lime-500':
-                (performance()?.resultingBalanceInCurrency ?? 0) >
-                (performance()?.movementsSum ?? 0),
-              'text-red-500':
-                (performance()?.resultingBalanceInCurrency ?? 0) <
-                (performance()?.movementsSum ?? 0),
-              'dark:text-red-400':
-                (performance()?.resultingBalanceInCurrency ?? 0) <
-                (performance()?.movementsSum ?? 0),
-            }"
-          >
-            {{
-              performance()?.resultingBalanceInCurrency
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}
-          </span>
-        </div>
-        <div class="flex w-full flex-1 flex-row items-center justify-evenly">
-          <span
-            class="text-sm"
-            [class]="{
-              'text-lime-500': (performance()?.resultingProfitInPerc ?? 0) > 0,
-              'dark:text-lime-500': (performance()?.resultingProfitInPerc ?? 0) > 0,
-              'text-red-500': (performance()?.resultingProfitInPerc ?? 0) < 0,
-              'dark:text-red-400': (performance()?.resultingProfitInPerc ?? 0) < 0,
-            }"
-          >
-            {{ performance()?.resultingProfitInPerc | percent: '1.0-2' }}
-          </span>
-          <span
-            class="text-sm"
-            [class]="{
-              'text-lime-500': (performance()?.resultingProfitInCurrency ?? 0) > 0,
-              'dark:text-lime-500': (performance()?.resultingProfitInCurrency ?? 0) > 0,
-              'text-red-500': (performance()?.resultingProfitInCurrency ?? 0) < 0,
-              'dark:text-red-400': (performance()?.resultingProfitInCurrency ?? 0) < 0,
-            }"
-          >
-            {{
-              performance()?.resultingProfitInCurrency
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
-            }}
-          </span>
+        <div class="flex flex-1 flex-col justify-center gap-2">
+          <div class="flex w-full flex-row items-center justify-center">
+            <span
+              class="font-bold"
+              [kdongsMonetary]="performance()?.resultingBalanceInCurrency"
+              [kmNegativeLowerThan]="performance()?.movementsSum ?? 0"
+              [kmPositiveGreaterThan]="performance()?.movementsSum ?? 0"
+            >
+              {{
+                performance()?.resultingBalanceInCurrency
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}
+            </span>
+          </div>
+          <div class="flex w-full flex-row items-center justify-evenly pt-6">
+            <span class="text-sm" [kdongsMonetary]="performance()?.resultingProfitInPerc">
+              {{ performance()?.resultingProfitInPerc | percent: '1.0-2' }}
+            </span>
+            <span class="text-sm" [kdongsMonetary]="performance()?.resultingProfitInCurrency">
+              {{
+                performance()?.resultingProfitInCurrency
+                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+              }}
+            </span>
+          </div>
         </div>
       </div>
-      <div class="card flex flex-col justify-center gap-4">
+      <div class="card flex h-fit flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">Breakeven</span>
         <div class="flex w-full flex-1 flex-row items-center justify-evenly">
           @if (performance()?.breakeven === undefined) {
@@ -261,7 +242,7 @@
             <kdongs-cp-gauge
               [value]="(performance()?.breakeven ?? 0) * 100"
               [colorMeter]="[
-                { threshold: 50, stroke: 'stroke-lime-500', fill: 'fill-lime-500' },
+                { threshold: 50, stroke: 'stroke-green-600', fill: 'fill-green-600' },
                 { threshold: 75, stroke: 'stroke-amber-500', fill: 'fill-amber-500' },
                 { threshold: 100, stroke: 'stroke-red-500', fill: 'fill-red-500' },
               ]"
@@ -272,7 +253,7 @@
           }
         </div>
       </div>
-      <div class="card flex flex-col justify-center gap-4">
+      <div class="card flex h-fit flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">Edge</span>
         <div class="flex w-full flex-1 flex-row items-center justify-evenly">
           @if (performance()?.edge === undefined) {
@@ -281,7 +262,7 @@
             <kdongs-cp-gauge
               [value]="(performance()?.edge ?? 0) * 100"
               [colorMeter]="[
-                { threshold: 50, stroke: 'stroke-lime-500', fill: 'fill-lime-500' },
+                { threshold: 50, stroke: 'stroke-green-600', fill: 'fill-green-600' },
                 { threshold: 75, stroke: 'stroke-amber-500', fill: 'fill-amber-500' },
                 { threshold: 100, stroke: 'stroke-red-500', fill: 'fill-red-500' },
               ]"
@@ -292,9 +273,9 @@
           }
         </div>
       </div>
-      <div class="card col-span-2 flex flex-col justify-center gap-4">
+      <div class="card col-span-2 flex h-fit flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">Profit & Losses</span>
-        <div class="flex w-full flex-1 flex-col justify-start gap-4">
+        <div class="flex w-full flex-1 flex-col justify-center gap-6">
           <div class="flex flex-col gap-1">
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Total Profit</span>
@@ -357,9 +338,9 @@
           </div>
         </div>
       </div>
-      <div class="card col-span-2 flex flex-col justify-center gap-4">
+      <div class="card col-span-2 flex h-fit flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">Evolution History</span>
-        <div class="flex w-full flex-1 flex-col justify-start gap-4">
+        <div class="flex w-full flex-1 flex-col justify-center gap-6">
           <div class="flex flex-col gap-1">
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Highest Balance</span>

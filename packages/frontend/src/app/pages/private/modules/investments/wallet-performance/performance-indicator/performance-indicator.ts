@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common'
 import { Component, inject, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { combineLatest, debounceTime, Subscription, switchMap, tap } from 'rxjs'
+import { MonetaryDirective } from '../../../../../../infra/directives/monetary.directive'
 import { PerformanceAnalyticsIndicatorsDTO } from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { MonetaryPipe } from '../../../../../../infra/pipes/monetary.pipe'
@@ -14,7 +15,7 @@ import { InvestmentsService } from '../../investments.service'
 @Component({
   selector: 'kdongs-performance-indicator',
   templateUrl: './performance-indicator.html',
-  imports: [DatePipe, PercentPipe, MonetaryPipe, LoadingBar, Gauge],
+  imports: [DatePipe, PercentPipe, MonetaryPipe, LoadingBar, Gauge, MonetaryDirective],
 })
 export class PerformanceIndicator implements OnDestroy {
   /**
