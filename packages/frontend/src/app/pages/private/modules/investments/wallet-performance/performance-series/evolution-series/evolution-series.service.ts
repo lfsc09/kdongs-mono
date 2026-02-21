@@ -76,7 +76,7 @@ export class EvolutionSeriesService {
           [columnName]: [{ start: xAxis.at(-3), style: { dasharray: '4 4' } }],
         },
       },
-      classes: ['billboard-lines-thick', 'billboard-lines-thick'],
+      classes: ['billboard-lines-thick'],
       area: {
         linearGradient: true,
       },
@@ -113,8 +113,10 @@ export class EvolutionSeriesService {
         ...(!compareNetOnly ? { gross: new Big(0) } : {}),
       }
 
-      dataXSMap[serie.walletName] = `x${idx}`
-      dataClasses.push('billboard-lines-thick')
+      for (const evolutionColumn of Object.values(evolutionColumns)) {
+        dataXSMap[evolutionColumn[0]] = `x${idx}`
+        dataClasses.push('billboard-lines-thick')
+      }
 
       for (let dataPoint of serie.dataPoints) {
         xAxis.push(dataPoint.dateUtc)
@@ -150,10 +152,12 @@ export class EvolutionSeriesService {
 
       for (let fIdx = 1; fIdx <= this._forecast.steps; fIdx++) {
         xAxis.push(now + this._thirdyDaysMS * fIdx)
-        evolutionColumns.net.push(forecastValues.net[fIdx - 1])
+        evolutionValues.net = evolutionValues.net.add(forecastValues.net[fIdx - 1])
+        evolutionColumns.net.push(evolutionValues.net.round(2, Big.roundHalfUp).toNumber())
         if (!compareNetOnly) {
           evolutionColumns.input!.push(null)
-          evolutionColumns.gross!.push(forecastValues.gross![fIdx - 1])
+          evolutionValues.gross = evolutionValues.gross!.add(forecastValues.gross![fIdx - 1])
+          evolutionColumns.gross!.push(evolutionValues.gross!.round(2, Big.roundHalfUp).toNumber())
         }
       }
 
