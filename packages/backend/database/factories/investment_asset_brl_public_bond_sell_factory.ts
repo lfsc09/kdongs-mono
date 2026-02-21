@@ -29,7 +29,7 @@ const getFees = (
 const getTaxes = (unitPrice: Big, sharesAmount: Big, faker: Faker) =>
   unitPrice
     .times(sharesAmount)
-    .times(0.33)
+    .times(0.38)
     .times(new Big(faker.number.float({ fractionDigits: 4, max: 0.22, min: 0.15 })))
     .abs()
     .neg()

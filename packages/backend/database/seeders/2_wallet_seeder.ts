@@ -64,6 +64,17 @@ export default class extends BaseSeeder {
       .with('assetBrlPublicBonds', 2, pb =>
         pb.with('assetBrlPublicBondBuys', 2).with('assetBrlPublicBondSells', 1),
       )
+      .with('assetSefbfrs', 5, pb => pb.with('assetSefbfrBuys', 2).with('assetSefbfrSells', 1))
+      .with('assetSefbfrs', 1, pb =>
+        pb.with('assetSefbfrBuys', 2).with('assetSefbfrSplits', 1).with('assetSefbfrSells', 1),
+      )
+      .with('assetSefbfrs', 1, pb =>
+        pb
+          .with('assetSefbfrBuys', 2)
+          .with('assetSefbfrBonusShares', 1)
+          .with('assetSefbfrDividends', 1)
+          .with('assetSefbfrSells', 1),
+      )
       .create()
 
     await WalletFactory.merge({

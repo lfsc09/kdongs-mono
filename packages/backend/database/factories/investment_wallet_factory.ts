@@ -6,6 +6,7 @@ import {
 } from '../../app/core/types/investment/currency.js'
 import { AssetBrlPrivateBondFactory } from './investment_asset_brl_private_bond_factory.js'
 import { AssetBrlPublicBondFactory } from './investment_asset_brl_public_bond_factory.js'
+import { AssetSefbfrFactory } from './investment_asset_sefbfr_factory.js'
 import { WalletMovementFactory } from './investment_wallet_movement_factory.js'
 
 export const WalletFactory = factory
@@ -18,4 +19,5 @@ export const WalletFactory = factory
   .relation('movements', () => WalletMovementFactory)
   .relation('assetBrlPrivateBonds', () => AssetBrlPrivateBondFactory)
   .relation('assetBrlPublicBonds', () => AssetBrlPublicBondFactory)
+  .relation('assetSefbfrs', () => AssetSefbfrFactory)
   .build()
