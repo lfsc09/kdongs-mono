@@ -45,6 +45,8 @@ export type PerformanceAnalyticsResponse = {
       avgTaxByMonth: number | undefined
       avgTaxByQuarter: number | undefined
       avgTaxByYear: number | undefined
+      sumCosts: number
+      sumTaxes: number
       movementsSum: number
       movementsAvg: number | undefined
       movementsMax: number | undefined
@@ -52,13 +54,17 @@ export type PerformanceAnalyticsResponse = {
       netProfitSum: number
       netProfitAvg: number | undefined
       netProfitMax: number | undefined
+      netProfitMin: number | undefined
       netLossSum: number
       netLossAvg: number | undefined
       netLossMax: number | undefined
+      netLossMin: number | undefined
       breakeven: number | undefined
       edge: number | undefined
-      historyHigh: number | undefined
-      historyLow: number | undefined
+      historyHighestBalance: number | undefined
+      historyLowestBalance: number | undefined
+      historyHighestNet: number | undefined
+      historyLowestNet: number | undefined
     }
   }
 }

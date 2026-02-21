@@ -33,15 +33,19 @@ type GlobalAnalytics = {
   dateStartUtcGlobal: DateTime | undefined
   dateStartUtcMovement: DateTime | undefined
   grossLosses: {
+    min: Big | undefined
     max: Big | undefined
     sum: Big
   }
   grossProfits: {
+    min: Big | undefined
     max: Big | undefined
     sum: Big
   }
-  historyHigh: Big | undefined
-  historyLow: Big | undefined
+  historyHighestBalance: Big | undefined
+  historyLowestBalance: Big | undefined
+  historyHighestNet: Big | undefined
+  historyLowestNet: Big | undefined
   movements: {
     max: Big | undefined
     min: Big | undefined
@@ -49,11 +53,13 @@ type GlobalAnalytics = {
   }
   netLosses: {
     avg: Big | undefined
+    min: Big | undefined
     max: Big | undefined
     sum: Big
   }
   netProfits: {
     avg: Big | undefined
+    min: Big | undefined
     max: Big | undefined
     sum: Big
   }
@@ -159,16 +165,20 @@ export default class AnalyticsService {
       // Asset's gross loss analytics
       grossLosses: {
         max: undefined,
+        min: undefined,
         sum: new Big(0),
       },
       // Asset's gross profit analytics
       grossProfits: {
         max: undefined,
+        min: undefined,
         sum: new Big(0),
       },
-      // History high and low
-      historyHigh: undefined,
-      historyLow: undefined,
+      // History high and low (Balance and Net profits)
+      historyHighestBalance: undefined,
+      historyHighestNet: undefined,
+      historyLowestBalance: undefined,
+      historyLowestNet: undefined,
       // Wallet's movements analytics (deposits and withdrawals)
       movements: {
         max: undefined,
@@ -179,12 +189,14 @@ export default class AnalyticsService {
       netLosses: {
         avg: undefined,
         max: undefined,
+        min: undefined,
         sum: new Big(0),
       },
       // Asset's net profit analytics (considering costs and taxes)
       netProfits: {
         avg: undefined,
         max: undefined,
+        min: undefined,
         sum: new Big(0),
       },
       numberOfActiveAssets: 0,
@@ -431,11 +443,20 @@ export default class AnalyticsService {
             totalYearsInRange > 0
               ? netProfitAndLossesSum.div(totalYearsInRange).round(2, Big.roundHalfUp).toNumber()
               : undefined,
-          historyHigh: globalAnalytics.historyHigh?.round(2, Big.roundHalfUp).toNumber(),
+          historyHighestBalance: globalAnalytics.historyHighestBalance
+            ?.round(2, Big.roundHalfUp)
+            .toNumber(),
+          historyHighestNet: globalAnalytics.historyHighestNet
+            ?.round(2, Big.roundHalfUp)
+            .toNumber(),
           // Only show the history low if it's lower than the sum of movements, otherwise it is not relevant
-          historyLow:
-            (globalAnalytics.historyLow ?? 0) < globalAnalytics.movements.sum
-              ? globalAnalytics.historyLow?.round(2, Big.roundHalfUp).toNumber()
+          historyLowestBalance:
+            (globalAnalytics.historyLowestBalance?.lt(globalAnalytics.movements.sum) ?? false)
+              ? globalAnalytics.historyLowestBalance?.round(2, Big.roundHalfUp).toNumber()
+              : undefined,
+          historyLowestNet:
+            (globalAnalytics.historyLowestNet?.lt(0) ?? false)
+              ? globalAnalytics.historyLowestNet?.round(2, Big.roundHalfUp).toNumber()
               : undefined,
           movementDateEndUtc: globalAnalytics.dateEndUtcMovement?.toISO() ?? undefined,
           movementDateStartUtc: globalAnalytics.dateStartUtcMovement?.toISO() ?? undefined,
@@ -452,9 +473,11 @@ export default class AnalyticsService {
           movementsSum: globalAnalytics.movements.sum.round(2, Big.roundHalfUp).toNumber(),
           netLossAvg: globalAnalytics.netLosses.avg?.round(2, Big.roundHalfUp).toNumber(),
           netLossMax: globalAnalytics.netLosses.max?.round(2, Big.roundHalfUp).toNumber(),
+          netLossMin: globalAnalytics.netLosses.min?.round(2, Big.roundHalfUp).toNumber(),
           netLossSum: globalAnalytics.netLosses.sum.round(2, Big.roundHalfUp).toNumber(),
           netProfitAvg: globalAnalytics.netProfits.avg?.round(2, Big.roundHalfUp).toNumber(),
           netProfitMax: globalAnalytics.netProfits.max?.round(2, Big.roundHalfUp).toNumber(),
+          netProfitMin: globalAnalytics.netProfits.min?.round(2, Big.roundHalfUp).toNumber(),
           netProfitSum: globalAnalytics.netProfits.sum.round(2, Big.roundHalfUp).toNumber(),
           numberOfActiveAssets: globalAnalytics.numberOfActiveAssets,
           numberOfActiveAssetsLoss: globalAnalytics.numberOfActiveAssetsLoss,
@@ -478,6 +501,8 @@ export default class AnalyticsService {
                 .round(2, Big.roundHalfUp)
                 .toNumber()
             : undefined,
+          sumCosts: globalAnalytics.costs.sum.round(2, Big.roundHalfUp).toNumber(),
+          sumTaxes: globalAnalytics.taxes.sum.round(2, Big.roundHalfUp).toNumber(),
         },
         walletIds: wallets.map(wallet => wallet.id),
       },
@@ -604,7 +629,7 @@ export default class AnalyticsService {
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
             daysRunning: bond.daysRunning,
             grossAmount: bond.grossAmount.round(2, Big.roundHalfUp).toNumber(),
-            inputAmount: bond.inputAmount.round(2, Big.roundHalfUp).toNumber(),
+            inputAmount: 0,
             netAmount: bond.netAmount.round(2, Big.roundHalfUp).toNumber(),
             type: 'brl_private_bond',
           })
@@ -619,10 +644,6 @@ export default class AnalyticsService {
             .toNumber()
           existingDataPoint.grossAmount = bond.grossAmount
             .add(existingDataPoint.grossAmount)
-            .round(2, Big.roundHalfUp)
-            .toNumber()
-          existingDataPoint.inputAmount = bond.inputAmount
-            .add(existingDataPoint.inputAmount)
             .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.netAmount = bond.netAmount
@@ -654,7 +675,7 @@ export default class AnalyticsService {
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
             daysRunning: bond.daysRunning,
             grossAmount: bond.grossAmount.round(2, Big.roundHalfUp).toNumber(),
-            inputAmount: bond.inputAmount.round(2, Big.roundHalfUp).toNumber(),
+            inputAmount: 0,
             netAmount: bond.netAmount.round(2, Big.roundHalfUp).toNumber(),
             type: 'brl_public_bond',
           })
@@ -669,10 +690,6 @@ export default class AnalyticsService {
             .toNumber()
           existingDataPoint.grossAmount = bond.grossAmount
             .add(existingDataPoint.grossAmount)
-            .round(2, Big.roundHalfUp)
-            .toNumber()
-          existingDataPoint.inputAmount = bond.inputAmount
-            .add(existingDataPoint.inputAmount)
             .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.netAmount = bond.netAmount
@@ -704,7 +721,7 @@ export default class AnalyticsService {
             dateUtc: DateTime.fromISO(timelessDate, { zone: 'utc' }).toMillis(),
             daysRunning: asset.daysRunning,
             grossAmount: asset.grossAmount.round(2, Big.roundHalfUp).toNumber(),
-            inputAmount: asset.inputAmount.round(2, Big.roundHalfUp).toNumber(),
+            inputAmount: 0,
             netAmount: asset.netAmount.round(2, Big.roundHalfUp).toNumber(),
             type: 'sefbfr',
           })
@@ -719,10 +736,6 @@ export default class AnalyticsService {
             .toNumber()
           existingDataPoint.grossAmount = asset.grossAmount
             .add(existingDataPoint.grossAmount)
-            .round(2, Big.roundHalfUp)
-            .toNumber()
-          existingDataPoint.inputAmount = asset.inputAmount
-            .add(existingDataPoint.inputAmount)
             .round(2, Big.roundHalfUp)
             .toNumber()
           existingDataPoint.netAmount = asset.netAmount
@@ -768,7 +781,8 @@ export default class AnalyticsService {
    *  - `netProfits` and `netLosses`: the `sum` and `max` net profit and loss, considering costs and taxes;
    *  - `costs`: the `sum` and `max` costs of the assets;
    *  - `taxes`: the `sum` and `max` taxes of the assets;
-   *  - `historyHigh` and `historyLow`: the highest and lowest resulting balance in the history of the wallets;
+   *  - `historyHighestBalance` and `historyLowestBalance`: the highest and lowest resulting balance in the history of the wallets;
+   *  - `historyHighestNet` and `historyLowestNet`: the highest and lowest resulting net profit in the history of the wallets;
    *
    * @param aData - The performance data for the given asset type
    * @param gA - The global analytics to be updated with the results
@@ -807,35 +821,77 @@ export default class AnalyticsService {
 
       gA.grossProfits.max = this.pickBig(
         gA.grossProfits.max,
-        bond.grossAmount.gt(0) ? bond.grossAmount : 0,
+        bond.grossAmount.gt(0) ? bond.grossAmount : undefined,
         'greatest',
+        false,
+      )
+      gA.grossProfits.min = this.pickBig(
+        gA.grossProfits.min,
+        bond.grossAmount.gt(0) ? bond.grossAmount : undefined,
+        'lowest',
         false,
       )
       gA.grossLosses.max = this.pickBig(
         gA.grossLosses.max,
-        bond.grossAmount.lt(0) ? bond.grossAmount : 0,
+        bond.grossAmount.lt(0) ? bond.grossAmount : undefined,
         'lowest',
+        false,
+      )
+      gA.grossLosses.min = this.pickBig(
+        gA.grossLosses.min,
+        bond.grossAmount.lt(0) ? bond.grossAmount : undefined,
+        'greatest',
         false,
       )
       gA.netProfits.max = this.pickBig(
         gA.netProfits.max,
-        bond.netAmount.gt(0) ? bond.netAmount : 0,
+        bond.netAmount.gt(0) ? bond.netAmount : undefined,
         'greatest',
+        false,
+      )
+      gA.netProfits.min = this.pickBig(
+        gA.netProfits.min,
+        bond.netAmount.gt(0) ? bond.netAmount : undefined,
+        'lowest',
         false,
       )
       gA.netLosses.max = this.pickBig(
         gA.netLosses.max,
-        bond.netAmount.lt(0) ? bond.netAmount : 0,
+        bond.netAmount.lt(0) ? bond.netAmount : undefined,
         'lowest',
+        false,
+      )
+      gA.netLosses.min = this.pickBig(
+        gA.netLosses.min,
+        bond.netAmount.lt(0) ? bond.netAmount : undefined,
+        'greatest',
         false,
       )
       gA.costs.max = this.pickBig(gA.costs.max, bond.costs, 'lowest', false)
       gA.taxes.max = this.pickBig(gA.taxes.max, bond.taxes, 'lowest', false)
 
       const localResultingBalance = gA.movements.sum.add(gA.netProfits.sum).add(gA.netLosses.sum)
+      const localResultingNet = gA.netProfits.sum.add(gA.netLosses.sum)
 
-      gA.historyHigh = this.pickBig(gA.historyHigh, localResultingBalance, 'greatest', false)
-      gA.historyLow = this.pickBig(gA.historyLow, localResultingBalance, 'lowest', false)
+      gA.historyHighestBalance = this.pickBig(
+        gA.historyHighestBalance,
+        localResultingBalance,
+        'greatest',
+        false,
+      )
+      gA.historyLowestBalance = this.pickBig(
+        gA.historyLowestBalance,
+        localResultingBalance,
+        'lowest',
+        false,
+      )
+      gA.historyHighestNet = this.pickBig(
+        gA.historyHighestNet,
+        localResultingNet,
+        'greatest',
+        false,
+      )
+      gA.historyLowestNet = this.pickBig(gA.historyLowestNet, localResultingNet, 'lowest', false)
 
       gA.numberOfAssets += 1
     }
