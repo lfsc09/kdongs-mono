@@ -333,8 +333,24 @@
 }
 
 @layer components {
+  .kbd {
+    @apply bg-background-2 text-foreground-2 inline-block rounded px-2 py-1 font-mono text-xs shadow-sm;
+  }
+
   .card {
     @apply bg-background-1 rounded p-6 shadow-md;
+  }
+
+  .info-card {
+    @apply bg-background-1 flex flex-col gap-2 rounded p-4 shadow-md;
+
+    .info-title {
+      @apply text-foreground-1 text-sm font-medium;
+    }
+
+    .info-content {
+      @apply text-foreground-2 text-sm;
+    }
   }
 
   .chip {
