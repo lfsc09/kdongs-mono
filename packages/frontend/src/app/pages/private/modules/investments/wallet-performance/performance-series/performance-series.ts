@@ -27,6 +27,16 @@ import { UnifiedLiquidationSerieDataPointDTO } from './performance-series.model'
       </div>
     } @else if (investmentsService.currencyToShow() !== undefined && series() !== undefined) {
       <div class="flex flex-col gap-6">
+        <span class="text-2xl font-medium text-lime-500 select-none">Evolution Charts</span>
+        <div class="info-card">
+          <div class="info-content flex items-center">
+            <i class="fa-solid fa-circle-info"></i>
+            <span class="ml-2">
+              <kbd class="kbd">Alt</kbd> click on a chart dataset to isolate it. Normal click to
+              hide only it.
+            </span>
+          </div>
+        </div>
         <kdongs-evolution-series
           [data]="series()!"
           [unifiedData]="unifiedSeries()!"

@@ -1,6 +1,5 @@
 <div class="flex flex-col gap-2">
   <div class="flex flex-col gap-2">
-    <span class="text-2xl font-medium text-lime-500 select-none">Evolution Charts</span>
     <div
       class="bg-background-1 flex flex-row items-center justify-between gap-2 rounded px-6 py-3 shadow"
     >
@@ -42,7 +41,6 @@
               type="button"
               class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
               (click)="handleUnifyDatasets()"
-              [disabled]="data().length <= 1"
             >
               <span class="text-xs font-medium text-lime-500 capitalize">
                 {{ unifyDatasets() ? 'Unified' : 'Separate' }}
@@ -99,15 +97,23 @@
             >
               <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info text-xs"></i>
-                Which type of tendency to use in calculations <b>Shorter</b> ("5" for short-term and
-                "20" for long-term) or <b>Longer</b> ("21" for short-term and "100" for long-term).
-                (<b>Unified</b> datasets only)
+                Which type of tendency to use in calculations. (<b>Unified</b> datasets only)
               </p>
+              <ul class="mt-1 list-inside list-disc text-xs leading-normal">
+                <li>
+                  <b>Shorter</b>: More reactive to recent changes. ["5" for short-term and "20" for
+                  long-term]
+                </li>
+                <li>
+                  <b>Longer</b>: Smoother and less reactive. ["21" for short-term and "100" for
+                  long-term]
+                </li>
+              </ul>
             </div>
             <button
               type="button"
               class="group/btn flex w-full flex-row items-center justify-between gap-6 rounded px-3 py-2.5 transition-transform select-none active:scale-95 disabled:active:scale-100"
-              (click)="handleShowProfitsOnly()"
+              (click)="handleTendencyTypeChange()"
               [disabled]="!unifyDatasets()"
             >
               <span class="text-xs font-medium text-lime-500 capitalize">
@@ -133,7 +139,8 @@
             >
               <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info text-xs"></i>
-                Compare Net profits with Gross profits. (<b>Separate</b> datasets only)
+                Show Net profits only or Input, Gross & Net comparison. (<b>Separate</b> datasets
+                only)
               </p>
             </div>
             <button
