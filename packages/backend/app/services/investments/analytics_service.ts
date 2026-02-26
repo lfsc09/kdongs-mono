@@ -659,11 +659,7 @@ export default class AnalyticsService {
       for (const bond of walletInfo.brlPublicBonds) {
         const timelessDate = bond.latestDateUtc?.toISODate() ?? null
 
-        if (
-          !performanceSeriesMap.has(walletInfo.wallet.id) ||
-          timelessDate === null ||
-          !bond.isDone
-        ) {
+        if (!performanceSeriesMap.has(walletInfo.wallet.id) || timelessDate === null) {
           continue
         }
 
@@ -705,11 +701,7 @@ export default class AnalyticsService {
       for (const asset of walletInfo.sefbfrAssets) {
         const timelessDate = asset.latestDateUtc?.toISODate() ?? null
 
-        if (
-          !performanceSeriesMap.has(walletInfo.wallet.id) ||
-          timelessDate === null ||
-          !asset.isDone
-        ) {
+        if (!performanceSeriesMap.has(walletInfo.wallet.id) || timelessDate === null) {
           continue
         }
 

@@ -1,12 +1,13 @@
 import { Injectable, signal } from '@angular/core'
-import { Currency, SelectableCurrency, UserPreferences } from './investments.model'
+import { Currency, SelectableCurrency, UserPreferences } from './performance.model'
 
 @Injectable()
-export class InvestmentsService {
+export class PerformanceService {
   /**
    * SIGNALS
    */
-  walletSidebarCollapsed = signal<boolean>(true)
+  filterSidebarButtonEnabled = signal<boolean>(false)
+  filterSidebarCollapsed = signal<boolean>(true)
   selectedWalletIds = signal<string[]>([])
   selectedCurrency = signal<SelectableCurrency>('Wallet')
   currencyToShow = signal<Currency | undefined>(undefined)
@@ -14,8 +15,12 @@ export class InvestmentsService {
   /**
    * FUNCTIONS
    */
-  handleWalletSidebarCollapse(): void {
-    this.walletSidebarCollapsed.update(current => !current)
+  handleFilterSidebarButtonEnabled(enabled: boolean): void {
+    this.filterSidebarButtonEnabled.set(enabled)
+  }
+
+  handleFilterSidebarCollapse(): void {
+    this.filterSidebarCollapsed.update(current => !current)
   }
 
   /**
@@ -42,7 +47,7 @@ export class InvestmentsService {
    * Read from Local Storage the User Preferences
    */
   readUserPreferences(): void {
-    const preferences = localStorage.getItem('investments-preferences')
+    const preferences = localStorage.getItem('performance-preferences')
 
     if (preferences) {
       const parsedPreferences: UserPreferences = JSON.parse(preferences)
@@ -56,7 +61,7 @@ export class InvestmentsService {
    */
   writeUserPreferences(): void {
     localStorage.setItem(
-      'investments-preferences',
+      'performance-preferences',
       JSON.stringify({
         selectedWallets: this.selectedWalletIds(),
         selectedCurrency: this.selectedCurrency(),

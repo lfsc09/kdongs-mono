@@ -381,10 +381,9 @@
   */
   .error-box {
     @apply flex h-48 items-center justify-center rounded border-2 border-dashed border-slate-300 select-none dark:border-slate-600;
-
-    .error-content {
-      @apply flex flex-col gap-2 font-semibold text-slate-300 dark:text-slate-600;
-    }
+  }
+  .error-content {
+    @apply flex flex-col gap-2 font-semibold text-slate-300 dark:text-slate-600;
   }
 
   /*

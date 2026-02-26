@@ -30,7 +30,7 @@ export const PaginationResponseSchema = z.object({
   sortBy: z.optional(z.string()),
   sortOrder: z.optional(SortOrderSchema),
   nextPage: z.optional(z.number().min(1)),
-  previousPOage: z.optional(z.number().min(1)),
+  previousPage: z.optional(z.number().min(1)),
   totalPages: z.number().min(0),
 })
 

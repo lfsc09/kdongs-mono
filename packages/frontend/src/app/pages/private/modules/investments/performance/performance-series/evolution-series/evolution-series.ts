@@ -1,26 +1,26 @@
 import { CdkMenu, CdkMenuTrigger } from '@angular/cdk/menu'
-import { Component, computed, effect, inject, input, OnDestroy, signal } from '@angular/core'
+import { formatDate } from '@angular/common'
+import { Component, effect, inject, input, OnDestroy, signal } from '@angular/core'
 import bb, { Chart, ChartOptions } from 'billboard.js'
 import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
 import { CapitalizePipe } from '../../../../../../../infra/pipes/capitalize.pipe'
 import { formatMonetary } from '../../../../../../../infra/pipes/monetary.pipe'
-import { formatPercent } from '../../../../../../../infra/pipes/percent.pipe'
-import { Currency } from '../../../investments.model'
+import { Currency } from '../../performance.model'
 import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
-import { ChartGeneratedData, Timeframe, ValueType } from './group-series.model'
-import { GroupSeriesService } from './group-series.service'
+import { ChartGeneratedData, TendencyType } from './evolution-series.model'
+import { EvolutionSeriesService } from './evolution-series.service'
 
 @Component({
-  selector: 'kdongs-group-series',
-  templateUrl: './group-series.html',
+  selector: 'kdongs-evolution-series',
+  templateUrl: './evolution-series.html',
   imports: [CdkMenuTrigger, CdkMenu, CapitalizePipe],
-  providers: [GroupSeriesService],
+  providers: [EvolutionSeriesService],
 })
-export class GroupSeries implements OnDestroy {
+export class EvolutionSeries implements OnDestroy {
   /**
    * SERVICES
    */
-  private readonly _groupSeriesService = inject(GroupSeriesService)
+  private readonly _evolutionSeriesService = inject(EvolutionSeriesService)
 
   /**
    * SIGNALS
@@ -29,16 +29,9 @@ export class GroupSeries implements OnDestroy {
   data = input.required<LiquidationSerieDTO[]>()
   unifiedData = input.required<UnifiedLiquidationSerieDataPointDTO[]>()
   protected unifyDatasets = signal<boolean>(true)
-  protected groupTimeframe = signal<Timeframe>(Timeframe.Month)
-  protected groupValueType = signal<ValueType>(ValueType.Currency)
+  protected showProfitsOnly = signal<boolean>(false)
   protected compareNetOnly = signal<boolean>(true)
-  protected groupValueTypeLabel = computed(() => {
-    if (this.groupValueType() === ValueType.Percentage) {
-      return '%'
-    } else {
-      return this.currencyOnUse()
-    }
-  })
+  protected tendencyType = signal<TendencyType>(TendencyType.Shorter)
 
   /**
    * VARS
@@ -47,8 +40,11 @@ export class GroupSeries implements OnDestroy {
   private _chartConfigs: ChartOptions = {
     axis: {
       x: {
-        type: 'category',
+        type: 'timeseries',
         tick: {
+          format: (value: string | number) => {
+            return formatDate(value, 'MMM yy', 'en_US')
+          },
           culling: {
             lines: false,
           },
@@ -65,7 +61,7 @@ export class GroupSeries implements OnDestroy {
     grid: { y: { show: true } },
     legend: {
       contents: {
-        bindto: '#groupChartLegend',
+        bindto: '#evolutionChartLegend',
         template: (id: string, color: string) => {
           return `<span class="flex flex-row items-center justify-center gap-1.5 p-2 rounded-lg bg-background-0">
             <span class="rounded-full h-2 w-2" style="background-color:${color}"></span>
@@ -74,57 +70,63 @@ export class GroupSeries implements OnDestroy {
         },
       },
     },
-    bar: {
-      linearGradient: true,
-      padding: 3,
-      radius: {
-        ratio: 0.1,
-      },
+    line: {
+      classes: ['billboard-lines-thick'],
     },
     padding: {
       right: 20,
     },
-    bindto: '#groupChart',
+    point: {
+      focus: {
+        only: true,
+      },
+    },
+    tooltip: {
+      format: {
+        title: (title: number | string) => {
+          return formatDate(title, 'dd MMM yy', 'en_US')
+        },
+      },
+    },
+    bindto: '#evolutionChart',
   }
 
   constructor() {
     effect(() => {
       let newChartDataConfig: ChartGeneratedData = {} as ChartGeneratedData
 
-      // Merge wallets' evolution
+      console.log('data', this.data())
+      console.log('unifiedData', this.unifiedData())
+
+      // Merge wallets' evolution, for chart with tendency lines (short & long) and bollinger bands
       if (this.unifyDatasets()) {
-        newChartDataConfig = this._groupSeriesService.chartDataUnifiedWallets(
+        newChartDataConfig = this._evolutionSeriesService.chartDataUnifiedWallets(
           this.unifiedData(),
-          this.groupTimeframe(),
-          this.groupValueType(),
-          this.compareNetOnly()
+          this.showProfitsOnly(),
+          this.tendencyType()
         )
       }
-      // Generate evolution of wallets separately (line for each wallet)
+      // Generate evolution of wallets separately (line for each wallet) (Net only or Input/Gross/Net)
       else {
-        newChartDataConfig = this._groupSeriesService.chartDataSeparatedWallets(
+        newChartDataConfig = this._evolutionSeriesService.chartDataSeparatedWallets(
           this.data(),
-          this.groupTimeframe(),
-          this.groupValueType(),
           this.compareNetOnly()
         )
       }
+
+      console.log('newChartDataConfig', newChartDataConfig)
 
       // Configure the Y axis to show values in the selected currency format
       this._chartConfigs.axis!.y!.tick!.format = (value: unknown) => {
-        if (this.groupValueType() === ValueType.Percentage) {
-          if (typeof value === 'number' || typeof value === 'string')
-            return formatPercent(value, '1.0-2', 'pt-BR')
-          return `${value}`
-        } else {
-          if (typeof value === 'number' || typeof value === 'string')
-            return formatMonetary(value, this.currencyOnUse(), 'code', '1.0-2', 'pt-BR')
-          return `${value}`
-        }
+        if (typeof value === 'number' || typeof value === 'string')
+          return formatMonetary(value, this.currencyOnUse(), 'code', '1.0-2', 'pt-BR')
+        return `${value}`
       }
-
       // Configure data and classes per the generated chart data config
       this._chartConfigs.data = newChartDataConfig?.data ?? {}
+      if (newChartDataConfig.classes !== undefined)
+        this._chartConfigs.line!.classes = newChartDataConfig.classes
+      if (newChartDataConfig.area !== undefined) this._chartConfigs.area = newChartDataConfig.area
 
       if (this._chartInstance) {
         this._chartInstance.destroy()
@@ -146,24 +148,13 @@ export class GroupSeries implements OnDestroy {
     this.unifyDatasets.update(state => !state)
   }
 
-  protected handleGroupTimeFrameChange(): void {
-    this.groupTimeframe.update(state => {
-      switch (state) {
-        case Timeframe.Month:
-          return Timeframe.Quarter
-        case Timeframe.Quarter:
-          return Timeframe.Year
-        case Timeframe.Year:
-          return Timeframe.Month
-        default:
-          return state
-      }
-    })
+  protected handleShowProfitsOnly(): void {
+    this.showProfitsOnly.update(state => !state)
   }
 
-  protected handleGroupValueTypeChange(): void {
-    this.groupValueType.update(state =>
-      state === ValueType.Percentage ? ValueType.Currency : ValueType.Percentage
+  protected handleTendencyTypeChange(): void {
+    this.tendencyType.update(state =>
+      state === TendencyType.Shorter ? TendencyType.Longer : TendencyType.Shorter
     )
   }
 

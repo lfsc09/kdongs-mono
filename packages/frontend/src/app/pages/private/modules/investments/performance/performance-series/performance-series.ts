@@ -5,7 +5,7 @@ import { combineLatest, debounceTime, filter, Subscription, switchMap, tap } fro
 import { LiquidationSerieDTO } from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
-import { InvestmentsService } from '../../investments.service'
+import { PerformanceService } from '../performance.service'
 import { EvolutionSeries } from './evolution-series/evolution-series'
 import { GroupSeries } from './group-series/group-series'
 import { UnifiedLiquidationSerieDataPointDTO } from './performance-series.model'
@@ -25,7 +25,7 @@ import { UnifiedLiquidationSerieDataPointDTO } from './performance-series.model'
           <span>Failed to load series</span>
         </div>
       </div>
-    } @else if (investmentsService.currencyToShow() !== undefined && series() !== undefined) {
+    } @else if (performanceService.currencyToShow() !== undefined && series() !== undefined) {
       <div class="flex flex-col gap-6">
         <span class="text-2xl font-medium text-lime-500 select-none">Evolution Charts</span>
         <div class="info-card">
@@ -40,12 +40,12 @@ import { UnifiedLiquidationSerieDataPointDTO } from './performance-series.model'
         <kdongs-evolution-series
           [data]="series()!"
           [unifiedData]="unifiedSeries()!"
-          [currencyOnUse]="investmentsService.currencyToShow()!"
+          [currencyOnUse]="performanceService.currencyToShow()!"
         />
         <kdongs-group-series
           [data]="series()!"
           [unifiedData]="unifiedSeries()!"
-          [currencyOnUse]="investmentsService.currencyToShow()!"
+          [currencyOnUse]="performanceService.currencyToShow()!"
         />
       </div>
     }
@@ -55,7 +55,7 @@ export class PerformanceSeries implements OnDestroy {
   /**
    * SERVICES
    */
-  protected readonly investmentsService = inject(InvestmentsService)
+  protected readonly performanceService = inject(PerformanceService)
   private readonly _investmentsGatewayService = inject(InvestmentsGatewayService)
 
   /**
@@ -81,8 +81,8 @@ export class PerformanceSeries implements OnDestroy {
   private _investmentsSubscription: Subscription | undefined
 
   constructor() {
-    const selectedWalletIds$ = toObservable(this.investmentsService.selectedWalletIds)
-    const currencyToShow$ = toObservable(this.investmentsService.currencyToShow)
+    const selectedWalletIds$ = toObservable(this.performanceService.selectedWalletIds)
+    const currencyToShow$ = toObservable(this.performanceService.currencyToShow)
 
     this._investmentsSubscription = combineLatest([selectedWalletIds$, currencyToShow$])
       .pipe(

@@ -9,8 +9,8 @@ import { MonetaryPipe } from '../../../../../../infra/pipes/monetary.pipe'
 import { PercentPipe } from '../../../../../../infra/pipes/percent.pipe'
 import { Gauge } from '../../../../components/gauge/gauge'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
-import { Currency } from '../../investments.model'
-import { InvestmentsService } from '../../investments.service'
+import { Currency } from '../performance.model'
+import { PerformanceService } from '../performance.service'
 
 @Component({
   selector: 'kdongs-performance-indicator',
@@ -21,7 +21,7 @@ export class PerformanceIndicator implements OnDestroy {
   /**
    * SERVICES
    */
-  protected readonly investmentsService = inject(InvestmentsService)
+  protected readonly performanceService = inject(PerformanceService)
   private readonly _investmentsGatewayService = inject(InvestmentsGatewayService)
 
   /**
@@ -37,8 +37,8 @@ export class PerformanceIndicator implements OnDestroy {
 
   // FIXME: Still doing 2 requests when walletIds is undefined (debounced is not blocking the second request)
   constructor() {
-    const selectedWalletIds$ = toObservable(this.investmentsService.selectedWalletIds)
-    const selectedCurrency$ = toObservable(this.investmentsService.selectedCurrency)
+    const selectedWalletIds$ = toObservable(this.performanceService.selectedWalletIds)
+    const selectedCurrency$ = toObservable(this.performanceService.selectedCurrency)
 
     this._investmentsSubscription = combineLatest([selectedWalletIds$, selectedCurrency$])
       .pipe(
@@ -54,8 +54,8 @@ export class PerformanceIndicator implements OnDestroy {
       )
       .subscribe({
         next: response => {
-          this.investmentsService.handleSelectedWalletIdsChange(response.data.walletIds)
-          this.investmentsService.currencyToShow.set(response.data.currencyToShow as Currency)
+          this.performanceService.handleSelectedWalletIdsChange(response.data.walletIds)
+          this.performanceService.currencyToShow.set(response.data.currencyToShow as Currency)
           this.performance.set(response.data.indicators)
           this.loading.set(false)
         },

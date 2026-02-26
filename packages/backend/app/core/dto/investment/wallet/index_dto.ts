@@ -8,6 +8,7 @@ export type IndexWalletsResponse = {
   data: {
     wallets: {
       id: string
+      isActive: boolean
       name: string
       currencyCode: string
       trend: 'up' | 'down' | 'stable' | 'unknown'

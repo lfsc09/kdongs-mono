@@ -2,7 +2,7 @@ import z from 'zod'
 import {
   CurrencySchema,
   SelectableCurrencySchema,
-} from '../../../pages/private/modules/investments/investments.model'
+} from '../../../pages/private/modules/investments/performance/performance.model'
 import {
   PaginationRequestSchema,
   PaginationResponseSchema,
@@ -14,6 +14,7 @@ import {
  */
 export const ListUserWalletDTOSchema = z.object({
   id: z.string(),
+  isActive: z.boolean(),
   name: z.string(),
   currencyCode: z.string(),
   trend: z.enum(['up', 'down', 'stable', 'unknown']),

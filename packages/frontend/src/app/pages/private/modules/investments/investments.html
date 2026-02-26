@@ -1,28 +1,23 @@
-@if (!investmentsService.walletSidebarCollapsed()) {
-  <kdongs-wallet />
-}
 <section
   class="bg-background-1 sticky top-20 right-0 left-0 z-[100] flex flex-row items-center gap-2 overflow-x-auto border-b border-slate-900/10 px-6 py-3 dark:border-slate-50/10"
 >
-  <button
-    type="button"
-    class="btn btn-outline btn-sm"
-    (click)="investmentsService.handleWalletSidebarCollapse()"
-  >
-    <i class="fa-solid fa-angles-left"></i>
-    <i class="fa-solid fa-wallet ml-2"></i>
-  </button>
-  <button type="button" class="btn btn-sm">
+  @if (performanceService.filterSidebarButtonEnabled()) {
+    <button
+      type="button"
+      class="btn btn-outline btn-sm"
+      (click)="performanceService.handleFilterSidebarCollapse()"
+    >
+      <i class="fa-solid fa-angles-left"></i>
+      <i class="fa-solid fa-filter ml-2"></i>
+    </button>
+  }
+  <a class="btn btn-sm" routerLink="performance">
     <i class="fa-solid fa-chart-line"></i>
     <span class="ml-2">Performance</span>
-  </button>
-  <button type="button" class="btn btn-sm">
-    <i class="fa-solid fa-timeline"></i>
-    <span class="ml-2">Balance History</span>
-  </button>
-  <button type="button" class="btn btn-sm">
-    <i class="fa-solid fa-database"></i>
-    <span class="ml-2">Assets</span>
-  </button>
+  </a>
+  <a class="btn btn-sm" routerLink="wallets">
+    <i class="fa-solid fa-wallet"></i>
+    <span class="ml-2">Wallets</span>
+  </a>
 </section>
 <router-outlet />

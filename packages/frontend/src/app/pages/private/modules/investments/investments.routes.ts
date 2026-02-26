@@ -15,17 +15,22 @@ export const investmentsRoutes: Routes = [
     canMatch: [authorizationGuard],
     children: [
       {
+        data: {
+          showPerformanceFilter: true,
+        },
         path: 'performance',
-        loadComponent: () =>
-          import('./wallet-performance/wallet-performance').then(
-            module => module.WalletPerformance
-          ),
+        loadComponent: () => import('./performance/performance').then(module => module.Performance),
       },
-      // {
-      //   path: 'wallets/create',
-      //   loadComponent: () => import('./wallets/create-wallet/create-wallet').then((module) => module.CreateWalletComponent),
-      // },
-      { path: '', redirectTo: 'performance', pathMatch: 'full' },
+      {
+        path: 'wallets',
+        loadComponent: () => import('./wallet/wallet').then(module => module.Wallet),
+      },
+      {
+        path: 'wallets/new',
+        loadComponent: () =>
+          import('./wallet/wallet-form/wallet-form').then(module => module.WalletForm),
+      },
+      { path: '', redirectTo: 'wallets', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: '', pathMatch: 'full' },

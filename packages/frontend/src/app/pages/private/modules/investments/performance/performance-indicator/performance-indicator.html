@@ -11,13 +11,11 @@
   </div>
 } @else if (performance() !== undefined) {
   <div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-2">
-      <span class="text-2xl font-medium text-lime-500 select-none">Indicators</span>
-      <span class="chip chip-xs bg-background-2 w-fit font-bold"
-        >{{ performance()?.dateStartUtc | date: 'MMM yyyy' }} -
-        {{ performance()?.dateEndUtc | date: 'MMM yyyy' }}</span
-      >
-    </div>
+    <span class="text-2xl font-medium text-lime-500 select-none">Indicators</span>
+    <span class="chip chip-xs bg-background-2 w-fit font-bold">
+      {{ performance()?.dateStartUtc | date: 'MMM yyyy' }} -
+      {{ performance()?.dateEndUtc | date: 'MMM yyyy' }}
+    </span>
     <div class="grid grid-cols-8 gap-6">
       <div class="card col-span-2 flex flex-col justify-start gap-6">
         <span class="font-bold text-lime-500">N° of Assets</span>
@@ -59,7 +57,7 @@
             <span class="text-xs font-bold">By Asset</span>
             <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByAsset">{{
               performance()?.expectancyByAsset
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
           <div class="flex flex-col gap-1">
@@ -71,28 +69,28 @@
               <span class="ml-4 text-xs">By Day:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByDay">{{
                 performance()?.expectancyByDay
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Month:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByMonth">{{
                 performance()?.expectancyByMonth
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Quarter:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByQuarter">{{
                 performance()?.expectancyByQuarter
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Year:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.expectancyByYear">{{
                 performance()?.expectancyByYear
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
           </div>
@@ -105,7 +103,7 @@
             <span class="text-xs font-bold">By Asset</span>
             <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByAsset">{{
               performance()?.avgCostByAsset
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
           <div class="flex flex-col gap-1">
@@ -117,28 +115,28 @@
               <span class="ml-4 text-xs">By Day:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByDay">{{
                 performance()?.avgCostByDay
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Month:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByMonth">{{
                 performance()?.avgCostByMonth
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Quarter:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByQuarter">{{
                 performance()?.avgCostByQuarter
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Year:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgCostByYear">{{
                 performance()?.avgCostByYear
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
           </div>
@@ -146,7 +144,7 @@
             <span class="text-xs font-bold">Total Costs</span>
             <span class="text-[.7rem]" [kdongsMonetary]="performance()?.sumCosts">{{
               performance()?.sumCosts
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
         </div>
@@ -158,7 +156,7 @@
             <span class="text-xs font-bold">By Asset</span>
             <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByAsset">{{
               performance()?.avgTaxByAsset
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
           <div class="flex flex-col gap-1">
@@ -170,28 +168,28 @@
               <span class="ml-4 text-xs">By Day:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByDay">{{
                 performance()?.avgTaxByDay
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Month:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByMonth">{{
                 performance()?.avgTaxByMonth
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Quarter:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByQuarter">{{
                 performance()?.avgTaxByQuarter
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row justify-between gap-2">
               <span class="ml-4 text-xs">By Year:</span>
               <span class="text-[.7rem]" [kdongsMonetary]="performance()?.avgTaxByYear">{{
                 performance()?.avgTaxByYear
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
           </div>
@@ -199,7 +197,7 @@
             <span class="text-xs font-bold">Total Taxes</span>
             <span class="text-[.7rem]" [kdongsMonetary]="performance()?.sumTaxes">{{
               performance()?.sumTaxes
-                | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
             }}</span>
           </div>
         </div>
@@ -216,7 +214,7 @@
             >
               {{
                 performance()?.resultingBalanceInCurrency
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}
             </span>
           </div>
@@ -227,7 +225,7 @@
             <span class="text-sm" [kdongsMonetary]="performance()?.resultingProfitInCurrency">
               {{
                 performance()?.resultingProfitInCurrency
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}
             </span>
           </div>
@@ -281,28 +279,28 @@
               <span class="text-xs font-bold">Total Profit</span>
               <span class="text-[.7rem]">{{
                 performance()?.netProfitSum
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Avg. Profit</span>
               <span class="text-[.7rem]">{{
                 performance()?.netProfitAvg
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Greatest Profit</span>
               <span class="text-[.7rem]">{{
                 performance()?.netProfitMax
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Lowest Profit</span>
               <span class="text-[.7rem]">{{
                 performance()?.netProfitMin
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
           </div>
@@ -311,28 +309,28 @@
               <span class="text-xs font-bold">Total Losses</span>
               <span class="text-[.7rem]">{{
                 performance()?.netLossSum
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Avg. Loss</span>
               <span class="text-[.7rem]">{{
                 performance()?.netLossAvg
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Greatest Loss</span>
               <span class="text-[.7rem]">{{
                 performance()?.netLossMax
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Lowest Loss</span>
               <span class="text-[.7rem]">{{
                 performance()?.netLossMin
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
           </div>
@@ -346,14 +344,14 @@
               <span class="text-xs font-bold">Highest Balance</span>
               <span class="text-[.7rem]">{{
                 performance()?.historyHighestBalance
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Lowest Balance</span>
               <span class="text-[.7rem]">{{
                 performance()?.historyLowestBalance
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
           </div>
@@ -362,14 +360,14 @@
               <span class="text-xs font-bold">Highest Net</span>
               <span class="text-[.7rem]">{{
                 performance()?.historyHighestNet
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
             <div class="flex flex-row items-center justify-between gap-2">
               <span class="text-xs font-bold">Lowest Net</span>
               <span class="text-[.7rem]">{{
                 performance()?.historyLowestNet
-                  | monetary: investmentsService.currencyToShow() : 'code' : '1.0-2'
+                  | monetary: performanceService.currencyToShow() : 'code' : '1.0-2'
               }}</span>
             </div>
           </div>

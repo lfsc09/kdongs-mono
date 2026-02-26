@@ -109,6 +109,7 @@ export default class WalletsService {
               currentBalance: currentBalance.round(2, Big.roundHalfEven).toNumber(),
               id: wallet.id,
               initialBalance: movementsBalance.round(2, Big.roundHalfEven).toNumber(),
+              isActive: wallet.deletedAt === null,
               name: wallet.name,
               profitInCurrency: profitInCurrency.round(2, Big.roundHalfEven).toNumber(),
               profitInPerc: profitInPerc.round(2, Big.roundHalfEven).toNumber(),
