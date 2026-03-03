@@ -1,15 +1,17 @@
-import { Component, inject, signal } from '@angular/core'
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core'
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
 import { Router } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway.service'
 import { GatewayError } from '../../../infra/gateways/shared/default-gateway.model'
 import {
+  Comms,
   MessageDetail,
   MessageRegion,
   MessageSeverity,
 } from '../../../infra/services/message/message-manager.model'
 import { MessageManagerService } from '../../../infra/services/message/message-manager.service'
+import { basicMessageCallback } from '../../../infra/services/message/message-manager.util'
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner'
 import { Message } from '../../components/message-manager/message/message'
 
@@ -19,11 +21,11 @@ import { Message } from '../../components/message-manager/message/message'
   providers: [LoginGatewayService],
   templateUrl: './landing.html',
 })
-export class Landing {
+export class Landing implements OnInit, OnDestroy, Comms {
   /**
    * SERVICES
    */
-  protected readonly messageManagerService = inject(MessageManagerService)
+  readonly messageManagerService = inject(MessageManagerService)
   private readonly _routerService = inject(Router)
   private readonly _formBuilderService = inject(NonNullableFormBuilder)
   private readonly _loginService = inject(LoginGatewayService)
@@ -31,50 +33,43 @@ export class Landing {
   /**
    * SIGNALS
    */
+  currentMessage = signal<MessageDetail | null>(null)
   protected loading = signal<boolean>(false)
   protected currentSliderContent = signal<number>(0)
-  protected currentMessage = signal<MessageDetail | null>(null)
 
   /**
    * VARS
    */
-  protected formGroup = this._formBuilderService.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required],
-  })
-  private readonly messageChannel = {
+  messageChannelSubscription: Subscription | undefined
+  messageTimeAliveInterval: ReturnType<typeof setTimeout> | undefined
+  readonly messageChannel = {
     id: crypto.randomUUID(),
     name: 'landing-chn',
     region: MessageRegion.LOCAL,
   }
+  protected formGroup = this._formBuilderService.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+  })
   private _authenticationSubscription: Subscription | undefined
-  private _messageChannelSubscription: Subscription | undefined
-  private _messageTimeAliveInterval: ReturnType<typeof setInterval> | undefined
   private _carouselInterval: ReturnType<typeof setInterval> | undefined
 
   ngOnInit(): void {
-    this._messageChannelSubscription = this.messageManagerService
+    this.messageChannelSubscription = this.messageManagerService
       .registerChannel(this.messageChannel.id, this.messageChannel.name, this.messageChannel.region)
       .subscribe((message: MessageDetail) => {
-        this.currentMessage.set(message)
-        // Schedule removal of message after its aliveUntil time
-        if (message.aliveUntil) {
-          const timeToLive = message.aliveUntil.getTime() - new Date().getTime()
-          this._messageTimeAliveInterval = setTimeout(() => {
-            this.currentMessage.set(null)
-          }, timeToLive)
-        }
+        this.messageTimeAliveInterval = basicMessageCallback(message, this.currentMessage)
       })
     this._startCarousel()
   }
 
   ngOnDestroy(): void {
     this._authenticationSubscription?.unsubscribe()
-    this._messageChannelSubscription?.unsubscribe()
+    this.messageChannelSubscription?.unsubscribe()
     this.messageManagerService.unregisterChannel(this.messageChannel.id)
     this._stopCarousel()
-    if (this._messageTimeAliveInterval) {
-      clearTimeout(this._messageTimeAliveInterval)
+    if (this.messageTimeAliveInterval) {
+      clearTimeout(this.messageTimeAliveInterval)
     }
   }
 
