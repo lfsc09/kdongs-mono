@@ -444,6 +444,14 @@
     input {
       @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
     }
+
+    select {
+      @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1;
+
+      option {
+        @apply bg-background-0 text-slate-900 dark:text-slate-100;
+      }
+    }
   }
 
   .form-field-inline {
@@ -455,6 +463,14 @@
 
     input {
       @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
+    }
+
+    select {
+      @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1;
+
+      option {
+        @apply bg-background-0 text-slate-900 dark:text-slate-100;
+      }
     }
   }
 
