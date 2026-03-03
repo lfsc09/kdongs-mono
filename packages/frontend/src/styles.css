@@ -334,7 +334,7 @@
 
 @layer components {
   .kbd {
-    @apply bg-background-2 text-foreground-2 inline-block rounded px-2 py-1 font-mono text-xs shadow-sm;
+    @apply bg-background-2 text-foreground-2 inline-block rounded px-2 py-1 font-mono text-xs text-nowrap shadow-sm;
   }
 
   .card {

@@ -25,19 +25,18 @@
         (click)="sidebarModulesService.handleCollapse()"
       >
         <div class="flex flex-row items-center gap-1 select-none">
-          <ng-container *ngIf="tokenExpLeftPercentage$ | async as percent">
-            <div
-              class="code-block group-hover/menu:bg-background-2/80 group-hover/menu:text-foreground-2 px-0 py-1.5 text-[.70rem] font-semibold"
-            >
-              <pre><code>Ctrl + ;</code></pre>
-            </div>
-            <div class="relative">
-              <i
-                class="fa-solid fa-bars-staggered group-hover/menu:text-foreground-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-colors"
-              ></i>
-              <kdongs-cp-circular-progress size="sm" [percentage]="percent" [warn]="percent < 25" />
-            </div>
-          </ng-container>
+          @let tokenExpLeftPercentage = tokenExpLeftPercentage$ | async;
+          <kbd class="kbd text-[.70rem]">Ctrl ;</kbd>
+          <div class="relative">
+            <i
+              class="fa-solid fa-bars-staggered group-hover/menu:text-foreground-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-colors"
+            ></i>
+            <kdongs-cp-circular-progress
+              size="sm"
+              [percentage]="tokenExpLeftPercentage"
+              [warn]="(tokenExpLeftPercentage ?? 25) < 25"
+            />
+          </div>
         </div>
       </button>
     </div>
