@@ -3,6 +3,12 @@ import { catchError, map, Observable, throwError } from 'rxjs'
 import { GatewayError } from '../shared/default-gateway.model'
 import { DefaultGatewayService } from '../shared/default-gateway.service'
 import {
+  CreateWalletResponse,
+  CreateWalletResponseSchema,
+  EditWalletRequest,
+  EditWalletRequestSchema,
+  EditWalletResponse,
+  EditWalletResponseSchema,
   GetLiquidationSeriesAnalyticsRequestDTO,
   GetLiquidationSeriesAnalyticsRequestDTOSchema,
   GetLiquidationSeriesAnalyticsResponseDTO,
@@ -15,6 +21,10 @@ import {
   ListUserWalletRequestDTOSchema,
   ListUserWalletResponseDTO,
   ListUserWalletResponseDTOSchema,
+  StoreWalletRequest,
+  StoreWalletRequestSchema,
+  StoreWalletResponse,
+  StoreWalletResponseSchema,
 } from './investments-gateway.model'
 
 @Injectable()
@@ -107,7 +117,99 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
           return validationResult.data
         }),
         catchError(error => {
-          console.log(error)
+          return throwError(() => this.handleHttpError(error))
+        })
+      )
+  }
+
+  createWallet(): Observable<CreateWalletResponse> {
+    return this.http
+      .get<CreateWalletResponse>(`${this.apiUrl}/investments/wallets/create`, {
+        observe: 'response',
+        withCredentials: true,
+      })
+      .pipe(
+        map(response => {
+          const validationResult = CreateWalletResponseSchema.safeParse(response.body)
+
+          if (!validationResult.success) {
+            throw new GatewayError(
+              response.status,
+              validationResult.error.issues.map(e => e.message).join(', '),
+              'Invalid create wallet response structure'
+            )
+          }
+
+          return validationResult.data
+        }),
+        catchError(error => {
+          return throwError(() => this.handleHttpError(error))
+        })
+      )
+  }
+
+  editWallet(request: EditWalletRequest): Observable<EditWalletResponse> {
+    const parsedRequest = EditWalletRequestSchema.parse(request)
+    return this.http
+      .get<EditWalletResponse>(
+        `${this.apiUrl}/investments/wallets/${parsedRequest.walletId}/edit`,
+        {
+          observe: 'response',
+          withCredentials: true,
+        }
+      )
+      .pipe(
+        map(response => {
+          const validationResult = EditWalletResponseSchema.safeParse(response.body)
+
+          if (!validationResult.success) {
+            throw new GatewayError(
+              response.status,
+              validationResult.error.issues.map(e => e.message).join(', '),
+              'Invalid edit wallet response structure'
+            )
+          }
+
+          return validationResult.data
+        }),
+        catchError(error => {
+          return throwError(() => this.handleHttpError(error))
+        })
+      )
+  }
+
+  storeWallet(request: StoreWalletRequest): Observable<StoreWalletResponse> {
+    const parsedRequest = StoreWalletRequestSchema.parse(request)
+    return this.http
+      .post<StoreWalletResponse>(`${this.apiUrl}/investments/wallets`, parsedRequest, {
+        observe: 'response',
+        withCredentials: true,
+      })
+      .pipe(
+        map(response => {
+          const validationResult = StoreWalletResponseSchema.safeParse(response.body)
+
+          if (!validationResult.success) {
+            throw new GatewayError(
+              response.status,
+              validationResult.error.issues.map(e => e.message).join(', '),
+              'Invalid store wallet response structure'
+            )
+          }
+
+          const { errors } = validationResult.data
+
+          if (errors && errors.length > 0) {
+            throw new GatewayError(
+              response.status,
+              errors.map(e => e.message).join(', '),
+              'Store wallet failed with errors'
+            )
+          }
+
+          return validationResult.data
+        }),
+        catchError(error => {
           return throwError(() => this.handleHttpError(error))
         })
       )

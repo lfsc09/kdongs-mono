@@ -1,9 +1,8 @@
 import z from 'zod'
+import { CurrencySchema } from '../../../pages/private/modules/investments/investments.model'
+import { SelectableCurrencySchema } from '../../../pages/private/modules/investments/performance/performance.model'
 import {
-  CurrencySchema,
-  SelectableCurrencySchema,
-} from '../../../pages/private/modules/investments/performance/performance.model'
-import {
+  AdonisJSErrorSchema,
   PaginationRequestSchema,
   PaginationResponseSchema,
   SortOrderSchema,
@@ -159,3 +158,51 @@ export type GetLiquidationSeriesAnalyticsRequestDTO = z.infer<
 export type GetLiquidationSeriesAnalyticsResponseDTO = z.infer<
   typeof GetLiquidationSeriesAnalyticsResponseDTOSchema
 >
+
+/**
+ * Create User Wallet DTOs (Form data only)
+ */
+export const CreateWalletDTOSchema = z.object({
+  currencyCodes: z.array(z.string()),
+})
+export const CreateWalletResponseSchema = z.object({
+  data: CreateWalletDTOSchema,
+})
+
+export type CreateWalletDTO = z.infer<typeof CreateWalletDTOSchema>
+export type CreateWalletResponse = z.infer<typeof CreateWalletResponseSchema>
+
+/**
+ * Edit User Wallet DTOs (Form data only)
+ */
+export const EditWalletDTOSchema = z.object({
+  wallet: z.object({
+    name: z.string(),
+    currencyCode: z.string(),
+  }),
+  currencyCodes: z.array(z.string()),
+})
+export const EditWalletRequestSchema = z.object({
+  walletId: z.string(),
+})
+export const EditWalletResponseSchema = z.object({
+  data: EditWalletDTOSchema,
+})
+
+export type EditWalletDTO = z.infer<typeof EditWalletDTOSchema>
+export type EditWalletRequest = z.infer<typeof EditWalletRequestSchema>
+export type EditWalletResponse = z.infer<typeof EditWalletResponseSchema>
+
+/**
+ * Store User Wallet DTOs
+ */
+export const StoreWalletRequestSchema = z.object({
+  name: z.optional(z.string()),
+  currencyCode: z.optional(z.string()),
+})
+export const StoreWalletResponseSchema = z.object({
+  errors: z.optional(AdonisJSErrorSchema.def.shape.errors),
+})
+
+export type StoreWalletRequest = z.infer<typeof StoreWalletRequestSchema>
+export type StoreWalletResponse = z.infer<typeof StoreWalletResponseSchema>
