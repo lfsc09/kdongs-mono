@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core'
-import { Currency, SelectableCurrency, UserPreferences } from './performance.model'
+import { Currency } from '../investments.model'
+import { SelectableCurrency, UserPreferences } from './performance.model'
 
 @Injectable()
 export class PerformanceService {

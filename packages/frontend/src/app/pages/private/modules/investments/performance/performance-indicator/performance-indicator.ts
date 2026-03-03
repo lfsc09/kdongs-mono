@@ -9,7 +9,7 @@ import { MonetaryPipe } from '../../../../../../infra/pipes/monetary.pipe'
 import { PercentPipe } from '../../../../../../infra/pipes/percent.pipe'
 import { Gauge } from '../../../../components/gauge/gauge'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
-import { Currency } from '../performance.model'
+import { Currency } from '../../investments.model'
 import { PerformanceService } from '../performance.service'
 
 @Component({

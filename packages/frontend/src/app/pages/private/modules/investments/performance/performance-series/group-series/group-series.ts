@@ -5,7 +5,7 @@ import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investm
 import { CapitalizePipe } from '../../../../../../../infra/pipes/capitalize.pipe'
 import { formatMonetary } from '../../../../../../../infra/pipes/monetary.pipe'
 import { formatPercent } from '../../../../../../../infra/pipes/percent.pipe'
-import { Currency } from '../../performance.model'
+import { Currency } from '../../../investments.model'
 import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
 import { ChartGeneratedData, Timeframe, ValueType } from './group-series.model'
 import { GroupSeriesService } from './group-series.service'
