@@ -7,6 +7,7 @@ import { editWalletValidator } from '#validators/investment/wallet/edit'
 import { indexWalletsValidator } from '#validators/investment/wallet/index'
 import { showWalletValidator } from '#validators/investment/wallet/show'
 import { storeWalletValidator } from '#validators/investment/wallet/store'
+import { updateWalletValidator } from '#validators/investment/wallet/update'
 
 @inject()
 export default class WalletsController {
@@ -61,9 +62,22 @@ export default class WalletsController {
   }
 
   /**
-   * Edit individual record
+   * Display form to edit an existing record
    */
-  async edit({ params, request, response, auth, bouncer }: HttpContext) {
+  async edit({ params, response, auth, bouncer }: HttpContext) {
+    if (await bouncer.denies(anyUser)) return response.forbidden()
+    const input = await updateWalletValidator.validate({
+      userId: auth.user?.id ?? '',
+      walletId: params.id,
+    })
+    const output = await this.walletsService.update(input)
+    return response.status(200).json(output)
+  }
+
+  /**
+   * Handle form submission for the edit action
+   */
+  async update({ params, request, response, auth, bouncer }: HttpContext) {
     if (await bouncer.denies(anyUser)) return response.forbidden()
     const input = await editWalletValidator.validate({
       ...request.body(),
@@ -72,13 +86,6 @@ export default class WalletsController {
     })
     const output = await this.walletsService.edit(input)
     return response.status(200).json(output)
-  }
-
-  /**
-   * Handle form submission for the edit action
-   */
-  async update({ response }: HttpContext) {
-    return response.status(204)
   }
 
   /**

@@ -4,7 +4,10 @@ import Big from 'big.js'
 import Wallet from '#models/investment/wallet'
 import type { CreateWalletResponse } from '../../core/dto/investment/wallet/create_dto.js'
 import type { DeleteWalletRequest } from '../../core/dto/investment/wallet/delete_dto.js'
-import type { EditWalletRequest } from '../../core/dto/investment/wallet/edit_dto.js'
+import type {
+  EditWalletRequest,
+  EditWalletResponse,
+} from '../../core/dto/investment/wallet/edit_dto.js'
 import type {
   IndexWalletsRequest,
   IndexWalletsResponse,
@@ -14,6 +17,7 @@ import type {
   ShowWalletResponse,
 } from '../../core/dto/investment/wallet/show_dto.js'
 import type { StoreWalletRequest } from '../../core/dto/investment/wallet/store_dto.js'
+import { UpdateWalletRequest } from '../../core/dto/investment/wallet/update_dto.js'
 import { acceptedCurrencyCodes, type CurrencyCode } from '../../core/types/investment/currency.js'
 import { WalletMovementTypes } from '../../core/types/investment/wallet_movement.js'
 import AssetBrlPrivateBondUtils from './helpers/asset_brl_private_bond.js'
@@ -133,7 +137,7 @@ export default class WalletsService {
   async create(): Promise<CreateWalletResponse> {
     return {
       data: {
-        currencyCodes: acceptedCurrencyCodes as CurrencyCode[],
+        currencyCodes: acceptedCurrencyCodes.sort() as CurrencyCode[],
       },
     }
   }
@@ -158,7 +162,23 @@ export default class WalletsService {
     }
   }
 
-  async edit(input: EditWalletRequest): Promise<void> {
+  async edit(input: EditWalletRequest): Promise<EditWalletResponse> {
+    const wallet = await Wallet.query()
+      .where('id', input.walletId)
+      .where('userId', input.userId)
+      .firstOrFail()
+    return {
+      data: {
+        currencyCodes: acceptedCurrencyCodes.sort() as CurrencyCode[],
+        wallet: {
+          currencyCode: wallet.currencyCode,
+          name: wallet.name,
+        },
+      },
+    }
+  }
+
+  async update(input: UpdateWalletRequest): Promise<void> {
     const wallet = await Wallet.query()
       .where('id', input.walletId)
       .where('userId', input.userId)
