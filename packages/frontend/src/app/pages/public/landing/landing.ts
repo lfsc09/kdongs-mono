@@ -11,7 +11,10 @@ import {
   MessageSeverity,
 } from '../../../infra/services/message/message-manager.model'
 import { MessageManagerService } from '../../../infra/services/message/message-manager.service'
-import { basicMessageCallback } from '../../../infra/services/message/message-manager.util'
+import {
+  basicMessageCallback,
+  handleBasicErrorMessage,
+} from '../../../infra/services/message/message-manager.util'
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner'
 import { Message } from '../../components/message-manager/message/message'
 
@@ -88,6 +91,7 @@ export class Landing implements OnInit, OnDestroy, Comms {
           },
           undefined,
           undefined,
+          undefined,
           { timeAlive: 3000, shouldDelete: true }
         )
       })
@@ -98,6 +102,7 @@ export class Landing implements OnInit, OnDestroy, Comms {
             message: '(╯°□°)╯︵ ┻━┻ Please try again later.',
             severity: MessageSeverity.ERROR,
           },
+          undefined,
           undefined,
           undefined,
           { timeAlive: 3000, shouldDelete: true }
@@ -121,34 +126,17 @@ export class Landing implements OnInit, OnDestroy, Comms {
           this._routerService.navigate(['/r!/home'], { replaceUrl: true })
         },
         error: (error: Error | GatewayError) => {
+          this.loading.set(false)
           this.formGroup.reset()
           submittedForm.resetForm()
-          if (error instanceof GatewayError) {
-            console.error(`[Authentication](${error.status}): ${error.message}`, error.description)
-            this.messageManagerService.sendMessage(
-              {
-                title: error.message,
-                message: error.description,
-                severity: MessageSeverity.ERROR,
-              },
-              this.messageChannel.id,
-              this.messageChannel.region,
-              { timeAlive: 7000, shouldDelete: true }
-            )
-          } else {
-            console.error('[Authentication]:', error.message)
-            this.messageManagerService.sendMessage(
-              {
-                title: 'Something went wrong',
-                message: '(╯°□°)╯︵ ┻━┻ Please try again later.',
-                severity: MessageSeverity.ERROR,
-              },
-              this.messageChannel.id,
-              this.messageChannel.region,
-              { timeAlive: 7000, shouldDelete: true }
-            )
-          }
-          this.loading.set(false)
+          handleBasicErrorMessage(
+            this.messageManagerService,
+            error,
+            this.messageChannel,
+            MessageSeverity.ERROR,
+            { tag: 'Authentication' },
+            { timeAlive: 7000, shouldDelete: true }
+          )
         },
       })
   }

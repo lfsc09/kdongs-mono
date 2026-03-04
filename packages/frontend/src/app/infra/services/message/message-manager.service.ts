@@ -1,16 +1,22 @@
-import { Injectable, signal } from '@angular/core'
+import { Injectable, isDevMode, signal } from '@angular/core'
 import { Subject } from 'rxjs'
 import {
-  GlobalChannel,
+  LogInfo,
   MessageChannel,
   MessageDetail,
   MessageRegion,
+  MessageSeverity,
 } from './message-manager.model'
 
 @Injectable({
   providedIn: 'root',
 })
 export class MessageManagerService {
+  /**
+   * CONSTS
+   */
+  readonly DEFAULT_GLOBAL_CHANNEL_ID = crypto.randomUUID()
+
   /**
    * SIGNALS
    */
@@ -22,11 +28,12 @@ export class MessageManagerService {
   private _globalMessages = signal<Map<MessageDetail['id'], MessageDetail>>(new Map())
   globalMessages = this._globalMessages.asReadonly()
 
-  private _activeLocalChannelsInfo = signal<Map<string, MessageChannel>>(new Map())
+  private _activeLocalChannelsInfo = signal<Map<string, Omit<MessageChannel, 'region'>>>(new Map())
   activeLocalChannelsInfo = this._activeLocalChannelsInfo.asReadonly()
 
-  private _activeGlobalChannelsInfo = signal<Map<string, MessageChannel>>(new Map())
+  private _activeGlobalChannelsInfo = signal<Map<string, Omit<MessageChannel, 'region'>>>(new Map())
   activeGlobalChannelsInfo = this._activeGlobalChannelsInfo.asReadonly()
+
   /**
    * VARS
    */
@@ -41,6 +48,10 @@ export class MessageManagerService {
    * @param message The message detail to register.
    * @param channelId The channelId to which the message belongs.
    * @param region The region where to register the message ({@link MessageRegion}).
+   * @param log Optional log information to log the message in the console with the specified severity and environment conditions.
+   * @param log.tag The tag to identify the log source (e.g., component or service name).
+   * @param log.statusCode An optional status code to include in the log.
+   * @param log.force Whether to force logging regardless of environment conditions (default is false).
    * @param afterAction Optional action to perform after a certain time (archive or delete).
    * @param afterAction.timeAlive Time in milliseconds after which to perform the action.
    * @param afterAction.shouldDelete Whether the message should be hard deleted after the timeAlive duration.
@@ -62,6 +73,11 @@ export class MessageManagerService {
     messageData: Pick<MessageDetail, 'title' | 'message' | 'icon' | 'severity'>,
     channelId?: NonNullable<MessageDetail['channelId']>,
     region?: MessageRegion,
+    log?: {
+      tag: string
+      statusCode?: number
+      force?: boolean
+    },
     afterAction?: {
       timeAlive: number
       shouldDelete?: boolean
@@ -69,7 +85,7 @@ export class MessageManagerService {
   ): void {
     let message: MessageDetail = {
       id: crypto.randomUUID(),
-      channelId: channelId ?? GlobalChannel.DEFAULT,
+      channelId: channelId ?? this.DEFAULT_GLOBAL_CHANNEL_ID,
       createdAt: new Date(),
       ...messageData,
     }
@@ -89,6 +105,19 @@ export class MessageManagerService {
     } else if (region === MessageRegion.LOCAL) {
       this._localMessages.update(messages => new Map(messages).set(message.id, message))
       this._lastLocalMessage.get(message.channelId)?.next(message)
+    }
+
+    if (log) {
+      this._log(
+        {
+          tag: log.tag,
+          statusCode: log.statusCode,
+          message: message.title,
+          description: message.message,
+        },
+        message.severity,
+        log?.force ? 'always' : 'env:dev'
+      )
     }
   }
 
@@ -359,5 +388,49 @@ export class MessageManagerService {
       updatedChannels.delete(channelId)
       return updatedChannels
     })
+  }
+
+  /**
+   * Internal logging function that logs messages to the console based on the specified severity and environment conditions.
+   * @param info The log information, including tag, message, status code, and description.
+   * @param severity The severity of the log ('info', 'warning', or 'error'). Defaults to 'info'.
+   * @param when The environment condition for logging ('always', 'env:dev', or 'env:prod'). Defaults to 'env:dev'.
+   *
+   * @example
+   * // Log an error message only in development environment
+   * this._log(
+   *   { tag: 'MyComponent', message: 'An error occurred', statusCode: 500, description: 'Internal Server Error' },
+   *   MessageSeverity.ERROR,
+   *   'env:dev'
+   * );
+   */
+  private _log(
+    info: LogInfo,
+    severity: MessageSeverity = MessageSeverity.INFO,
+    when: 'always' | 'env:dev' | 'env:prod' = 'env:dev'
+  ): void {
+    if (when === 'env:dev' && !isDevMode()) {
+      return
+    }
+    if (when === 'env:prod' && isDevMode()) {
+      return
+    }
+
+    const logMessage = [
+      `[${info.tag}]${info.statusCode ? `(${info.statusCode})` : ''}: ${info.message ?? 'Unknown log message'}`,
+      info.description,
+    ].filter(Boolean)
+
+    switch (severity) {
+      case MessageSeverity.INFO:
+        console.log(...logMessage)
+        break
+      case MessageSeverity.WARNING:
+        console.warn(...logMessage)
+        break
+      case MessageSeverity.ERROR:
+        console.error(...logMessage)
+        break
+    }
   }
 }

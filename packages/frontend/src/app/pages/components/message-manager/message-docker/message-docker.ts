@@ -1,7 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core'
 import { Subscription } from 'rxjs'
 import {
-  GlobalChannel,
   MessageDetail,
   MessageRegion,
 } from '../../../../infra/services/message/message-manager.model'
@@ -54,7 +53,11 @@ export class MessageDocker implements OnInit {
 
   ngOnInit(): void {
     this._messageChannelSubscription = this._messageManagerService
-      .registerChannel(GlobalChannel.DEFAULT, 'Global Default Channel', MessageRegion.GLOBAL)
+      .registerChannel(
+        this._messageManagerService.DEFAULT_GLOBAL_CHANNEL_ID,
+        'Global Default Channel',
+        MessageRegion.GLOBAL
+      )
       .subscribe((message: MessageDetail) => {
         this.currentMessage.set(message)
         // Schedule removal of message after its aliveUntil time
@@ -69,7 +72,9 @@ export class MessageDocker implements OnInit {
 
   ngOnDestroy(): void {
     this._messageChannelSubscription?.unsubscribe()
-    this._messageManagerService.unregisterChannel(GlobalChannel.DEFAULT)
+    this._messageManagerService.unregisterChannel(
+      this._messageManagerService.DEFAULT_GLOBAL_CHANNEL_ID
+    )
     if (this._messageTimeAliveInterval) {
       clearInterval(this._messageTimeAliveInterval)
     }

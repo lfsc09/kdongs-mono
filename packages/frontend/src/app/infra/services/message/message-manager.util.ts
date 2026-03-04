@@ -1,5 +1,7 @@
 import { signal } from '@angular/core'
-import { MessageDetail } from './message-manager.model'
+import { GatewayError } from '../../gateways/shared/default-gateway.model'
+import { LogInfo, MessageChannel, MessageDetail, MessageSeverity } from './message-manager.model'
+import { MessageManagerService } from './message-manager.service'
 
 export const basicMessageCallback = (
   message: MessageDetail,
@@ -17,4 +19,46 @@ export const basicMessageCallback = (
   }
 
   return timeToLive
+}
+
+export const handleBasicErrorMessage = (
+  service: MessageManagerService,
+  error: Error | GatewayError,
+  messageChannel: MessageChannel,
+  severity: MessageSeverity = MessageSeverity.ERROR,
+  log?: Pick<LogInfo, 'tag'>,
+  afterAction?: {
+    timeAlive: number
+    shouldDelete?: boolean
+  }
+): void => {
+  if (error instanceof GatewayError) {
+    service.sendMessage(
+      {
+        title: error.message,
+        message: error.description,
+        severity: severity,
+      },
+      messageChannel.id,
+      messageChannel.region,
+      log ? { tag: log.tag, statusCode: error.status } : undefined,
+      afterAction
+        ? { timeAlive: afterAction.timeAlive, shouldDelete: afterAction.shouldDelete ?? true }
+        : undefined
+    )
+  } else {
+    service.sendMessage(
+      {
+        title: 'Something went wrong',
+        message: '(╯°□°)╯︵ ┻━┻ Please try again later.',
+        severity: severity,
+      },
+      messageChannel.id,
+      messageChannel.region,
+      log ? { tag: log.tag } : undefined,
+      afterAction
+        ? { timeAlive: afterAction.timeAlive, shouldDelete: afterAction.shouldDelete ?? true }
+        : undefined
+    )
+  }
 }

@@ -2,9 +2,17 @@ import { signal } from '@angular/core'
 import { Subscription } from 'rxjs'
 import { MessageManagerService } from './message-manager.service'
 
+export interface LogInfo {
+  tag: string
+  message?: string
+  statusCode?: number
+  description?: string
+}
+
 export interface MessageChannel {
-  id: string
+  id: ReturnType<typeof crypto.randomUUID>
   name: string
+  region: MessageRegion
 }
 
 export interface MessageDetail {
@@ -30,10 +38,6 @@ export enum MessageRegion {
   GLOBAL = 'global',
 }
 
-export enum GlobalChannel {
-  DEFAULT = 'global-default-channel',
-}
-
 export interface Comms {
   /**
    * SERVICES
@@ -48,11 +52,7 @@ export interface Comms {
   /**
    * VARS
    */
-  readonly messageChannel: {
-    id: ReturnType<typeof crypto.randomUUID>
-    name: string
-    region: MessageRegion
-  }
+  readonly messageChannel: MessageChannel
   messageChannelSubscription: Subscription | undefined
   messageTimeAliveInterval: ReturnType<typeof setTimeout> | undefined
 }
