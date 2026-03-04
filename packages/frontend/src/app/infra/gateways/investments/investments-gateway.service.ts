@@ -25,6 +25,10 @@ import {
   StoreWalletRequestSchema,
   StoreWalletResponse,
   StoreWalletResponseSchema,
+  UpdateWalletRequest,
+  UpdateWalletRequestSchema,
+  UpdateWalletResponse,
+  UpdateWalletResponseSchema,
 } from './investments-gateway.model'
 
 @Injectable()
@@ -204,6 +208,43 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
               response.status,
               errors.map(e => e.message).join(', '),
               'Store wallet failed with errors'
+            )
+          }
+
+          return validationResult.data
+        }),
+        catchError(error => {
+          return throwError(() => this.handleHttpError(error))
+        })
+      )
+  }
+
+  updateWallet(request: UpdateWalletRequest): Observable<UpdateWalletResponse> {
+    const parsedRequest = UpdateWalletRequestSchema.parse(request)
+    return this.http
+      .patch<UpdateWalletResponse>(`${this.apiUrl}/investments/wallets`, parsedRequest, {
+        observe: 'response',
+        withCredentials: true,
+      })
+      .pipe(
+        map(response => {
+          const validationResult = UpdateWalletResponseSchema.safeParse(response.body)
+
+          if (!validationResult.success) {
+            throw new GatewayError(
+              response.status,
+              validationResult.error.issues.map(e => e.message).join(', '),
+              'Invalid update wallet response structure'
+            )
+          }
+
+          const { errors } = validationResult.data
+
+          if (errors && errors.length > 0) {
+            throw new GatewayError(
+              response.status,
+              errors.map(e => e.message).join(', '),
+              'Update wallet failed with errors'
             )
           }
 

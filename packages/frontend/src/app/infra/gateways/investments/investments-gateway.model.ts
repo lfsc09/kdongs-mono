@@ -206,3 +206,18 @@ export const StoreWalletResponseSchema = z.object({
 
 export type StoreWalletRequest = z.infer<typeof StoreWalletRequestSchema>
 export type StoreWalletResponse = z.infer<typeof StoreWalletResponseSchema>
+
+/**
+ * Update User Wallet DTOs
+ */
+export const UpdateWalletRequestSchema = z.object({
+  walletId: z.string(),
+  name: z.optional(z.string()),
+  currencyCode: z.optional(z.string()),
+})
+export const UpdateWalletResponseSchema = z.object({
+  errors: z.optional(AdonisJSErrorSchema.def.shape.errors),
+})
+
+export type UpdateWalletRequest = z.infer<typeof UpdateWalletRequestSchema>
+export type UpdateWalletResponse = z.infer<typeof UpdateWalletResponseSchema>
