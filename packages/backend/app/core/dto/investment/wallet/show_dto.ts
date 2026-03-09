@@ -1,7 +1,6 @@
-import type { InferInput } from '@vinejs/vine/types'
-import type { showWalletSchema } from '#validators/investment/wallet/show'
+import { showWalletValidator } from '#validators/investment/wallet/show'
 
-export type ShowWalletRequest = InferInput<typeof showWalletSchema>
+export type ShowWalletRequest = Awaited<ReturnType<typeof showWalletValidator.validate>>
 
 // TODO: Add wallet data
 export type ShowWalletResponse = {

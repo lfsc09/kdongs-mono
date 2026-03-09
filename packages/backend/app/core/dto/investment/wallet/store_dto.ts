@@ -1,4 +1,3 @@
-import type { InferInput } from '@vinejs/vine/types'
-import type { storeWalletSchema } from '#validators/investment/wallet/store'
+import { storeWalletValidator } from '#validators/investment/wallet/store'
 
-export type StoreWalletRequest = InferInput<typeof storeWalletSchema>
+export type StoreWalletRequest = Awaited<ReturnType<typeof storeWalletValidator.validate>>

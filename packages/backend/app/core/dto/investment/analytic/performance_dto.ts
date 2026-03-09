@@ -1,10 +1,8 @@
-import type { InferInput } from '@vinejs/vine/types'
-import type { performanceAnalyticsSchema } from '#validators/investment/analytic/performance'
+import type { performanceAnalyticsValidator } from '#validators/investment/analytic/performance'
 
-export type PerformanceAnalayticsRequest = InferInput<typeof performanceAnalyticsSchema> & {
-  // Manually override the type of useLivePriceQuote to be a boolean, since vine boolean by default does not give only boolean and the validator transforms it to a boolean
-  useLivePriceQuote: boolean
-}
+export type PerformanceAnalayticsRequest = Awaited<
+  ReturnType<typeof performanceAnalyticsValidator.validate>
+>
 
 export type PerformanceAnalyticsResponse = {
   data: {

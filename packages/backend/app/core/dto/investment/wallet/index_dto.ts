@@ -1,8 +1,7 @@
-import type { InferInput } from '@vinejs/vine/types'
-import type { indexWalletsSchema } from '#validators/investment/wallet/index'
+import { indexWalletsValidator } from '#validators/investment/wallet/index'
 import type { PaginationResponse } from '../../shared/pagination_dto.js'
 
-export type IndexWalletsRequest = InferInput<typeof indexWalletsSchema>
+export type IndexWalletsRequest = Awaited<ReturnType<typeof indexWalletsValidator.validate>>
 
 export type IndexWalletsResponse = {
   data: {
@@ -16,8 +15,8 @@ export type IndexWalletsResponse = {
       currentBalance: number
       profitInCurrency: number
       profitInPerc: number
-      createdAt?: string
-      updatedAt?: string
+      createdAt: string | undefined
+      updatedAt: string | undefined
     }[]
   }
   metadata: PaginationResponse

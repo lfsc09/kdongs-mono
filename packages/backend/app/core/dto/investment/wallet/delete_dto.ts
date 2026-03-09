@@ -1,4 +1,3 @@
-import type { InferInput } from '@vinejs/vine/types'
-import type { deleteWalletSchema } from '#validators/investment/wallet/delete'
+import type { deleteWalletValidator } from '#validators/investment/wallet/delete'
 
-export type DeleteWalletRequest = InferInput<typeof deleteWalletSchema>
+export type DeleteWalletRequest = Awaited<ReturnType<typeof deleteWalletValidator.validate>>

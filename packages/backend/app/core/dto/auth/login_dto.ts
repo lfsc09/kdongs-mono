@@ -1,7 +1,6 @@
-import type { InferInput } from '@vinejs/vine/types'
 import type { loginValidator } from '#validators/auth/login'
 
-export type LoginRequest = InferInput<typeof loginValidator>
+export type LoginRequest = Awaited<ReturnType<typeof loginValidator.validate>>
 
 export type LoginResponse = {
   data: {

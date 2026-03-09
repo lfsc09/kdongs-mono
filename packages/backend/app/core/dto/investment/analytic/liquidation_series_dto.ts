@@ -1,12 +1,8 @@
-import { InferInput } from '@vinejs/vine/types'
-import { liquidationSeriesAnalyticsSchema } from '#validators/investment/analytic/liquidation_series'
+import { liquidationSeriesAnalyticsValidator } from '#validators/investment/analytic/liquidation_series'
 
-export type LiquidationSeriesAnalyticsRequest = InferInput<
-  typeof liquidationSeriesAnalyticsSchema
-> & {
-  // Manually override the type of useLivePriceQuote to be a boolean, since vine boolean by default does not give only boolean and the validator transforms it to a boolean
-  useLivePriceQuote: boolean
-}
+export type LiquidationSeriesAnalyticsRequest = Awaited<
+  ReturnType<typeof liquidationSeriesAnalyticsValidator.validate>
+>
 
 export type AnalyticSerieDataPointType =
   | 'movement'
