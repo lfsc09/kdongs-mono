@@ -25,7 +25,7 @@ export class LoadingSpinner {
    * SIGNALS
    */
   size = input<'sm' | 'md' | 'lg' | 'xl'>('sm')
-  color = input<'white' | 'slate' | 'lime'>('lime')
+  color = input<'foreground' | 'lime'>('lime')
 
   /**
    * VARS
@@ -37,8 +37,7 @@ export class LoadingSpinner {
     xl: 'h-16 w-16',
   }
   protected colors = {
-    white: 'stroke-white',
-    slate: 'stroke-slate-300 dark:stroke-slate-600',
+    foreground: 'stroke-slate-900 dark:stroke-slate-100',
     lime: 'stroke-lime-500 dark:stroke-lime-500',
   }
 }

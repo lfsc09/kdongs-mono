@@ -1,61 +1,52 @@
 <section class="bg-background-0 flex flex-col items-center gap-6 px-6 py-12">
   <span class="text-2xl font-medium text-lime-500 select-none">New Wallet</span>
-  <div class="card w-full space-y-4 md:w-[32em]">
-    @if (loading()) {
+  @if (loading() === 'loading') {
+    <div class="card w-full space-y-4 md:w-[32em]">
       <div class="loading-bar-box *:w-1/2!">
         <kdongs-cp-loading-bar size="md" />
       </div>
-    } @else {
-      <form
-        [formGroup]="formGroup"
-        class="space-y-4"
-        #formGroupRef="ngForm"
-        (ngSubmit)="handleFormSubmit(formGroupRef)"
-      >
+    </div>
+  } @else {
+    <form class="flex flex-col gap-4" (submit)="onSubmit($event)">
+      <div class="card w-full space-y-4 md:w-[32em]">
         <div class="form-field">
           <label for="name">Name</label>
-          <input
-            type="text"
-            id="name"
-            placeholder="Wallet's name"
-            formControlName="name"
-            value="{{ formGroup.controls.name.value }}"
-          />
-          @if (
-            formGroup.controls.name.invalid &&
-            formGroup.controls.name.dirty &&
-            formGroupRef.submitted
-          ) {
-            <small class="text-red-600 dark:text-red-400">Invalid name</small>
+          <input type="text" id="name" placeholder="Wallet's name" [formField]="form.name" />
+          @if (form.name().invalid() && form.name().touched()) {
+            @for (error of form.name().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
           }
         </div>
         <div class="form-field">
           <label for="currencyCode">Currency Code</label>
-          <select name="currencyCode" id="currencyCode" formControlName="currencyCode">
+          <select id="currencyCode" [formField]="form.currencyCode">
             @for (option of formData()?.currencyCodes; track option) {
-              <option
-                [value]="option"
-                [selected]="formGroup.controls.currencyCode.value === option"
-              >
+              <option [value]="option" [selected]="form.currencyCode().value() === option">
                 {{ option }}
               </option>
             }
           </select>
-          @if (
-            formGroup.controls.currencyCode.invalid &&
-            formGroup.controls.currencyCode.dirty &&
-            formGroupRef.submitted
-          ) {
-            <small class="text-red-600 dark:text-red-400">Invalid currency code</small>
+          @if (form.currencyCode().invalid() && form.currencyCode().touched()) {
+            @for (error of form.currencyCode().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
           }
         </div>
-        <div class="mt-6 flex justify-end gap-2">
-          <button type="button" class="btn btn-ghost" (click)="handleClear()">Cancel</button>
-          <button type="submit" class="btn">Submit</button>
-        </div>
-      </form>
-    }
-  </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-2">
+        <button type="button" class="btn btn-ghost" (click)="handleClear()">Cancel</button>
+        <button type="submit" class="btn" [disabled]="loading() === 'sending' || !form().valid()">
+          <div class="flex items-center gap-2">
+            Submit
+            @if (loading() === 'sending') {
+              <kdongs-cp-loading-spinner color="foreground" />
+            }
+          </div>
+        </button>
+      </div>
+    </form>
+  }
   @if (currentMessage()) {
     <kdongs-cp-message
       class="w-full md:w-[32em]"

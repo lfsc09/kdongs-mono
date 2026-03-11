@@ -1,5 +1,5 @@
 import { Component, inject, input, OnDestroy, OnInit, signal } from '@angular/core'
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
+import { form, FormField } from '@angular/forms/signals'
 import { Subscription } from 'rxjs'
 import {
   CreateWalletDTO,
@@ -18,12 +18,14 @@ import {
   basicMessageCallback,
   handleBasicErrorMessage,
 } from '../../../../../../infra/services/message/message-manager.util'
+import { LoadingSpinner } from '../../../../../components/loading-spinner/loading-spinner'
 import { Message } from '../../../../../components/message-manager/message/message'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
+import { createWalletFormSchema, WalletFormData } from './wallet-form.model'
 
 @Component({
   selector: 'kdongs-wallet-form',
-  imports: [ReactiveFormsModule, Message, LoadingBar],
+  imports: [FormField, Message, LoadingBar, LoadingSpinner],
   templateUrl: './wallet-form.html',
 })
 export class WalletForm implements OnInit, OnDestroy, Comms {
@@ -31,7 +33,6 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
    * SERVICES
    */
   readonly messageManagerService = inject(MessageManagerService)
-  private readonly _formBuilderService = inject(NonNullableFormBuilder)
   private readonly _investmentsGatewayService = inject(InvestmentsGatewayService)
 
   /**
@@ -39,8 +40,13 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
    */
   walletId = input<string | undefined>(undefined)
   currentMessage = signal<MessageDetail | null>(null)
+  protected loading = signal<'not' | 'loading' | 'sending'>('not')
   protected formData = signal<CreateWalletDTO | EditWalletDTO | null>(null)
-  protected loading = signal<boolean>(false)
+  protected formModel = signal<WalletFormData>({
+    name: '',
+    currencyCode: '',
+  })
+  protected form = form(this.formModel, createWalletFormSchema)
 
   /**
    * VARS
@@ -52,10 +58,6 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
     name: 'wallets-chn',
     region: MessageRegion.LOCAL,
   }
-  protected formGroup = this._formBuilderService.group({
-    name: ['', Validators.required],
-    currencyCode: ['', Validators.required],
-  })
   private _defaultCurrencyCodeBrlIndex: number | undefined = undefined
   private _investmentsSubscription: Subscription | undefined
 
@@ -68,23 +70,23 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
       })
 
     // Fetch wallet data based on walletId input
-    this.loading.set(true)
+    this.loading.set('loading')
     const walletId = this.walletId()
     if (!walletId) {
       this._investmentsSubscription = this._investmentsGatewayService.createWallet().subscribe({
         next: response => {
-          this.loading.set(false)
+          this.loading.set('not')
           this.formData.set(response.data)
 
           const brlIndex = response.data.currencyCodes.findIndex(code => code === 'BRL')
           this._defaultCurrencyCodeBrlIndex = brlIndex !== -1 ? brlIndex : 0
 
-          this.formGroup.patchValue({
-            currencyCode: response.data.currencyCodes[this._defaultCurrencyCodeBrlIndex],
-          })
+          this.form
+            .currencyCode()
+            .value.set(response.data.currencyCodes[this._defaultCurrencyCodeBrlIndex])
         },
         error: (error: Error | GatewayError) => {
-          this.loading.set(false)
+          this.loading.set('not')
           this.formData.set(null)
           handleBasicErrorMessage(
             this.messageManagerService,
@@ -101,19 +103,19 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
         .editWallet({ walletId })
         .subscribe({
           next: response => {
-            this.loading.set(false)
+            this.loading.set('not')
             this.formData.set(response.data)
 
             const brlIndex = response.data.currencyCodes.findIndex(code => code === 'BRL')
             this._defaultCurrencyCodeBrlIndex = brlIndex !== -1 ? brlIndex : 0
 
-            this.formGroup.patchValue({
+            this.formModel.set({
               name: response.data.wallet.name,
               currencyCode: response.data.wallet.currencyCode,
             })
           },
           error: (error: Error | GatewayError) => {
-            this.loading.set(false)
+            this.loading.set('not')
             this.formData.set(null)
             handleBasicErrorMessage(
               this.messageManagerService,
@@ -140,20 +142,22 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
   /**
    * FUNCTIONS
    */
-  protected handleFormSubmit(submittedForm: any): void {
-    if (!this.formGroup.valid) {
-      this.formGroup.markAllAsTouched()
+  protected onSubmit(event: Event): void {
+    event.preventDefault()
+
+    if (!this.form().valid()) {
       return
     }
-    this.loading.set(true)
+    this.loading.set('sending')
 
+    const formValues = this.formModel()
     const walletId = this.walletId()
     if (!walletId) {
       this._investmentsSubscription = this._investmentsGatewayService
-        .storeWallet(this.formGroup.value)
+        .storeWallet(formValues)
         .subscribe({
           next: () => {
-            this.loading.set(false)
+            this.loading.set('not')
             this.messageManagerService.sendMessage(
               {
                 title: 'Wallet created successfully',
@@ -162,10 +166,10 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
               this.messageChannel.id,
               this.messageChannel.region
             )
-            submittedForm.resetForm()
+            this.form().reset()
           },
           error: (error: Error | GatewayError) => {
-            this.loading.set(false)
+            this.loading.set('not')
             handleBasicErrorMessage(
               this.messageManagerService,
               error,
@@ -178,10 +182,10 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
         })
     } else {
       this._investmentsSubscription = this._investmentsGatewayService
-        .updateWallet({ walletId, ...this.formGroup.value })
+        .updateWallet({ walletId, ...formValues })
         .subscribe({
           next: () => {
-            this.loading.set(false)
+            this.loading.set('not')
             this.messageManagerService.sendMessage(
               {
                 title: 'Wallet updated successfully',
@@ -192,7 +196,7 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
             )
           },
           error: (error: Error | GatewayError) => {
-            this.loading.set(false)
+            this.loading.set('not')
             handleBasicErrorMessage(
               this.messageManagerService,
               error,
@@ -209,12 +213,12 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
   protected handleClear(): void {
     const formData = this.formData()
     if (formData && 'wallet' in formData) {
-      this.formGroup.reset({
+      this.form().reset({
         name: formData.wallet.name,
         currencyCode: formData.wallet.currencyCode,
       })
     } else {
-      this.formGroup.reset({
+      this.form().reset({
         name: '',
         currencyCode:
           this._defaultCurrencyCodeBrlIndex !== undefined

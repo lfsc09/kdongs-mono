@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core'
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
+import { form, FormField } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway.service'
@@ -15,12 +15,13 @@ import {
   basicMessageCallback,
   handleBasicErrorMessage,
 } from '../../../infra/services/message/message-manager.util'
-import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner'
 import { Message } from '../../components/message-manager/message/message'
+import { LoadingBar } from '../../private/components/loading-bar/loading-bar'
+import { LandingFormData, landingFormSchema } from './landing.model'
 
 @Component({
   selector: 'kdongs-landing',
-  imports: [ReactiveFormsModule, Message, LoadingSpinner],
+  imports: [FormField, Message, LoadingBar],
   providers: [LoginGatewayService],
   templateUrl: './landing.html',
 })
@@ -30,7 +31,6 @@ export class Landing implements OnInit, OnDestroy, Comms {
    */
   readonly messageManagerService = inject(MessageManagerService)
   private readonly _routerService = inject(Router)
-  private readonly _formBuilderService = inject(NonNullableFormBuilder)
   private readonly _loginService = inject(LoginGatewayService)
 
   /**
@@ -39,6 +39,11 @@ export class Landing implements OnInit, OnDestroy, Comms {
   currentMessage = signal<MessageDetail | null>(null)
   protected loading = signal<boolean>(false)
   protected currentSliderContent = signal<number>(0)
+  protected formModel = signal<LandingFormData>({
+    email: '',
+    password: '',
+  })
+  protected form = form(this.formModel, landingFormSchema)
 
   /**
    * VARS
@@ -50,10 +55,6 @@ export class Landing implements OnInit, OnDestroy, Comms {
     name: 'landing-chn',
     region: MessageRegion.LOCAL,
   }
-  protected formGroup = this._formBuilderService.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required],
-  })
   private _authenticationSubscription: Subscription | undefined
   private _carouselInterval: ReturnType<typeof setInterval> | undefined
 
@@ -110,35 +111,35 @@ export class Landing implements OnInit, OnDestroy, Comms {
       })
   }
 
-  protected handleFormSubmit(submittedForm: any): void {
-    if (!this.formGroup.valid) {
-      this.formGroup.markAllAsTouched()
+  protected onSubmit(event: Event): void {
+    event.preventDefault()
+
+    if (!this.form().valid()) {
       return
     }
     this.loading.set(true)
-    this._authenticationSubscription = this._loginService
-      .authenticate({ email: this.formGroup.value.email, password: this.formGroup.value.password })
-      .subscribe({
-        next: (response: boolean) => {
-          if (!response) {
-            throw new Error("Something doesn't feel right")
-          }
-          this._routerService.navigate(['/r!/home'], { replaceUrl: true })
-        },
-        error: (error: Error | GatewayError) => {
-          this.loading.set(false)
-          this.formGroup.reset()
-          submittedForm.resetForm()
-          handleBasicErrorMessage(
-            this.messageManagerService,
-            error,
-            this.messageChannel,
-            MessageSeverity.ERROR,
-            { tag: 'Authentication' },
-            { timeAlive: 7000, shouldDelete: true }
-          )
-        },
-      })
+
+    const formValues = this.formModel()
+    this._authenticationSubscription = this._loginService.authenticate(formValues).subscribe({
+      next: (response: boolean) => {
+        if (!response) {
+          throw new Error("Something doesn't feel right")
+        }
+        this._routerService.navigate(['/r!/home'], { replaceUrl: true })
+      },
+      error: (error: Error | GatewayError) => {
+        this.loading.set(false)
+        this.form().reset()
+        handleBasicErrorMessage(
+          this.messageManagerService,
+          error,
+          this.messageChannel,
+          MessageSeverity.ERROR,
+          { tag: 'Authentication' },
+          { timeAlive: 7000, shouldDelete: true }
+        )
+      },
+    })
   }
 
   private _startCarousel(): void {
