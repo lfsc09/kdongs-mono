@@ -424,17 +424,21 @@
     &.btn-sm {
       @apply px-2 py-1 text-sm;
     }
-  }
 
-  .input {
-    @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
+    &:disabled {
+      @apply bg-background-1 cursor-default text-slate-400;
+    }
   }
 
   .form-field {
     @apply flex flex-col items-start gap-1;
 
     &.rtl {
-      @apply items-end;
+      @apply items-end text-right;
+    }
+
+    &.required > label {
+      @apply after:ml-1 after:content-['*'];
     }
 
     label {
@@ -443,6 +447,14 @@
 
     input {
       @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
+
+      &:disabled {
+        @apply bg-background-1 text-slate-400;
+      }
+
+      &.rtl {
+        @apply text-right;
+      }
     }
 
     select {
@@ -450,6 +462,39 @@
 
       option {
         @apply bg-background-0 text-slate-900 dark:text-slate-100;
+      }
+    }
+
+    textarea {
+      @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
+    }
+
+    > .field-group {
+      @apply flex w-64 items-center;
+
+      span {
+        @apply bg-background-0 w-fit rounded border border-slate-400 px-2 py-1.5 text-sm font-medium text-slate-900 select-none dark:text-slate-100;
+
+        &.disabled {
+          @apply bg-background-1 text-slate-400;
+        }
+      }
+
+      input,
+      select {
+        @apply w-full;
+      }
+
+      > :first-child:not(:only-child) {
+        @apply rounded-l rounded-r-none border-r-0;
+      }
+
+      > :not(:first-child):not(:last-child) {
+        @apply rounded-none border-r-0;
+      }
+
+      > :last-child:not(:only-child) {
+        @apply rounded-l-none rounded-r;
       }
     }
   }
@@ -457,12 +502,24 @@
   .form-field-inline {
     @apply flex items-start gap-1;
 
+    &.required > label {
+      @apply after:ml-1 after:content-['*'];
+    }
+
     label {
       @apply text-sm font-medium;
     }
 
     input {
       @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
+
+      &:disabled {
+        @apply bg-background-1 text-slate-400;
+      }
+
+      &.rtl {
+        @apply text-right;
+      }
     }
 
     select {
@@ -471,6 +528,10 @@
       option {
         @apply bg-background-0 text-slate-900 dark:text-slate-100;
       }
+    }
+
+    textarea {
+      @apply bg-background-0 w-64 rounded border border-slate-400 px-2 py-1 text-slate-900 dark:text-slate-100;
     }
   }
 

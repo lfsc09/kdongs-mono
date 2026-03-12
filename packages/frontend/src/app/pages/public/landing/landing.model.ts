@@ -6,6 +6,6 @@ export interface LandingFormData {
 }
 
 export const landingFormSchema = schema<LandingFormData>(schemaPath => {
-  required(schemaPath.email)
-  required(schemaPath.password)
+  required(schemaPath.email, { message: 'Email is required' })
+  required(schemaPath.password, { message: 'Password is required' })
 })

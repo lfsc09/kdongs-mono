@@ -63,7 +63,7 @@
         <form class="space-y-4" (submit)="onSubmit($event)">
           <div class="form-field rtl">
             <label for="email">Email</label>
-            <input type="text" id="email" placeholder="Enter your email" [formField]="form.email" />
+            <input id="email" placeholder="Enter your email" [formField]="form.email" />
             @if (form.email().invalid() && form.email().touched()) {
               @for (error of form.email().errors(); track error) {
                 <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
@@ -85,7 +85,7 @@
             }
           </div>
           <div class="mt-6 flex justify-end">
-            <button type="submit" class="btn">Submit</button>
+            <button type="submit" class="btn" [disabled]="!form().valid()">Submit</button>
           </div>
         </form>
       }
