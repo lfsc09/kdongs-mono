@@ -7,18 +7,18 @@
       </div>
     </div>
   } @else {
-    <form class="flex flex-col gap-4" (submit)="onSubmit($event)">
-      <div class="card w-full space-y-4 md:w-[32em]">
-        <div class="form-field">
+    <form class="flex w-full flex-col gap-4 md:w-[32em]" [formRoot]="form">
+      <div class="card space-y-4">
+        <div class="form-field *:w-full">
           <label for="name">Name</label>
-          <input type="text" id="name" placeholder="Wallet's name" [formField]="form.name" />
+          <input id="name" placeholder="Wallet's name" [formField]="form.name" />
           @if (form.name().invalid() && form.name().touched()) {
             @for (error of form.name().errors(); track error) {
               <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
             }
           }
         </div>
-        <div class="form-field">
+        <div class="form-field *:w-full">
           <label for="currencyCode">Currency Code</label>
           <select id="currencyCode" [formField]="form.currencyCode">
             @for (option of formData()?.currencyCodes; track option) {

@@ -30,6 +30,30 @@ export const investmentsRoutes: Routes = [
         loadComponent: () =>
           import('./wallet/wallet-form/wallet-form').then(module => module.WalletForm),
       },
+      {
+        path: 'wallets/:walletId',
+        loadComponent: () =>
+          import('./wallet/wallet-detail/wallet-detail').then(module => module.WalletDetail),
+      },
+      {
+        path: 'wallets/:walletId/edit',
+        loadComponent: () =>
+          import('./wallet/wallet-form/wallet-form').then(module => module.WalletForm),
+      },
+      {
+        path: 'wallets/:walletId/movements/new',
+        loadComponent: () =>
+          import('./wallet-movement/wallet-movement-form/wallet-movement-form').then(
+            module => module.WalletMovementForm
+          ),
+      },
+      {
+        path: 'wallets/:walletId/movements/:movementId/edit',
+        loadComponent: () =>
+          import('./wallet-movement/wallet-movement-form/wallet-movement-form').then(
+            module => module.WalletMovementForm
+          ),
+      },
       { path: '', redirectTo: 'wallets', pathMatch: 'full' },
     ],
   },

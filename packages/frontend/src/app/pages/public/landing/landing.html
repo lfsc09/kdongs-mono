@@ -60,7 +60,7 @@
         </div>
       } @else {
         <h2 class="text-xl">Login</h2>
-        <form class="space-y-4" (submit)="onSubmit($event)">
+        <form class="space-y-4" [formRoot]="form">
           <div class="form-field rtl">
             <label for="email">Email</label>
             <input id="email" placeholder="Enter your email" [formField]="form.email" />

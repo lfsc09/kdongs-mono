@@ -1,0 +1,223 @@
+<section class="bg-background-0 flex flex-col items-center gap-6 px-6 py-12">
+  <span class="text-2xl font-medium text-lime-500 select-none">New Movement</span>
+  @if (loading() === 'loading') {
+    <div class="card w-full space-y-4 md:w-[32em]">
+      <div class="loading-bar-box *:w-1/2!">
+        <kdongs-cp-loading-bar size="md" />
+      </div>
+    </div>
+  } @else {
+    <form class="flex w-full flex-col gap-6 md:w-[32em]" [formRoot]="form">
+      <div class="card space-y-4">
+        <div class="form-field *:w-full">
+          <label for="movementType">Movement Type</label>
+          <select id="movementType" [formField]="form.movementType">
+            @for (option of formData()?.movementTypes; track option) {
+              <option [value]="option" [selected]="form.movementType().value() === option">
+                {{ option }}
+              </option>
+            }
+          </select>
+          @if (form.movementType().invalid() && form.movementType().touched()) {
+            @for (error of form.movementType().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
+          }
+        </div>
+        <div class="form-field *:w-full">
+          <label for="institution">Institution</label>
+          <input
+            id="institution"
+            placeholder="Movement's institution"
+            [formField]="form.institution"
+          />
+          @if (form.institution().invalid() && form.institution().touched()) {
+            @for (error of form.institution().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
+          }
+        </div>
+        <div class="form-field required *:w-full">
+          <label for="dateUtc">Date</label>
+          <input type="date" id="dateUtc" [formField]="form.dateUtc" />
+          @if (form.dateUtc().invalid() && form.dateUtc().touched()) {
+            @for (error of form.dateUtc().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
+          }
+        </div>
+        <div class="form-field *:w-full">
+          <label for="details">Details</label>
+          <textarea
+            id="details"
+            rows="5"
+            placeholder="Any details to share"
+            [formField]="form.details"
+          ></textarea>
+          @if (form.details().invalid() && form.details().touched()) {
+            @for (error of form.details().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
+          }
+        </div>
+      </div>
+      <div class="card space-y-4">
+        <div class="form-field *:w-full md:*:w-2/3">
+          <label for="originCurrencyCode">Origin Currency</label>
+          <select id="originCurrencyCode" [formField]="form.originCurrencyCode">
+            @for (option of formData()?.currencyCodes; track option) {
+              <option [value]="option" [selected]="form.originCurrencyCode().value() === option">
+                {{ option }}
+              </option>
+            }
+          </select>
+          @if (form.originCurrencyCode().invalid() && form.originCurrencyCode().touched()) {
+            @for (error of form.originCurrencyCode().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
+          }
+        </div>
+        <div class="form-field required *:w-full md:*:w-2/3">
+          <label for="originAmount">Origin Amount</label>
+          <div class="field-group">
+            <span>{{ form.originCurrencyCode().value() }}</span>
+            <input
+              inputmode="decimal"
+              class="rtl"
+              id="originAmount"
+              placeholder="e.g. 1000.00"
+              [kdongsInputDecimal]="2"
+              [formField]="form.originAmount"
+            />
+          </div>
+          @if (form.originAmount().invalid() && form.originAmount().touched()) {
+            @for (error of form.originAmount().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
+          }
+        </div>
+      </div>
+      <div class="flex justify-center">
+        <i class="fa-solid fa-repeat text-2xl"></i>
+      </div>
+      <div class="card space-y-4">
+        <div class="form-field rtl *:w-full md:*:w-2/3">
+          <label for="resultCurrencyCode">Resulting Currency</label>
+          <select id="resultCurrencyCode" [formField]="form.resultCurrencyCode">
+            @for (option of formData()?.currencyCodes; track option) {
+              <option [value]="option" [selected]="form.resultCurrencyCode().value() === option">
+                {{ option }}
+              </option>
+            }
+          </select>
+          @if (form.resultCurrencyCode().invalid() && form.resultCurrencyCode().touched()) {
+            @for (error of form.resultCurrencyCode().errors(); track error) {
+              <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+            }
+          }
+        </div>
+        @if (!form.originExchGrossRate().hidden()) {
+          <div class="form-field required rtl *:w-full md:*:w-2/3">
+            <label for="originExchGrossRate">Gross Exchange Rate</label>
+            <div class="field-group">
+              <span>{{ form.originCurrencyCode().value() }}</span>
+              <input
+                inputmode="decimal"
+                class="rtl"
+                id="originExchGrossRate"
+                placeholder="e.g 0.000000"
+                [formField]="form.originExchGrossRate"
+                [kdongsInputDecimal]="6"
+                (blur)="estimateFeeAmount()"
+              />
+            </div>
+            @if (form.originExchGrossRate().invalid() && form.originExchGrossRate().touched()) {
+              @for (error of form.originExchGrossRate().errors(); track error) {
+                <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+              }
+            }
+          </div>
+        }
+        @if (!form.originExchOpFee().hidden()) {
+          <div class="form-field required rtl *:w-full md:*:w-2/3">
+            <label for="originExchOpFee">Operation Fees</label>
+            <div class="field-group">
+              <span><i class="fa-regular fa-percent"></i></span>
+              <input
+                class="rtl flex-1"
+                inputmode="decimal"
+                id="originExchOpFeePerc"
+                placeholder="0.00%"
+                [formField]="form.originExchOpFeePerc"
+                [kdongsInputDecimal]="2"
+                (blur)="estimateFeeAmount()"
+              />
+              <span>{{ form.originCurrencyCode().value() }}</span>
+              <input
+                inputmode="decimal"
+                class="rtl flex-2"
+                id="originExchOpFee"
+                placeholder="e.g 0.000000"
+                [formField]="form.originExchOpFee"
+                [kdongsInputDecimal]="6"
+                (blur)="estimateFeePercentage()"
+              />
+            </div>
+            @if (form.originExchOpFee().invalid() && form.originExchOpFee().touched()) {
+              @for (error of form.originExchOpFee().errors(); track error) {
+                <small class="text-red-600 dark:text-red-400">{{ error.message }}</small>
+              }
+            }
+          </div>
+        }
+        @if (!form.originExchGrossRate().hidden() && !form.originExchOpFee().hidden()) {
+          <div class="form-field rtl *:w-full md:*:w-2/3">
+            <label for="originExchVetRate">VET Exchange Rate</label>
+            <div class="field-group">
+              <span class="disabled">{{ form.originCurrencyCode().value() }}</span>
+              <input
+                class="rtl"
+                id="originExchVetRate"
+                value="{{ autoOriginExchVetRate() ? autoOriginExchVetRate() : '--' }}"
+                disabled
+              />
+            </div>
+          </div>
+        }
+        <div class="form-field rtl *:w-full md:*:w-2/3">
+          <label for="resultAmount">Resulting Amount</label>
+          <div class="field-group">
+            <span class="disabled">{{ form.resultCurrencyCode().value() }}</span>
+            <input
+              class="rtl"
+              id="resultAmount"
+              value="{{ autoResultAmount() ? autoResultAmount() : '--' }}"
+              disabled
+            />
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" class="btn btn-ghost" (click)="handleClear()">Cancel</button>
+        <button type="submit" class="btn" [disabled]="loading() === 'sending' || !form().valid()">
+          <div class="flex items-center gap-2">
+            Submit
+            @if (loading() === 'sending') {
+              <kdongs-cp-loading-spinner color="foreground" />
+            }
+          </div>
+        </button>
+      </div>
+    </form>
+  }
+  @if (currentMessage()) {
+    <kdongs-cp-message
+      class="w-full md:w-[32em]"
+      [title]="currentMessage()!.title"
+      [message]="currentMessage()!.message"
+      [icon]="currentMessage()!.icon"
+      [severity]="currentMessage()!.severity"
+      [animate]="'up'"
+    />
+  }
+</section>

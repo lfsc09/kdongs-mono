@@ -1,9 +1,10 @@
 import { Component, inject, input, OnDestroy, OnInit, signal } from '@angular/core'
-import { form, FormField } from '@angular/forms/signals'
+import { form, FormField, FormRoot } from '@angular/forms/signals'
 import { Subscription } from 'rxjs'
 import {
   CreateWalletDTO,
   EditWalletDTO,
+  UpdateWalletRequest,
 } from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { GatewayError } from '../../../../../../infra/gateways/shared/default-gateway.model'
@@ -21,11 +22,11 @@ import {
 import { LoadingSpinner } from '../../../../../components/loading-spinner/loading-spinner'
 import { Message } from '../../../../../components/message-manager/message/message'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
-import { createWalletFormSchema, WalletFormData } from './wallet-form.model'
+import { WalletFormData, walletFormSchema } from './wallet-form.model'
 
 @Component({
   selector: 'kdongs-wallet-form',
-  imports: [FormField, Message, LoadingBar, LoadingSpinner],
+  imports: [FormRoot, FormField, Message, LoadingBar, LoadingSpinner],
   templateUrl: './wallet-form.html',
 })
 export class WalletForm implements OnInit, OnDestroy, Comms {
@@ -46,7 +47,11 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
     name: '',
     currencyCode: '',
   })
-  protected form = form(this.formModel, createWalletFormSchema)
+  protected form = form(this.formModel, walletFormSchema, {
+    submission: {
+      action: async () => (this.walletId() ? this._submitEdit() : this._submitCreate()),
+    },
+  })
 
   /**
    * VARS
@@ -142,74 +147,6 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
   /**
    * FUNCTIONS
    */
-  protected onSubmit(event: Event): void {
-    event.preventDefault()
-
-    if (!this.form().valid()) {
-      return
-    }
-    this.loading.set('sending')
-
-    const formValues = this.formModel()
-    const walletId = this.walletId()
-    if (!walletId) {
-      this._investmentsSubscription = this._investmentsGatewayService
-        .storeWallet(formValues)
-        .subscribe({
-          next: () => {
-            this.loading.set('not')
-            this.messageManagerService.sendMessage(
-              {
-                title: 'Wallet created successfully',
-                severity: MessageSeverity.SUCCESS,
-              },
-              this.messageChannel.id,
-              this.messageChannel.region
-            )
-            this.form().reset()
-          },
-          error: (error: Error | GatewayError) => {
-            this.loading.set('not')
-            handleBasicErrorMessage(
-              this.messageManagerService,
-              error,
-              this.messageChannel,
-              MessageSeverity.ERROR,
-              { tag: 'CreateWallet' },
-              { timeAlive: 7000, shouldDelete: true }
-            )
-          },
-        })
-    } else {
-      this._investmentsSubscription = this._investmentsGatewayService
-        .updateWallet({ walletId, ...formValues })
-        .subscribe({
-          next: () => {
-            this.loading.set('not')
-            this.messageManagerService.sendMessage(
-              {
-                title: 'Wallet updated successfully',
-                severity: MessageSeverity.SUCCESS,
-              },
-              this.messageChannel.id,
-              this.messageChannel.region
-            )
-          },
-          error: (error: Error | GatewayError) => {
-            this.loading.set('not')
-            handleBasicErrorMessage(
-              this.messageManagerService,
-              error,
-              this.messageChannel,
-              MessageSeverity.ERROR,
-              { tag: 'UpdateWallet' },
-              { timeAlive: 7000, shouldDelete: true }
-            )
-          },
-        })
-    }
-  }
-
   protected handleClear(): void {
     const formData = this.formData()
     if (formData && 'wallet' in formData) {
@@ -220,11 +157,93 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
     } else {
       this.form().reset({
         name: '',
-        currencyCode:
-          this._defaultCurrencyCodeBrlIndex !== undefined
-            ? formData?.currencyCodes[this._defaultCurrencyCodeBrlIndex] || ''
-            : '',
+        currencyCode: formData?.currencyCodes[this._defaultCurrencyCodeBrlIndex ?? 0] ?? '',
       })
     }
+  }
+
+  private _resetForm(): void {
+    const walletId = this.walletId()
+    if (!walletId) {
+      this.form().reset({
+        name: '',
+        currencyCode: this.formData()?.currencyCodes[this._defaultCurrencyCodeBrlIndex ?? 0] ?? '',
+      })
+    } else {
+      this.form().reset()
+    }
+  }
+
+  private _submitCreate(): void {
+    const formValues = this.formModel()
+
+    this.loading.set('sending')
+    this._investmentsSubscription = this._investmentsGatewayService
+      .storeWallet(formValues)
+      .subscribe({
+        next: () => {
+          this.loading.set('not')
+          this.messageManagerService.sendMessage(
+            {
+              title: 'Wallet created successfully',
+              severity: MessageSeverity.SUCCESS,
+            },
+            this.messageChannel.id,
+            this.messageChannel.region
+          )
+          this._resetForm()
+        },
+        error: (error: Error | GatewayError) => {
+          this.loading.set('not')
+          handleBasicErrorMessage(
+            this.messageManagerService,
+            error,
+            this.messageChannel,
+            MessageSeverity.ERROR,
+            { tag: 'CreateWallet' },
+            { timeAlive: 7000, shouldDelete: true }
+          )
+        },
+      })
+  }
+
+  private _submitEdit(): void {
+    const walletId = this.walletId()!
+    const formValues = this.formModel()
+
+    const payload: UpdateWalletRequest = {
+      walletId,
+      ...(this.form.name().dirty() && { name: formValues.name }),
+      ...(this.form.currencyCode().dirty() && { currencyCode: formValues.currencyCode }),
+    }
+
+    this.loading.set('sending')
+    this._investmentsSubscription = this._investmentsGatewayService
+      .updateWallet(payload)
+      .subscribe({
+        next: () => {
+          this.loading.set('not')
+          this.messageManagerService.sendMessage(
+            {
+              title: 'Wallet updated successfully',
+              severity: MessageSeverity.SUCCESS,
+            },
+            this.messageChannel.id,
+            this.messageChannel.region
+          )
+          this._resetForm()
+        },
+        error: (error: Error | GatewayError) => {
+          this.loading.set('not')
+          handleBasicErrorMessage(
+            this.messageManagerService,
+            error,
+            this.messageChannel,
+            MessageSeverity.ERROR,
+            { tag: 'UpdateWallet' },
+            { timeAlive: 7000, shouldDelete: true }
+          )
+        },
+      })
   }
 }

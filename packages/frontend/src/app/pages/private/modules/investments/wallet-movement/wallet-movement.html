@@ -1,12 +1,12 @@
-<section class="bg-background-0 flex flex-col gap-6 px-6 py-12">
-  <span class="text-2xl font-medium text-lime-500 select-none">Your Wallets</span>
-  <div class="relative flex min-h-[600px] w-full flex-col">
+<div class="bg-background-0 flex flex-col gap-6 py-6">
+  <span class="text-xl font-medium text-lime-500 select-none">Movements</span>
+  <div class="relative flex min-h-[300px] w-full flex-col">
     <div
       class="border-background-2/40 bg-background-1 sticky top-20 flex h-14 flex-row items-center justify-end gap-2 rounded-t border px-4 py-2"
     >
-      <a class="btn btn-sm" routerLink="new">
+      <a class="btn btn-sm" routerLink="movements/new">
         <i class="fa-solid fa-plus"></i>
-        <span class="ml-2">New Wallet</span>
+        <span class="ml-2">New Movement</span>
       </a>
     </div>
     <div class="border-background-2/40 flex-1 border-x">
@@ -14,71 +14,63 @@
         <div class="flex h-full w-full items-center justify-center">
           <kdongs-cp-loading-bar size="md" />
         </div>
-      } @else if (wallets() === null) {
+      } @else if (walletMovements() === null) {
         <div class="flex h-full w-full items-center justify-center">
           <div class="error-content">
             <span class="emo-flip"></span>
-            <span>Failed to load your Wallets</span>
+            <span>Failed to load your Wallet Movements</span>
           </div>
         </div>
-      } @else if (wallets() !== undefined) {
+      } @else if (walletMovements() !== undefined) {
         <table class="w-full border-collapse">
           <thead>
             <tr class="*:border-background-2/40 *:border-b *:p-4 *:text-sm *:font-bold *:uppercase">
-              <th class="text-left">Name</th>
-              <th class="text-right">Currency</th>
-              <th class="text-right">Updated At</th>
-              <th class="text-right">Submitted</th>
-              <th class="text-right">Balance</th>
+              <th class="text-left">Type</th>
+              <th class="text-right">Date</th>
+              <th class="text-right">Initial</th>
+              <th class="text-right">Result</th>
             </tr>
           </thead>
           <tbody>
-            @for (wallet of wallets(); track wallet.id) {
+            @for (movement of walletMovements(); track movement.id) {
               <tr
                 class="*:border-background-2/40 hover:bg-background-1 cursor-pointer *:border-b *:p-4 *:text-sm"
-                [class]="{
-                  '*:line-through': !wallet.isActive,
-                }"
-                [routerLink]="[wallet.id]"
+                [routerLink]="[movement.id]"
               >
                 <td class="relative text-left">
-                  {{ wallet.name }}
+                  <span
+                    class="chip chip-xs text-foreground-1 dark:text-foreground-5"
+                    [class]="{
+                      'bg-green-300': movement.movementType === 'deposit',
+                      'bg-red-300': movement.movementType === 'withdraw',
+                    }"
+                  >
+                    {{ movement.movementType }}
+                  </span>
                 </td>
-                <td class="text-right">{{ wallet.currencyCode }}</td>
+                <td class="text-right">{{ movement.dateUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
                 <td class="text-right">
-                  <div class="flex flex-row items-center justify-end gap-2">
-                    <span class="text-xs text-slate-400"
-                      >({{ wallet.createdAt | date: 'dd/MM/yyyy HH:mm' }})</span
-                    >
-                    <span>{{ wallet.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
-                  </div>
+                  {{
+                    movement.hasConversion
+                      ? (movement.originAmount
+                        | monetary: movement.originCurrencyCode : 'code' : '1.0-2')
+                      : '--'
+                  }}
                 </td>
                 <td class="text-right">
-                  {{ wallet.initialBalance | monetary: wallet.currencyCode : 'code' : '1.0-2' }}
-                </td>
-                <td class="text-right">
-                  <div class="flex flex-row items-center justify-end gap-2">
-                    <span class="text-xs" [kdongsMonetary]="wallet.profitInPerc">
-                      ({{ wallet.profitInPerc | percent: '1.0-2' }})
-                    </span>
-                    <span
-                      [kdongsMonetary]="wallet.currentBalance"
-                      [kmNegativeLowerThan]="wallet.initialBalance"
-                      [kmPositiveGreaterThan]="wallet.initialBalance"
-                    >
-                      {{ wallet.currentBalance | monetary: wallet.currencyCode : 'code' : '1.0-2' }}
-                    </span>
-                  </div>
+                  {{
+                    movement.resultAmount | monetary: movement.resultCurrencyCode : 'code' : '1.0-2'
+                  }}
                 </td>
               </tr>
             } @empty {
               <tr>
                 <td
                   class="py-12 text-center text-sm text-slate-300 dark:text-slate-600"
-                  colspan="5"
+                  colspan="4"
                 >
                   <span class="emo-creepy"></span>
-                  No wallets found
+                  No wallet movements found
                 </td>
               </tr>
             }
@@ -152,4 +144,4 @@
       </div>
     </div>
   </div>
-</section>
+</div>

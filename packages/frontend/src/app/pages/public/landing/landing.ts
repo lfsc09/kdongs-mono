@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core'
-import { form, FormField } from '@angular/forms/signals'
+import { form, FormField, FormRoot } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway.service'
@@ -21,7 +21,7 @@ import { LandingFormData, landingFormSchema } from './landing.model'
 
 @Component({
   selector: 'kdongs-landing',
-  imports: [FormField, Message, LoadingBar],
+  imports: [FormRoot, FormField, Message, LoadingBar],
   providers: [LoginGatewayService],
   templateUrl: './landing.html',
 })
@@ -43,7 +43,11 @@ export class Landing implements OnInit, OnDestroy, Comms {
     email: '',
     password: '',
   })
-  protected form = form(this.formModel, landingFormSchema)
+  protected form = form(this.formModel, landingFormSchema, {
+    submission: {
+      action: async () => this._submitLogin(),
+    },
+  })
 
   /**
    * VARS
@@ -111,15 +115,21 @@ export class Landing implements OnInit, OnDestroy, Comms {
       })
   }
 
-  protected onSubmit(event: Event): void {
-    event.preventDefault()
+  private _startCarousel(): void {
+    this._carouselInterval = setInterval(() => {
+      this.currentSliderContent.update(current => (current + 1) % 2)
+    }, 7500)
+  }
 
-    if (!this.form().valid()) {
-      return
+  private _stopCarousel(): void {
+    if (this._carouselInterval) {
+      clearInterval(this._carouselInterval)
     }
-    this.loading.set(true)
+  }
 
+  private _submitLogin(): void {
     const formValues = this.formModel()
+    this.loading.set(true)
     this._authenticationSubscription = this._loginService.authenticate(formValues).subscribe({
       next: (response: boolean) => {
         if (!response) {
@@ -140,17 +150,5 @@ export class Landing implements OnInit, OnDestroy, Comms {
         )
       },
     })
-  }
-
-  private _startCarousel(): void {
-    this._carouselInterval = setInterval(() => {
-      this.currentSliderContent.update(current => (current + 1) % 2)
-    }, 7500)
-  }
-
-  private _stopCarousel(): void {
-    if (this._carouselInterval) {
-      clearInterval(this._carouselInterval)
-    }
   }
 }
