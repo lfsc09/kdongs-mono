@@ -29,7 +29,7 @@ router
       '#controllers/investments/analytics_controller.liquidationSeries',
     )
     router.resource('wallets', '#controllers/investments/wallets_controller')
-    // router.resource('wallets.transactions', '#controllers/investments/wallet_transactions_controller')
+    router.resource('wallets.movements', '#controllers/investments/wallet_movements_controller')
   })
   .prefix('/investments')
   .middleware([middleware.cookieToAuthHeader(), middleware.auth()])
