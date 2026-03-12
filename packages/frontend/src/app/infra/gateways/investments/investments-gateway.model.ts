@@ -9,6 +9,11 @@ import {
 } from '../shared/default-gateway.model'
 
 /**
+ * WALLETS
+ *
+ */
+
+/**
  * List User Wallet DTOs
  */
 export const ListUserWalletDTOSchema = z.object({
@@ -221,3 +226,144 @@ export const UpdateWalletResponseSchema = z.object({
 
 export type UpdateWalletRequest = z.infer<typeof UpdateWalletRequestSchema>
 export type UpdateWalletResponse = z.infer<typeof UpdateWalletResponseSchema>
+
+/**
+ * WALLET MOVEMENTS
+ *
+ */
+
+/**
+ * List User Wallet Movements DTOs
+ */
+export const ListUserWalletMovementDTOSchema = z.object({
+  id: z.string(),
+  movementType: z.string(),
+  hasConversion: z.boolean(),
+  dateUtc: z.string().optional(),
+  originCurrencyCode: z.string(),
+  originAmount: z.number(),
+  originExchGrossRate: z.number().optional(),
+  originExchOpFee: z.number().optional(),
+  originExchVetRate: z.number().optional(),
+  resultCurrencyCode: z.string(),
+  resultAmount: z.number(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+})
+export const ListUserWalletMovementsRequestDTOSchema = z.object({
+  walletId: z.string(),
+  sortBy: z.optional(
+    z.enum(['movementId', 'movementOriginAmount', 'movementResultAmount', 'movementDateUtc'])
+  ),
+  sortOrder: z.optional(SortOrderSchema),
+  ...PaginationRequestSchema.shape,
+})
+export const ListUserWalletMovementsResponseDTOSchema = z.object({
+  data: z.object({
+    movements: z.array(ListUserWalletMovementDTOSchema),
+  }),
+  metadata: PaginationResponseSchema,
+})
+
+export type ListUserWalletMovementDTO = z.infer<typeof ListUserWalletMovementDTOSchema>
+export type ListUserWalletMovementsRequestDTO = z.infer<
+  typeof ListUserWalletMovementsRequestDTOSchema
+>
+export type ListUserWalletMovementsResponseDTO = z.infer<
+  typeof ListUserWalletMovementsResponseDTOSchema
+>
+
+/**
+ * Create User Wallet Movement DTOs (Form data only)
+ */
+export const CreateWalletMovementDTOSchema = z.object({
+  currencyCodes: z.array(z.string()),
+  movementTypes: z.array(z.string()),
+})
+export const CreateWalletMovementRequestSchema = z.object({
+  walletId: z.string(),
+})
+export const CreateWalletMovementResponseSchema = z.object({
+  data: CreateWalletMovementDTOSchema,
+})
+
+export type CreateWalletMovementDTO = z.infer<typeof CreateWalletMovementDTOSchema>
+export type CreateWalletMovementRequest = z.infer<typeof CreateWalletMovementRequestSchema>
+export type CreateWalletMovementResponse = z.infer<typeof CreateWalletMovementResponseSchema>
+
+/**
+ * Edit User Wallet Movement DTOs (Form data only)
+ */
+export const EditWalletMovementDTOSchema = z.object({
+  movement: z.object({
+    movementType: z.string(),
+    dateUtc: z.string().optional(),
+    institution: z.string().optional(),
+    originCurrencyCode: z.string(),
+    originAmount: z.number(),
+    originExchGrossRate: z.number().optional(),
+    originExchOpFee: z.number().optional(),
+    originExchVetRate: z.number().optional(),
+    resultCurrencyCode: z.string(),
+    resultAmount: z.number(),
+    details: z.string().optional(),
+  }),
+  currencyCodes: z.array(z.string()),
+  movementTypes: z.array(z.string()),
+})
+export const EditWalletMovementRequestSchema = z.object({
+  walletId: z.string(),
+  movementId: z.string(),
+})
+export const EditWalletMovementResponseSchema = z.object({
+  data: EditWalletMovementDTOSchema,
+})
+
+export type EditWalletMovementDTO = z.infer<typeof EditWalletMovementDTOSchema>
+export type EditWalletMovementRequest = z.infer<typeof EditWalletMovementRequestSchema>
+export type EditWalletMovementResponse = z.infer<typeof EditWalletMovementResponseSchema>
+
+/**
+ * Store User Wallet Movement DTOs
+ */
+export const StoreWalletMovementRequestSchema = z.object({
+  walletId: z.string(),
+  movementType: z.string(),
+  institution: z.optional(z.string()),
+  dateUtc: z.optional(z.string()),
+  originCurrencyCode: z.string(),
+  originAmount: z.string(),
+  originExchGrossRate: z.optional(z.string()),
+  originExchOpFee: z.optional(z.string()),
+  resultCurrencyCode: z.string(),
+  details: z.optional(z.string()),
+})
+export const StoreWalletMovementResponseSchema = z.object({
+  errors: z.optional(AdonisJSErrorSchema.def.shape.errors),
+})
+
+export type StoreWalletMovementRequest = z.infer<typeof StoreWalletMovementRequestSchema>
+export type StoreWalletMovementResponse = z.infer<typeof StoreWalletMovementResponseSchema>
+
+/**
+ * Update User Wallet Movement DTOs
+ */
+export const UpdateWalletMovementRequestSchema = z.object({
+  movementId: z.string(),
+  walletId: z.string(),
+  movementType: z.optional(z.string()),
+  institution: z.optional(z.string()),
+  dateUtc: z.optional(z.string()),
+  originCurrencyCode: z.optional(z.string()),
+  originAmount: z.optional(z.string()),
+  originExchGrossRate: z.optional(z.string()),
+  originExchOpFee: z.optional(z.string()),
+  resultCurrencyCode: z.optional(z.string()),
+  details: z.optional(z.string()),
+})
+export const UpdateWalletMovementResponseSchema = z.object({
+  errors: z.optional(AdonisJSErrorSchema.def.shape.errors),
+})
+
+export type UpdateWalletMovementRequest = z.infer<typeof UpdateWalletMovementRequestSchema>
+export type UpdateWalletMovementResponse = z.infer<typeof UpdateWalletMovementResponseSchema>
