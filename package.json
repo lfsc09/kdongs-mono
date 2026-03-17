@@ -1,6 +1,6 @@
 {
   "name": "kdongs-mono",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,22 +11,34 @@
     "dev:docker-full-up": "docker compose -f docker/compose.local.yaml --profile full up --build --detach",
     "dev:docker-full-down": "docker compose -f docker/compose.local.yaml --profile full down --volumes --rmi all",
     "dev:mono": "mprocs \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "dev:frontend": "npm start --workspace frontend",
-    "dev:frontend:format": "npm run format --workspace frontend",
-    "dev:backend": "npm run dev --workspace backend",
-    "dev:backend:migrate-fresh": "npm run migration:fresh --workspace backend",
-    "dev:backend:migrate-with-seed": "npm run migration:fresh:seed --workspace backend",
-    "dev:backend:format": "npm run biome:check --workspace backend",
-    "test:frontend": "npm run test --workspace frontend",
-    "test:backend": "npm run test --workspace backend",
-    "test:backend:migrate-fresh": "npm run test:migration:fresh --workspace backend"
+    "dev:mono:dependencies": "npx npm-check-updates --workspaces",
+    "dev:mono:dependencies:update": "npx npm-check-updates -u --workspaces",
+    "dev:mono:dependencies:upgrade": "npm install",
+    "dev:domain:build": "npm run build --workspace @kdongs-mono/domain",
+    "dev:domain:format": "npm run biome:check --workspace @kdongs-mono/domain",
+    "dev:domain:dependencies": "npx npm-check-updates --workspace @kdongs-mono/domain --no-root",
+    "dev:domain:dependencies:update": "npx npm-check-updates -u --workspace @kdongs-mono/domain --no-root",
+    "dev:frontend": "npm start --workspace @kdongs-mono/frontend",
+    "dev:frontend:dependencies": "npx npm-check-updates --workspace @kdongs-mono/frontend --no-root",
+    "dev:frontend:dependencies:update": "npx npm-check-updates -u --workspace @kdongs-mono/frontend --no-root",
+    "dev:frontend:format": "npm run format --workspace @kdongs-mono/frontend",
+    "dev:backend": "npm run dev --workspace @kdongs-mono/backend",
+    "dev:backend:dependencies": "npx npm-check-updates --workspace @kdongs-mono/backend --no-root",
+    "dev:backend:dependencies:update": "npx npm-check-updates -u --workspace @kdongs-mono/backend --no-root",
+    "dev:backend:schema-generate": "npm run schema:generate --workspace @kdongs-mono/backend",
+    "dev:backend:migrate-fresh": "npm run migration:fresh --workspace @kdongs-mono/backend",
+    "dev:backend:migrate-with-seed": "npm run migration:fresh:seed --workspace @kdongs-mono/backend",
+    "dev:backend:format": "npm run biome:check --workspace @kdongs-mono/backend",
+    "test:frontend": "npm run test --workspace @kdongs-mono/frontend",
+    "test:backend": "npm run test --workspace @kdongs-mono/backend",
+    "test:backend:migrate-fresh": "npm run test:migration:fresh --workspace @kdongs-mono/backend"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lfsc09/kdongs-mono.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "lfsc09@gmail.com",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/lfsc09/kdongs-mono/issues"
@@ -44,9 +56,14 @@
     ],
     "packages/backend/**/*.{ts,js,json,env,md}": [
       "npm run dev:backend:format"
+    ],
+    "packages/domain/**/*.{ts,js,json,md}": [
+      "npm run dev:domain:format"
     ]
   },
   "workspaces": [
-    "packages/*"
+    "packages/backend",
+    "packages/frontend",
+    "packages/domain"
   ]
 }

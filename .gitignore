@@ -40,3 +40,5 @@ Thumbs.db
 
 # Workspace lockfiles
 packages/*/package-lock.json
+
+packages/backendOld

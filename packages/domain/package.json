@@ -1,0 +1,17 @@
+{
+  "name": "@kdongs-mono/domain",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./dist/*.js"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "biome:check": "biome check --write --no-errors-on-unmatched"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.7",
+    "typescript": "~5.9"
+  }
+}
