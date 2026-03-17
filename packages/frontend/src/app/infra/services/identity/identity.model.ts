@@ -1,3 +1,5 @@
+import { FrontendRole } from '@kdongs-mono/domain/types/auth/frontend-role'
+
 export interface UserIdentity {
   userName: string
   userEmail: string
@@ -5,8 +7,4 @@ export interface UserIdentity {
   tokenExp: number
 }
 
-export type UserAllowedIn = Map<ModulePermissions, null>
-
-export enum ModulePermissions {
-  INVESTMENTS_ACCESS = 'INVESTMENTS_ACCESS',
-}
+export type UserAllowedIn = Map<FrontendRole, null>

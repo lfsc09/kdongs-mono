@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing'
-import { AuthenticatedUserDTO } from '../../gateways/login/login-gateway.model'
+import { LoginResponse } from '@kdongs-mono/domain/dto/user/user-dto'
 import { UserIdentity } from './identity.model'
 import { IdentityService } from './identity.service'
 
@@ -90,7 +90,7 @@ describe('IdentityService', () => {
         userName: 'Master User',
         tokenExp: new Date().getTime() - 1000000,
         allowedIn: [] as string[],
-      } as AuthenticatedUserDTO)
+      } as LoginResponse)
     ).toBeFalse()
     expect(service['_recoverUserIdentity']).not.toHaveBeenCalled()
     expect(service.clearAll).toHaveBeenCalled()
@@ -108,7 +108,7 @@ describe('IdentityService', () => {
       userName: 'Master User',
       tokenExp: new Date().getTime() + 1000000,
       allowedIn: [] as string[],
-    } as AuthenticatedUserDTO
+    } as LoginResponse
     expect(service.processIdentity(input)).toBeTrue()
     expect(service['_recoverUserIdentity']).not.toHaveBeenCalled()
     expect(service.identity()?.userName).toBe(input.userName)

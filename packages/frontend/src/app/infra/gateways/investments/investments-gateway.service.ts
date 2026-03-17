@@ -1,55 +1,37 @@
 import { Injectable } from '@angular/core'
-import { catchError, map, Observable, throwError } from 'rxjs'
-import { GatewayError } from '../shared/default-gateway.model'
-import { DefaultGatewayService } from '../shared/default-gateway.service'
+import {
+  AdonisJSPaginationResponse,
+  AdonisJSResponse,
+} from '@kdongs-mono/domain/dto/shared/default-response-dto'
+import {
+  LiquidationSeriesAnalyticsRequest,
+  LiquidationSeriesAnalyticsResponse,
+} from '@kdongs/domain/dto/investment/analytic/liquidation-series-dto'
+import {
+  PerformanceAnalayticsRequest,
+  PerformanceAnalyticsResponse,
+} from '@kdongs/domain/dto/investment/analytic/performance-dto'
 import {
   CreateWalletMovementRequest,
-  CreateWalletMovementRequestSchema,
   CreateWalletMovementResponse,
-  CreateWalletMovementResponseSchema,
-  CreateWalletResponse,
-  CreateWalletResponseSchema,
   EditWalletMovementRequest,
-  EditWalletMovementRequestSchema,
   EditWalletMovementResponse,
-  EditWalletMovementResponseSchema,
-  EditWalletRequest,
-  EditWalletRequestSchema,
-  EditWalletResponse,
-  EditWalletResponseSchema,
-  GetLiquidationSeriesAnalyticsRequestDTO,
-  GetLiquidationSeriesAnalyticsRequestDTOSchema,
-  GetLiquidationSeriesAnalyticsResponseDTO,
-  GetLiquidationSeriesAnalyticsResponseDTOSchema,
-  GetPerformanceAnalyticsRequestDTO,
-  GetPerformanceAnalyticsRequestDTOSchema,
-  GetPerformanceAnalyticsResponseDTO,
-  GetPerformanceAnalyticsResponseDTOSchema,
-  ListUserWalletMovementsRequestDTO,
-  ListUserWalletMovementsRequestDTOSchema,
-  ListUserWalletMovementsResponseDTO,
-  ListUserWalletMovementsResponseDTOSchema,
-  ListUserWalletRequestDTO,
-  ListUserWalletRequestDTOSchema,
-  ListUserWalletResponseDTO,
-  ListUserWalletResponseDTOSchema,
+  IndexWalletMovementsRequest,
+  IndexWalletMovementsResponse,
   StoreWalletMovementRequest,
-  StoreWalletMovementRequestSchema,
-  StoreWalletMovementResponse,
-  StoreWalletMovementResponseSchema,
-  StoreWalletRequest,
-  StoreWalletRequestSchema,
-  StoreWalletResponse,
-  StoreWalletResponseSchema,
   UpdateWalletMovementRequest,
-  UpdateWalletMovementRequestSchema,
-  UpdateWalletMovementResponse,
-  UpdateWalletMovementResponseSchema,
+} from '@kdongs/domain/dto/investment/wallet-movement/wallet-movement-dto'
+import {
+  CreateWalletResponse,
+  EditWalletRequest,
+  EditWalletResponse,
+  IndexWalletsRequest,
+  IndexWalletsResponse,
+  StoreWalletRequest,
   UpdateWalletRequest,
-  UpdateWalletRequestSchema,
-  UpdateWalletResponse,
-  UpdateWalletResponseSchema,
-} from './investments-gateway.model'
+} from '@kdongs/domain/dto/investment/wallet/wallet-dto'
+import { catchError, map, Observable, throwError } from 'rxjs'
+import { DefaultGatewayService } from '../shared/default-gateway.service'
 
 @Injectable()
 export class InvestmentsGatewayService extends DefaultGatewayService {
@@ -57,130 +39,91 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
    * WALLETS
    *
    */
-  listUserWallets(request: ListUserWalletRequestDTO): Observable<ListUserWalletResponseDTO> {
-    const parsedRequest = ListUserWalletRequestDTOSchema.parse(request)
+  listUserWallets(
+    request: IndexWalletsRequest
+  ): Observable<AdonisJSPaginationResponse<IndexWalletsResponse>> {
     return this.http
-      .get<ListUserWalletResponseDTO>(`${this.apiUrl}/investments/wallets`, {
+      .get<AdonisJSPaginationResponse<IndexWalletsResponse>>(`${this.apiUrl}/investments/wallets`, {
         observe: 'response',
         withCredentials: true,
-        params: parsedRequest,
+        params: request,
       })
       .pipe(
         map(response => {
-          const validationResult = ListUserWalletResponseDTOSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid list user wallets response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<IndexWalletsResponse>(
+            response.body
+          ) as AdonisJSPaginationResponse<IndexWalletsResponse>
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
   getPerformanceAnalytics(
-    request: GetPerformanceAnalyticsRequestDTO
-  ): Observable<GetPerformanceAnalyticsResponseDTO> {
-    const parsedRequest = GetPerformanceAnalyticsRequestDTOSchema.parse(request)
+    request: PerformanceAnalayticsRequest
+  ): Observable<AdonisJSResponse<PerformanceAnalyticsResponse>> {
     return this.http
-      .get<GetPerformanceAnalyticsResponseDTO>(`${this.apiUrl}/investments/performance`, {
-        observe: 'response',
-        withCredentials: true,
-        params: parsedRequest,
-      })
+      .get<AdonisJSResponse<PerformanceAnalyticsResponse>>(
+        `${this.apiUrl}/investments/performance`,
+        {
+          observe: 'response',
+          withCredentials: true,
+          params: request,
+        }
+      )
       .pipe(
         map(response => {
-          const validationResult = GetPerformanceAnalyticsResponseDTOSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid performance response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<PerformanceAnalyticsResponse>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
   getLiquidationSeriesAnalytics(
-    request: GetLiquidationSeriesAnalyticsRequestDTO
-  ): Observable<GetLiquidationSeriesAnalyticsResponseDTO> {
-    const parsedRequest = GetLiquidationSeriesAnalyticsRequestDTOSchema.parse(request)
+    request: LiquidationSeriesAnalyticsRequest
+  ): Observable<AdonisJSResponse<LiquidationSeriesAnalyticsResponse>> {
     return this.http
-      .get<GetLiquidationSeriesAnalyticsResponseDTO>(
+      .get<AdonisJSResponse<LiquidationSeriesAnalyticsResponse>>(
         `${this.apiUrl}/investments/liquidation-series`,
         {
           observe: 'response',
           withCredentials: true,
-          params: parsedRequest,
+          params: request,
         }
       )
       .pipe(
         map(response => {
-          const validationResult = GetLiquidationSeriesAnalyticsResponseDTOSchema.safeParse(
-            response.body
-          )
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid liquidation series response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<LiquidationSeriesAnalyticsResponse>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
-  createWallet(): Observable<CreateWalletResponse> {
+  createWallet(): Observable<AdonisJSResponse<CreateWalletResponse>> {
     return this.http
-      .get<CreateWalletResponse>(`${this.apiUrl}/investments/wallets/create`, {
+      .get<AdonisJSResponse<CreateWalletResponse>>(`${this.apiUrl}/investments/wallets/create`, {
         observe: 'response',
         withCredentials: true,
       })
       .pipe(
         map(response => {
-          const validationResult = CreateWalletResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid create wallet response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<CreateWalletResponse>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
-  editWallet(request: EditWalletRequest): Observable<EditWalletResponse> {
-    const parsedRequest = EditWalletRequestSchema.parse(request)
+  editWallet(request: EditWalletRequest): Observable<AdonisJSResponse<EditWalletResponse>> {
     return this.http
-      .get<EditWalletResponse>(
-        `${this.apiUrl}/investments/wallets/${parsedRequest.walletId}/edit`,
+      .get<AdonisJSResponse<EditWalletResponse>>(
+        `${this.apiUrl}/investments/wallets/${request.walletId}/edit`,
         {
           observe: 'response',
           withCredentials: true,
@@ -188,94 +131,42 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
       )
       .pipe(
         map(response => {
-          const validationResult = EditWalletResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid edit wallet response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<EditWalletResponse>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
-  storeWallet(request: StoreWalletRequest): Observable<StoreWalletResponse> {
-    const parsedRequest = StoreWalletRequestSchema.parse(request)
+  storeWallet(request: StoreWalletRequest): Observable<void> {
     return this.http
-      .post<StoreWalletResponse>(`${this.apiUrl}/investments/wallets`, parsedRequest, {
+      .post<AdonisJSResponse<void>>(`${this.apiUrl}/investments/wallets`, request, {
         observe: 'response',
         withCredentials: true,
       })
       .pipe(
         map(response => {
-          const validationResult = StoreWalletResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid store wallet response structure'
-            )
-          }
-
-          const { errors } = validationResult.data
-
-          if (errors && errors.length > 0) {
-            throw new GatewayError(
-              response.status,
-              errors.map(e => e.message).join(', '),
-              'Store wallet failed with errors'
-            )
-          }
-
-          return validationResult.data
+          this.parseResponse<void>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
-  updateWallet(request: UpdateWalletRequest): Observable<UpdateWalletResponse> {
-    const parsedRequest = UpdateWalletRequestSchema.parse(request)
+  updateWallet(request: UpdateWalletRequest): Observable<void> {
     return this.http
-      .patch<UpdateWalletResponse>(`${this.apiUrl}/investments/wallets`, parsedRequest, {
+      .patch<AdonisJSResponse<void>>(`${this.apiUrl}/investments/wallets`, request, {
         observe: 'response',
         withCredentials: true,
       })
       .pipe(
         map(response => {
-          const validationResult = UpdateWalletResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid update wallet response structure'
-            )
-          }
-
-          const { errors } = validationResult.data
-
-          if (errors && errors.length > 0) {
-            throw new GatewayError(
-              response.status,
-              errors.map(e => e.message).join(', '),
-              'Update wallet failed with errors'
-            )
-          }
-
-          return validationResult.data
+          this.parseResponse<void>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
@@ -285,45 +176,35 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
    *
    */
   listUserWalletMovements(
-    request: ListUserWalletMovementsRequestDTO
-  ): Observable<ListUserWalletMovementsResponseDTO> {
-    const parsedRequest = ListUserWalletMovementsRequestDTOSchema.parse(request)
+    request: IndexWalletMovementsRequest
+  ): Observable<AdonisJSPaginationResponse<IndexWalletMovementsResponse>> {
     return this.http
-      .get<ListUserWalletMovementsResponseDTO>(
-        `${this.apiUrl}/investments/wallets/${parsedRequest.walletId}/movements`,
+      .get<AdonisJSPaginationResponse<IndexWalletMovementsResponse>>(
+        `${this.apiUrl}/investments/wallets/${request.walletId}/movements`,
         {
           observe: 'response',
           withCredentials: true,
-          params: parsedRequest,
+          params: request,
         }
       )
       .pipe(
         map(response => {
-          const validationResult = ListUserWalletMovementsResponseDTOSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid list user wallet movements response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<IndexWalletMovementsResponse>(
+            response.body
+          ) as AdonisJSPaginationResponse<IndexWalletMovementsResponse>
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
   createWalletMovement(
     request: CreateWalletMovementRequest
-  ): Observable<CreateWalletMovementResponse> {
-    const parsedRequest = CreateWalletMovementRequestSchema.parse(request)
+  ): Observable<AdonisJSResponse<CreateWalletMovementResponse>> {
     return this.http
-      .get<CreateWalletMovementResponse>(
-        `${this.apiUrl}/investments/wallets/${parsedRequest.walletId}/movements/create`,
+      .get<AdonisJSResponse<CreateWalletMovementResponse>>(
+        `${this.apiUrl}/investments/wallets/${request.walletId}/movements/create`,
         {
           observe: 'response',
           withCredentials: true,
@@ -331,29 +212,20 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
       )
       .pipe(
         map(response => {
-          const validationResult = CreateWalletMovementResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid create wallet response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<CreateWalletMovementResponse>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
-  editWalletMovement(request: EditWalletMovementRequest): Observable<EditWalletMovementResponse> {
-    const parsedRequest = EditWalletMovementRequestSchema.parse(request)
+  editWalletMovement(
+    request: EditWalletMovementRequest
+  ): Observable<AdonisJSResponse<EditWalletMovementResponse>> {
     return this.http
-      .get<EditWalletMovementResponse>(
-        `${this.apiUrl}/investments/wallets/${parsedRequest.walletId}/movements/${parsedRequest.movementId}/edit`,
+      .get<AdonisJSResponse<EditWalletMovementResponse>>(
+        `${this.apiUrl}/investments/wallets/${request.walletId}/movements/${request.movementId}/edit`,
         {
           observe: 'response',
           withCredentials: true,
@@ -361,32 +233,19 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
       )
       .pipe(
         map(response => {
-          const validationResult = EditWalletMovementResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid edit wallet response structure'
-            )
-          }
-
-          return validationResult.data
+          return this.parseResponse<EditWalletMovementResponse>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
-  storeWalletMovement(
-    request: StoreWalletMovementRequest
-  ): Observable<StoreWalletMovementResponse> {
-    const parsedRequest = StoreWalletMovementRequestSchema.parse(request)
+  storeWalletMovement(request: StoreWalletMovementRequest): Observable<void> {
     return this.http
-      .post<StoreWalletMovementResponse>(
-        `${this.apiUrl}/investments/wallets/${parsedRequest.walletId}/movements`,
-        parsedRequest,
+      .post<AdonisJSResponse<void>>(
+        `${this.apiUrl}/investments/wallets/${request.walletId}/movements`,
+        request,
         {
           observe: 'response',
           withCredentials: true,
@@ -394,42 +253,19 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
       )
       .pipe(
         map(response => {
-          const validationResult = StoreWalletMovementResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid store wallet movement response structure'
-            )
-          }
-
-          const { errors } = validationResult.data
-
-          if (errors && errors.length > 0) {
-            throw new GatewayError(
-              response.status,
-              errors.map(e => e.message).join(', '),
-              'Store wallet movement failed with errors'
-            )
-          }
-
-          return validationResult.data
+          this.parseResponse<void>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }
 
-  updateWalletMovement(
-    request: UpdateWalletMovementRequest
-  ): Observable<UpdateWalletMovementResponse> {
-    const parsedRequest = UpdateWalletMovementRequestSchema.parse(request)
+  updateWalletMovement(request: UpdateWalletMovementRequest): Observable<void> {
     return this.http
-      .patch<UpdateWalletMovementResponse>(
-        `${this.apiUrl}/investments/wallets/${parsedRequest.walletId}/movements/${parsedRequest.movementId}`,
-        parsedRequest,
+      .patch<AdonisJSResponse<void>>(
+        `${this.apiUrl}/investments/wallets/${request.walletId}/movements/${request.movementId}`,
+        request,
         {
           observe: 'response',
           withCredentials: true,
@@ -437,30 +273,10 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
       )
       .pipe(
         map(response => {
-          const validationResult = UpdateWalletMovementResponseSchema.safeParse(response.body)
-
-          if (!validationResult.success) {
-            throw new GatewayError(
-              response.status,
-              validationResult.error.issues.map(e => e.message).join(', '),
-              'Invalid update wallet movement response structure'
-            )
-          }
-
-          const { errors } = validationResult.data
-
-          if (errors && errors.length > 0) {
-            throw new GatewayError(
-              response.status,
-              errors.map(e => e.message).join(', '),
-              'Update wallet movement failed with errors'
-            )
-          }
-
-          return validationResult.data
+          this.parseResponse<void>(response.body)
         }),
         catchError(error => {
-          return throwError(() => this.handleHttpError(error))
+          return throwError(() => this.parseError(error))
         })
       )
   }

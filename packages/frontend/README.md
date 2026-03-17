@@ -8,58 +8,6 @@ The application uses signals for state management, standalone components, and fo
 
 ---
 
-## Technology Stack
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **TypeScript** | 5.9.x | Type-safe language |
-| **Angular** | 21.2.x | UI framework |
-| **Tailwind CSS** | 4.2.x | Utility-first styling |
-| **Zod** | 4.3.x | Runtime schema validation |
-| **Font Awesome** | 7.1.x | Icon library |
-| **Prettier** | Latest | Code formatting |
-
----
-
-## Directory Structure
-
-```
-packages/frontend/src/app/
-├── app.routes.ts             # 
-├── infra/                    # Infrastructure layer
-│   ├── services/             # Core services
-│   │   ├── identity/         # User authentication state
-│   │   ├── theme/            # Dark/light theme management
-│   │   ├── message/          # Toast notifications
-│   │   └── viewport/         # Responsive layout
-│   ├── gateways/             # API integration layer
-│   │   ├── login/            # Authentication Endpoints
-│   │   ├── investments/      # Investments Endpoints
-│   │   ├── .../
-│   │   └── shared/           # Base gateway class
-│   └── guards/               # Route guards
-│       ├── gatekeeper.guard.ts    # Authentication guard
-│       └── authorization.guard.ts # Permission guard
-├── pages/
-│   ├── public/
-│   │   └── landing/          # Login page
-│   ├── private/
-│   │   ├── landing.ts        # Authenticated app shell
-│   │   ├── components/       # Shared components (topbar, sidebar)
-│   │   └── modules/          # Feature modules
-│   │       └── investments/  # Investment management feature
-│   └── components/           # Global components
-└── environments/             # Environment configuration
-```
-
----
-
-## Architecture Layers
-
-- [Arquitecture Layers](/packages/frontend/docs/architecture.md)
-
----
-
 ## Main Packages
 
 ### Update all packages
@@ -67,8 +15,17 @@ packages/frontend/src/app/
 Will update `package.json` with newer versions. **May break, if there are major version changes**
 
 ```bash
-npx npm-check-updates -u --workspace frontend
-npm install --workspace frontend
+npm run dev:backend:dependencies
+```
+
+```bash
+npm run dev:backend:dependencies:update
+```
+
+To install latests packages run.
+
+```bash
+npm install
 ```
 
 ### [Angular](https://angular.dev/overview)
@@ -87,21 +44,25 @@ npx --workspace frontend ng update @angular/core@<version> @angular/cli@<version
 
 </br>
 
-### [Tailwindcss](https://tailwindcss.com/docs/installation/using-vite) (https://angular.dev/guide/tailwind)
-
-```bash
-cd packages/frontend
-ng add tailwindcss
-```
-
-</br>
-
 ### [FontAwesome](https://fontawesome.com/search?ic=free&o=r)
 
 </br>
 
-### [Zod](https://zod.dev/basics)
+### Luxon
+
+[npm](https://www.npmjs.com/package/luxon)
 
 ```bash
-npm install --workspace frontend zod
+npm install --workspace luxon @kdongs-mono/frontend
+```
+
+</br>
+
+### Big
+
+[npm](https://www.npmjs.com/package/big.js)
+
+```bash
+npm install big.js --workspace @kdongs-mono/frontend
+npm install --save-dev @types/big.js --workspace @kdongs-mono/frontend
 ```

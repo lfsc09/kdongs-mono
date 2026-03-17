@@ -1,8 +1,9 @@
 import { Injectable, signal } from '@angular/core'
+import { LoginResponse } from '@kdongs-mono/domain/dto/user/user-dto'
+import { FrontendRole } from '@kdongs-mono/domain/types/auth/frontend-role'
 import { BehaviorSubject } from 'rxjs'
 import { environment } from '../../../../environments/environment'
-import { AuthenticatedUserDTO } from '../../gateways/login/login-gateway.model'
-import { ModulePermissions, UserIdentity } from './identity.model'
+import { UserIdentity } from './identity.model'
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +24,7 @@ export class IdentityService {
   /**
    * Processes the user identity, either from the local storage or from the provided user data.
    */
-  processIdentity(user: AuthenticatedUserDTO | null = null): boolean {
+  processIdentity(user: LoginResponse | null = null): boolean {
     // In-memory user data
     if (user === null && this._identity() !== null) {
       if (!this._isValid(this._identity()?.tokenExp ?? 0)) {
@@ -84,8 +85,7 @@ export class IdentityService {
 
     try {
       return JSON.parse(userIdentityString, (key: string, value: any) => {
-        if (key === 'allowedIn')
-          return new Map(value.map((perm: ModulePermissions) => [perm, null]))
+        if (key === 'allowedIn') return new Map(value.map((perm: FrontendRole) => [perm, null]))
         return value
       })
     } catch (error) {
