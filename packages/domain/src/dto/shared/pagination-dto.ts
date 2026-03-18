@@ -1,4 +1,4 @@
-export type SortOrder = 'asc' | 'desc'
+import { SortOrder } from '../../types/shared/pagination.js'
 
 export type PaginationRequest = {
   limit: number
