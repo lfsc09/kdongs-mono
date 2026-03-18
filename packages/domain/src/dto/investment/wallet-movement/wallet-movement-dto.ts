@@ -1,11 +1,10 @@
 import { CurrencyCode } from '../../../types/investment/currency-code.js'
 import { WalletMovementType } from '../../../types/investment/wallet-movement.js'
-import { PaginationResponse } from '../../shared/pagination-dto.js'
 
 /**
  * Index
  */
-export type IndexWalletMovementsRequest = {
+export type IndexWalletMovementRequest = {
   userId: string
   walletId: string
   page: number
@@ -13,7 +12,7 @@ export type IndexWalletMovementsRequest = {
   sortBy?: 'movementId' | 'movementOriginAmount' | 'movementResultAmount' | 'movementDateUtc'
 }
 
-export type IndexWalletMovementsResponse = {
+export type IndexWalletMovementResponse = {
   movements: {
     id: string
     movementType: WalletMovementType

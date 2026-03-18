@@ -3,14 +3,14 @@ import { CurrencyCode } from '../../../types/investment/currency-code.js'
 /**
  * Index
  */
-export type IndexWalletsRequest = {
+export type IndexWalletRequest = {
   userId: string
   page?: number
   limit?: number
   sortBy?: 'walletName' | 'walletCurrencyCode' | 'walletCreatedAt' | 'walletUpdatedAt'
 }
 
-export type IndexWalletsResponse = {
+export type IndexWalletResponse = {
   wallets: {
     id: string
     isActive: boolean

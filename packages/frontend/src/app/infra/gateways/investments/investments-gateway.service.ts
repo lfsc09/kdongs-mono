@@ -16,8 +16,8 @@ import {
   CreateWalletMovementResponse,
   EditWalletMovementRequest,
   EditWalletMovementResponse,
-  IndexWalletMovementsRequest,
-  IndexWalletMovementsResponse,
+  IndexWalletMovementRequest,
+  IndexWalletMovementResponse,
   StoreWalletMovementRequest,
   UpdateWalletMovementRequest,
 } from '@kdongs/domain/dto/investment/wallet-movement/wallet-movement-dto'
@@ -25,8 +25,8 @@ import {
   CreateWalletResponse,
   EditWalletRequest,
   EditWalletResponse,
-  IndexWalletsRequest,
-  IndexWalletsResponse,
+  IndexWalletRequest,
+  IndexWalletResponse,
   StoreWalletRequest,
   UpdateWalletRequest,
 } from '@kdongs/domain/dto/investment/wallet/wallet-dto'
@@ -40,19 +40,19 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
    *
    */
   listUserWallets(
-    request: IndexWalletsRequest
-  ): Observable<AdonisJSPaginationResponse<IndexWalletsResponse>> {
+    request: IndexWalletRequest
+  ): Observable<AdonisJSPaginationResponse<IndexWalletResponse>> {
     return this.http
-      .get<AdonisJSPaginationResponse<IndexWalletsResponse>>(`${this.apiUrl}/investments/wallets`, {
+      .get<AdonisJSPaginationResponse<IndexWalletResponse>>(`${this.apiUrl}/investments/wallets`, {
         observe: 'response',
         withCredentials: true,
         params: request,
       })
       .pipe(
         map(response => {
-          return this.parseResponse<IndexWalletsResponse>(
+          return this.parseResponse<IndexWalletResponse>(
             response.body
-          ) as AdonisJSPaginationResponse<IndexWalletsResponse>
+          ) as AdonisJSPaginationResponse<IndexWalletResponse>
         }),
         catchError(error => {
           return throwError(() => this.parseError(error))
@@ -176,10 +176,10 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
    *
    */
   listUserWalletMovements(
-    request: IndexWalletMovementsRequest
-  ): Observable<AdonisJSPaginationResponse<IndexWalletMovementsResponse>> {
+    request: IndexWalletMovementRequest
+  ): Observable<AdonisJSPaginationResponse<IndexWalletMovementResponse>> {
     return this.http
-      .get<AdonisJSPaginationResponse<IndexWalletMovementsResponse>>(
+      .get<AdonisJSPaginationResponse<IndexWalletMovementResponse>>(
         `${this.apiUrl}/investments/wallets/${request.walletId}/movements`,
         {
           observe: 'response',
@@ -189,9 +189,9 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
       )
       .pipe(
         map(response => {
-          return this.parseResponse<IndexWalletMovementsResponse>(
+          return this.parseResponse<IndexWalletMovementResponse>(
             response.body
-          ) as AdonisJSPaginationResponse<IndexWalletMovementsResponse>
+          ) as AdonisJSPaginationResponse<IndexWalletMovementResponse>
         }),
         catchError(error => {
           return throwError(() => this.parseError(error))
