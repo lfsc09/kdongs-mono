@@ -1,14 +1,14 @@
 import { Component, computed, inject, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
+import { AnalyticSerie } from '@kdongs/domain/dto/investment/analytic/liquidation-series-dto'
 import Big from 'big.js'
 import { combineLatest, debounceTime, filter, Subscription, switchMap, tap } from 'rxjs'
-import { LiquidationSerieDTO } from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
 import { PerformanceService } from '../performance.service'
 import { EvolutionSeries } from './evolution-series/evolution-series'
 import { GroupSeries } from './group-series/group-series'
-import { UnifiedLiquidationSerieDataPointDTO } from './performance-series.model'
+import { UnifiedAnalyticSerieDataPoint } from './performance-series.model'
 
 @Component({
   selector: 'kdongs-performance-series',
@@ -66,14 +66,12 @@ export class PerformanceSeries implements OnDestroy {
    * IMPORTANT: Wallet dataPoints received from the backend will be aggregated by dataPoint[type] and dataPoint[dateUtc],
    * meaning, types will not be mixed, only same dates from the same types will be aggregated.
    */
-  protected series = signal<LiquidationSerieDTO[] | null | undefined>(undefined)
-  protected unifiedSeries = computed<UnifiedLiquidationSerieDataPointDTO[] | null | undefined>(
-    () => {
-      if (this.series() === undefined) return undefined
-      else if (this.series() === null) return null
-      return this._unifySeries(this.series()!)
-    }
-  )
+  protected series = signal<AnalyticSerie[] | null | undefined>(undefined)
+  protected unifiedSeries = computed<UnifiedAnalyticSerieDataPoint[] | null | undefined>(() => {
+    if (this.series() === undefined) return undefined
+    else if (this.series() === null) return null
+    return this._unifySeries(this.series()!)
+  })
 
   /**
    * VARS
@@ -124,8 +122,8 @@ export class PerformanceSeries implements OnDestroy {
    *
    * Since this will aggregate different wallets and dataPoint types, by `dateUtc`, there is no need to maintain `type` property.
    */
-  private _unifySeries(data: LiquidationSerieDTO[]): UnifiedLiquidationSerieDataPointDTO[] {
-    let unifiedSeriesMap = new Map<number, UnifiedLiquidationSerieDataPointDTO>()
+  private _unifySeries(data: AnalyticSerie[]): UnifiedAnalyticSerieDataPoint[] {
+    let unifiedSeriesMap = new Map<number, UnifiedAnalyticSerieDataPoint>()
     for (const wallet of data) {
       for (const dataPoint of wallet.dataPoints) {
         // Merge wallet assets into a Map, to merge equal dates to same dataPoint

@@ -1,11 +1,11 @@
 import { formatDate } from '@angular/common'
 import { Injectable } from '@angular/core'
+import { AnalyticSerie } from '@kdongs/domain/dto/investment/analytic/liquidation-series-dto'
 import Big from 'big.js'
 import { bar } from 'billboard.js'
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
-import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
-import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
+import { UnifiedAnalyticSerieDataPoint } from '../performance-series.model'
 import {
   ChartDataSerie,
   ChartGeneratedData,
@@ -37,7 +37,7 @@ export class GroupSeriesService {
    * @returns The generated chart data and options config based on the given parameters.
    */
   chartDataUnifiedWallets(
-    dataSerie: UnifiedLiquidationSerieDataPointDTO[],
+    dataSerie: UnifiedAnalyticSerieDataPoint[],
     timeframe: Timeframe,
     valueType: ValueType,
     compareNetOnly: boolean,
@@ -166,7 +166,7 @@ export class GroupSeriesService {
    * @returns The generated chart data and options config based on the given parameters.
    */
   chartDataSeparatedWallets(
-    dataSeries: LiquidationSerieDTO[],
+    dataSeries: AnalyticSerie[],
     timeframe: Timeframe,
     valueType: ValueType,
     compareNetOnly: boolean,

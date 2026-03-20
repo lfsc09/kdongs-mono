@@ -1,12 +1,12 @@
 import { CdkMenu, CdkMenuTrigger } from '@angular/cdk/menu'
 import { formatDate } from '@angular/common'
 import { Component, effect, inject, input, OnDestroy, signal } from '@angular/core'
+import { AnalyticSerie } from '@kdongs/domain/dto/investment/analytic/liquidation-series-dto'
+import { CurrencyCode } from '@kdongs/domain/types/investment/currency-code'
 import bb, { Chart, ChartOptions } from 'billboard.js'
-import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
 import { CapitalizePipe } from '../../../../../../../infra/pipes/capitalize.pipe'
 import { formatMonetary } from '../../../../../../../infra/pipes/monetary.pipe'
-import { Currency } from '../../../investments.model'
-import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
+import { UnifiedAnalyticSerieDataPoint } from '../performance-series.model'
 import { ChartGeneratedData, TendencyType } from './evolution-series.model'
 import { EvolutionSeriesService } from './evolution-series.service'
 
@@ -25,9 +25,9 @@ export class EvolutionSeries implements OnDestroy {
   /**
    * SIGNALS
    */
-  currencyOnUse = input.required<Currency>()
-  data = input.required<LiquidationSerieDTO[]>()
-  unifiedData = input.required<UnifiedLiquidationSerieDataPointDTO[]>()
+  currencyOnUse = input.required<CurrencyCode>()
+  data = input.required<AnalyticSerie[]>()
+  unifiedData = input.required<UnifiedAnalyticSerieDataPoint[]>()
   protected unifyDatasets = signal<boolean>(true)
   protected showProfitsOnly = signal<boolean>(false)
   protected compareNetOnly = signal<boolean>(true)

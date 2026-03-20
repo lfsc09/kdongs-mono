@@ -1,11 +1,11 @@
 import { Component, inject, input, OnDestroy, OnInit, signal } from '@angular/core'
 import { form, FormField, FormRoot } from '@angular/forms/signals'
-import { Subscription } from 'rxjs'
 import {
-  CreateWalletDTO,
-  EditWalletDTO,
+  CreateWalletResponse,
+  EditWalletResponse,
   UpdateWalletRequest,
-} from '../../../../../../infra/gateways/investments/investments-gateway.model'
+} from '@kdongs/domain/dto/investment/wallet/wallet-dto'
+import { Subscription } from 'rxjs'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { GatewayError } from '../../../../../../infra/gateways/shared/default-gateway.model'
 import {
@@ -42,7 +42,7 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
   walletId = input<string | undefined>(undefined)
   currentMessage = signal<MessageDetail | null>(null)
   protected loading = signal<'not' | 'loading' | 'sending'>('not')
-  protected formData = signal<CreateWalletDTO | EditWalletDTO | null>(null)
+  protected formData = signal<CreateWalletResponse | EditWalletResponse | null>(null)
   protected formModel = signal<WalletFormData>({
     name: '',
     currencyCode: '',

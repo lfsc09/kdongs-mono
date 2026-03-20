@@ -1,12 +1,12 @@
 import { CdkMenu, CdkMenuTrigger } from '@angular/cdk/menu'
 import { Component, computed, effect, inject, input, OnDestroy, signal } from '@angular/core'
+import { AnalyticSerie } from '@kdongs/domain/dto/investment/analytic/liquidation-series-dto'
+import { CurrencyCode } from '@kdongs/domain/types/investment/currency-code'
 import bb, { Chart, ChartOptions } from 'billboard.js'
-import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
 import { CapitalizePipe } from '../../../../../../../infra/pipes/capitalize.pipe'
 import { formatMonetary } from '../../../../../../../infra/pipes/monetary.pipe'
 import { formatPercent } from '../../../../../../../infra/pipes/percent.pipe'
-import { Currency } from '../../../investments.model'
-import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
+import { UnifiedAnalyticSerieDataPoint } from '../performance-series.model'
 import { ChartGeneratedData, Timeframe, ValueType } from './group-series.model'
 import { GroupSeriesService } from './group-series.service'
 
@@ -25,9 +25,9 @@ export class GroupSeries implements OnDestroy {
   /**
    * SIGNALS
    */
-  currencyOnUse = input.required<Currency>()
-  data = input.required<LiquidationSerieDTO[]>()
-  unifiedData = input.required<UnifiedLiquidationSerieDataPointDTO[]>()
+  currencyOnUse = input.required<CurrencyCode>()
+  data = input.required<AnalyticSerie[]>()
+  unifiedData = input.required<UnifiedAnalyticSerieDataPoint[]>()
   protected unifyDatasets = signal<boolean>(true)
   protected groupTimeframe = signal<Timeframe>(Timeframe.Month)
   protected groupValueType = signal<ValueType>(ValueType.Currency)

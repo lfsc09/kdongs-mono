@@ -2,8 +2,8 @@ import { DatePipe } from '@angular/common'
 import { Component, inject, input, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { RouterLink } from '@angular/router'
+import { IndexWalletMovementResponse } from '@kdongs-mono/domain/dto/investment/wallet-movement/wallet-movement-dto'
 import { combineLatest, debounceTime, Subscription, switchMap, tap } from 'rxjs'
-import { ListUserWalletMovementDTO } from '../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../infra/gateways/investments/investments-gateway.service'
 import { MonetaryPipe } from '../../../../../infra/pipes/monetary.pipe'
 import { Datatable } from '../../../components/datatable/datatable'
@@ -25,7 +25,9 @@ export class WalletMovement extends Datatable implements OnDestroy {
    */
   walletId = input.required<string>()
   protected loading = signal<boolean>(false)
-  protected walletMovements = signal<ListUserWalletMovementDTO[] | null | undefined>(undefined)
+  protected walletMovements = signal<IndexWalletMovementResponse['movements'] | null | undefined>(
+    undefined
+  )
 
   /**
    * VARS

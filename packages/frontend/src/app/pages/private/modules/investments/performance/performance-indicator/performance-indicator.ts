@@ -1,15 +1,15 @@
 import { DatePipe } from '@angular/common'
 import { Component, inject, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
+import { PerformanceAnalyticsResponse } from '@kdongs/domain/dto/investment/analytic/performance-dto'
+import { CurrencyCode } from '@kdongs/domain/types/investment/currency-code'
 import { combineLatest, debounceTime, Subscription, switchMap, tap } from 'rxjs'
 import { MonetaryDirective } from '../../../../../../infra/directives/monetary.directive'
-import { PerformanceAnalyticsIndicatorsDTO } from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { MonetaryPipe } from '../../../../../../infra/pipes/monetary.pipe'
 import { PercentPipe } from '../../../../../../infra/pipes/percent.pipe'
 import { Gauge } from '../../../../components/gauge/gauge'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
-import { Currency } from '../../investments.model'
 import { PerformanceService } from '../performance.service'
 
 @Component({
@@ -28,14 +28,15 @@ export class PerformanceIndicator implements OnDestroy {
    * SIGNALS
    */
   protected loading = signal<boolean>(false)
-  protected performance = signal<PerformanceAnalyticsIndicatorsDTO | null | undefined>(undefined)
+  protected performance = signal<PerformanceAnalyticsResponse['indicators'] | null | undefined>(
+    undefined
+  )
 
   /**
    * VARS
    */
   private _investmentsSubscription: Subscription | undefined
 
-  // FIXME: Still doing 2 requests when walletIds is undefined (debounced is not blocking the second request)
   constructor() {
     const selectedWalletIds$ = toObservable(this.performanceService.selectedWalletIds)
     const selectedCurrency$ = toObservable(this.performanceService.selectedCurrency)
@@ -55,7 +56,7 @@ export class PerformanceIndicator implements OnDestroy {
       .subscribe({
         next: response => {
           this.performanceService.handleSelectedWalletIdsChange(response.data.walletIds)
-          this.performanceService.currencyToShow.set(response.data.currencyToShow as Currency)
+          this.performanceService.currencyToShow.set(response.data.currencyToShow as CurrencyCode)
           this.performance.set(response.data.indicators)
           this.loading.set(false)
         },

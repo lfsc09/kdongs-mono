@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core'
+import { AnalyticSerie } from '@kdongs/domain/dto/investment/analytic/liquidation-series-dto'
 import Big from 'big.js'
 import { area, line } from 'billboard.js'
 import cloneDeep from 'lodash/cloneDeep'
-import { LiquidationSerieDTO } from '../../../../../../../infra/gateways/investments/investments-gateway.model'
-import { UnifiedLiquidationSerieDataPointDTO } from '../performance-series.model'
+import { UnifiedAnalyticSerieDataPoint } from '../performance-series.model'
 import {
   ChartDataSerie,
   ChartGeneratedData,
@@ -33,7 +33,7 @@ export class EvolutionSeriesService {
    */
 
   chartDataUnifiedWallets(
-    dataSerie: UnifiedLiquidationSerieDataPointDTO[],
+    dataSerie: UnifiedAnalyticSerieDataPoint[],
     showProfitsOnly: boolean,
     tendencyType: TendencyType
   ): ChartGeneratedData {
@@ -84,7 +84,7 @@ export class EvolutionSeriesService {
   }
 
   chartDataSeparatedWallets(
-    dataSeries: LiquidationSerieDTO[],
+    dataSeries: AnalyticSerie[],
     compareNetOnly: boolean
   ): ChartGeneratedData {
     if (dataSeries.length === 0) return {} as ChartGeneratedData

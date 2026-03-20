@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router'
+import { UserAbilities } from '@kdongs-mono/domain/types/auth/abilities'
 import { titleResolver } from '../../../../app.routes'
 import { authorizationGuard } from '../../../../infra/guards/authorization.guard'
 
@@ -8,7 +9,7 @@ export const investmentsRoutes: Routes = [
     data: {
       title: 'My Investments',
       shouldRouteExec: true,
-      modulePermission: 'INVESTMENTS_ACCESS',
+      modulePermission: UserAbilities['investment.access'],
     },
     title: titleResolver,
     loadComponent: () => import('./investments').then(module => module.Investments),

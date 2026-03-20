@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common'
 import { Component, inject, linkedSignal, OnDestroy, signal } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
+import { IndexWalletResponse } from '@kdongs/domain/dto/investment/wallet/wallet-dto'
 import { combineLatest, debounceTime, Subscription, switchMap, tap } from 'rxjs'
-import { ListUserWalletDTO } from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { MonetaryPipe } from '../../../../../../infra/pipes/monetary.pipe'
 import { PercentPipe } from '../../../../../../infra/pipes/percent.pipe'
@@ -30,7 +30,7 @@ export class PerformanceFilter extends Datatable implements OnDestroy {
    * SIGNALS
    */
   protected loading = signal<boolean>(false)
-  protected wallets = signal<ListUserWalletDTO[] | null | undefined>(undefined)
+  protected wallets = signal<IndexWalletResponse['wallets'] | null | undefined>(undefined)
   protected localSelectedWallets = linkedSignal<LocalSelectableWallets>(() =>
     this.performanceService
       .selectedWalletIds()

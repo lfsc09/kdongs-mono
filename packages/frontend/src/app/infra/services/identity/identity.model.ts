@@ -1,4 +1,4 @@
-import { FrontendRole } from '@kdongs-mono/domain/types/auth/frontend-role'
+import { UserAbility } from '@kdongs-mono/domain/types/auth/abilities'
 
 export interface UserIdentity {
   userName: string
@@ -7,4 +7,4 @@ export interface UserIdentity {
   tokenExp: number
 }
 
-export type UserAllowedIn = Map<FrontendRole, null>
+export type UserAllowedIn = Map<UserAbility, null>

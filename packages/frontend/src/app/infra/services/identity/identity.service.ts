@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core'
 import { LoginResponse } from '@kdongs-mono/domain/dto/user/user-dto'
-import { FrontendRole } from '@kdongs-mono/domain/types/auth/frontend-role'
+import { UserAbility } from '@kdongs-mono/domain/types/auth/abilities'
 import { BehaviorSubject } from 'rxjs'
 import { environment } from '../../../../environments/environment'
 import { UserIdentity } from './identity.model'
@@ -85,7 +85,7 @@ export class IdentityService {
 
     try {
       return JSON.parse(userIdentityString, (key: string, value: any) => {
-        if (key === 'allowedIn') return new Map(value.map((perm: FrontendRole) => [perm, null]))
+        if (key === 'allowedIn') return new Map(value.map((perm: UserAbility) => [perm, null]))
         return value
       })
     } catch (error) {

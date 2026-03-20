@@ -1,9 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
 import { Router, Routes } from '@angular/router'
-import {
-  ModulePermissions,
-  UserAllowedIn,
-} from '../../../../infra/services/identity/identity.model'
+import { UserAbilities, UserAbility } from '@kdongs-mono/domain/types/auth/abilities'
+import { UserAllowedIn } from '../../../../infra/services/identity/identity.model'
 import { IdentityService } from '../../../../infra/services/identity/identity.service'
 
 @Injectable()
@@ -32,8 +30,7 @@ export class SidebarModulesService {
         icon: 'fa-regular fa-house',
         url: '/r!/home',
       },
-      (this.identityService.identity()?.allowedIn?.has(ModulePermissions.INVESTMENTS_ACCESS) ??
-      false)
+      (this.identityService.identity()?.allowedIn?.has(UserAbilities['investment.access']) ?? false)
         ? {
             label: 'My Investments',
             icon: 'fa-solid fa-chart-line',
@@ -53,7 +50,7 @@ export class SidebarModulesService {
     return this.buildRoutesRegexp(
       '',
       this._router.config,
-      this.identityService.identity()?.allowedIn ?? new Map<ModulePermissions, null>()
+      this.identityService.identity()?.allowedIn ?? new Map<UserAbility, null>()
     ) as RegExp[]
   })
 

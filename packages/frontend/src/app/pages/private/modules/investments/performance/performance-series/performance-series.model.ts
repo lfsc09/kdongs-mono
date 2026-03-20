@@ -1,3 +1,3 @@
-import { LiquidationSerieDataPointDTO } from '../../../../../../infra/gateways/investments/investments-gateway.model'
+import { AnalyticSerieDataPoint } from '@kdongs/domain/dto/investment/analytic/liquidation-series-dto'
 
-export type UnifiedLiquidationSerieDataPointDTO = Omit<LiquidationSerieDataPointDTO, 'type'>
+export type UnifiedAnalyticSerieDataPoint = Omit<AnalyticSerieDataPoint, 'type'>

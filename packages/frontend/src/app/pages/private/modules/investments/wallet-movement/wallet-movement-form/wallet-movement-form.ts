@@ -1,14 +1,14 @@
 import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core'
 import { form, FormField, FormRoot } from '@angular/forms/signals'
 import { ActivatedRoute } from '@angular/router'
+import {
+  CreateWalletMovementResponse,
+  EditWalletMovementResponse,
+  UpdateWalletMovementRequest,
+} from '@kdongs-mono/domain/dto/investment/wallet-movement/wallet-movement-dto'
 import Big from 'big.js'
 import { Subscription } from 'rxjs'
 import { InputDecimalDirective } from '../../../../../../infra/directives/input-decimal.directive'
-import {
-  CreateWalletMovementDTO,
-  EditWalletMovementDTO,
-  UpdateWalletMovementRequest,
-} from '../../../../../../infra/gateways/investments/investments-gateway.model'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import { GatewayError } from '../../../../../../infra/gateways/shared/default-gateway.model'
 import {
@@ -46,7 +46,9 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
   movementId = input<string | undefined>(undefined)
   currentMessage = signal<MessageDetail | null>(null)
   protected loading = signal<'not' | 'loading' | 'sending'>('not')
-  protected formData = signal<CreateWalletMovementDTO | EditWalletMovementDTO | null>(null)
+  protected formData = signal<CreateWalletMovementResponse | EditWalletMovementResponse | null>(
+    null
+  )
   protected formModel = signal<WalletMovementFormData>({
     movementType: '',
     institution: '',

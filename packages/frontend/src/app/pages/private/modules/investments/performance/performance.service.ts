@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core'
-import { Currency } from '../investments.model'
+import { CurrencyCode } from '@kdongs/domain/types/investment/currency-code'
 import { SelectableCurrency, UserPreferences } from './performance.model'
 
 @Injectable()
@@ -11,7 +11,7 @@ export class PerformanceService {
   filterSidebarCollapsed = signal<boolean>(true)
   selectedWalletIds = signal<string[]>([])
   selectedCurrency = signal<SelectableCurrency>('Wallet')
-  currencyToShow = signal<Currency | undefined>(undefined)
+  currencyToShow = signal<CurrencyCode | undefined>(undefined)
 
   /**
    * FUNCTIONS
