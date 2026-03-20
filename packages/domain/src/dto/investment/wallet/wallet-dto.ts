@@ -4,7 +4,6 @@ import { CurrencyCode } from '../../../types/investment/currency-code.js'
  * Index
  */
 export type IndexWalletRequest = {
-  userId: string
   page?: number
   limit?: number
   sortBy?: 'walletName' | 'walletCurrencyCode' | 'walletCreatedAt' | 'walletUpdatedAt'
@@ -30,7 +29,6 @@ export type IndexWalletResponse = {
  * Show
  */
 export type ShowWalletRequest = {
-  userId: string
   walletId: string
 }
 
@@ -50,7 +48,6 @@ export type CreateWalletResponse = {
  * Edit
  */
 export type EditWalletRequest = {
-  userId: string
   walletId: string
 }
 
@@ -68,7 +65,6 @@ export type EditWalletResponse = {
 export type StoreWalletRequest = {
   currencyCode: string
   name: string
-  userId: string
 }
 
 /**
@@ -77,7 +73,6 @@ export type StoreWalletRequest = {
 export type UpdateWalletRequest = {
   currencyCode?: string
   name?: string
-  userId: string
   walletId: string
 }
 
@@ -85,6 +80,5 @@ export type UpdateWalletRequest = {
  * Delete
  */
 export type DeleteWalletRequest = {
-  userId: string
   walletId: string
 }

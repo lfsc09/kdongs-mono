@@ -23,7 +23,6 @@ export type AnalyticSerie = {
 export type LiquidationSeriesAnalyticsRequest = {
   selectedCurrency: string
   useLivePriceQuote?: boolean
-  userId: string
   walletIds?: string[] | string
 }
 

@@ -1,7 +1,6 @@
 export type PerformanceAnalayticsRequest = {
   selectedCurrency: string
   useLivePriceQuote?: boolean
-  userId: string
   walletIds?: string[] | string
 }
 

@@ -5,7 +5,6 @@ import { WalletMovementType } from '../../../types/investment/wallet-movement.js
  * Index
  */
 export type IndexWalletMovementRequest = {
-  userId: string
   walletId: string
   page: number
   pageSize: number
@@ -35,14 +34,12 @@ export type IndexWalletMovementResponse = {
  */
 export type ShowWalletMovementRequest = {
   movementId: string
-  userId: string
   walletId: string
 }
 
 // TODO: Add wallet data
 export type ShowWalletMovementResponse = {
   movementId: string
-  userId: string
 }
 
 /**
@@ -62,7 +59,6 @@ export type CreateWalletMovementResponse = {
  */
 export type EditWalletMovementRequest = {
   movementId: string
-  userId: string
   walletId: string
 }
 
@@ -97,7 +93,6 @@ export type StoreWalletMovementRequest = {
   originExchGrossRate?: number
   originExchOpFee?: number
   resultCurrencyCode: string
-  userId: string
   walletId: string
 }
 
@@ -115,7 +110,6 @@ export type UpdateWalletMovementRequest = {
   originExchGrossRate?: number
   originExchOpFee?: number
   resultCurrencyCode?: string
-  userId: string
   walletId: string
 }
 
@@ -124,6 +118,5 @@ export type UpdateWalletMovementRequest = {
  */
 export type DeleteWalletMovementRequest = {
   movementId: string
-  userId: string
   walletId: string
 }

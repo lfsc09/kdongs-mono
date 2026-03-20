@@ -1,4 +1,4 @@
-import { FrontendRole } from '../../types/auth/frontend-role.js'
+import { UserAbility } from '../../types/auth/abilities.js'
 
 export type LoginRequest = {
   email: string
@@ -8,6 +8,6 @@ export type LoginRequest = {
 export type LoginResponse = {
   userName: string
   userEmail: string
-  allowedIn: FrontendRole[]
+  allowedIn: UserAbility[]
   tokenExp: number
 }
