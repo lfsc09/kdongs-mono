@@ -6,8 +6,8 @@ import { WalletMovementType } from '../../../types/investment/wallet-movement.js
  */
 export type IndexWalletMovementRequest = {
   walletId: string
-  page: number
-  pageSize: number
+  page?: number
+  limit?: number
   sortBy?: 'movementId' | 'movementOriginAmount' | 'movementResultAmount' | 'movementDateUtc'
 }
 
@@ -84,14 +84,14 @@ export type EditWalletMovementResponse = {
  * Store
  */
 export type StoreWalletMovementRequest = {
-  dateUtc: Date
+  dateUtc: string
   details?: string
   institution?: string
   movementType: string
-  originAmount: number
+  originAmount: string
   originCurrencyCode: string
-  originExchGrossRate?: number
-  originExchOpFee?: number
+  originExchGrossRate?: string
+  originExchOpFee?: string
   resultCurrencyCode: string
   walletId: string
 }
@@ -101,14 +101,14 @@ export type StoreWalletMovementRequest = {
  */
 export type UpdateWalletMovementRequest = {
   movementId: string
-  dateUtc?: Date
+  dateUtc?: string
   details?: string
   institution?: string
   movementType?: string
-  originAmount?: number
+  originAmount?: string
   originCurrencyCode?: string
-  originExchGrossRate?: number
-  originExchOpFee?: number
+  originExchGrossRate?: string
+  originExchOpFee?: string
   resultCurrencyCode?: string
   walletId: string
 }
