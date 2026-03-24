@@ -1,0 +1,14 @@
+BUMP_FLAG=".git/.version_bump_in_progress"
+[ -f "$BUMP_FLAG" ] && exit 0
+
+tmpfile=$(mktemp)
+git log -1 --format=%B > "$tmpfile"
+changed=$(node scripts/dev.commit-bump-versions.js "$tmpfile")
+rm -f "$tmpfile"
+
+if [ -n "$changed" ]; then
+  touch "$BUMP_FLAG"
+  echo "$changed" | xargs git add
+  git commit --amend --no-edit --no-verify
+  rm -f "$BUMP_FLAG"
+fi
