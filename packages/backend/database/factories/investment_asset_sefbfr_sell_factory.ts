@@ -33,7 +33,7 @@ export const AssetSefbfrSellFactory = factory
       details: faker.lorem.sentence(),
       fees: getFees(priceQuote, sharesAmount, faker),
       priceQuote,
-      sharesAmount,
+      sharesAmount: sharesAmount.neg(),
       taxes: getTaxes(priceQuote, sharesAmount, faker),
     }
   })

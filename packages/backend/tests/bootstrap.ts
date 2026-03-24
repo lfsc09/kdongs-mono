@@ -1,11 +1,20 @@
 import { authApiClient } from '@adonisjs/auth/plugins/api_client'
 import app from '@adonisjs/core/services/app'
 import testUtils from '@adonisjs/core/services/test_utils'
+import { sessionApiClient } from '@adonisjs/session/plugins/api_client'
 import { apiClient } from '@japa/api-client'
 import { expect } from '@japa/expect'
 import { pluginAdonisJS } from '@japa/plugin-adonisjs'
 import { github, spec } from '@japa/runner/reporters'
 import type { Config } from '@japa/runner/types'
+import type { Registry } from '../.adonisjs/client/registry/schema.d.ts'
+
+/**
+ * This file is imported by the "bin/test.ts" entrypoint file
+ */
+declare module '@japa/api-client/types' {
+  interface RoutesRegistry extends Registry {}
+}
 
 /**
  * This file is imported by the "bin/test.ts" entrypoint file
@@ -17,8 +26,9 @@ import type { Config } from '@japa/runner/types'
  */
 export const plugins: Config['plugins'] = [
   expect(),
-  apiClient(),
   pluginAdonisJS(app),
+  apiClient(),
+  sessionApiClient(app),
   authApiClient(app),
 ]
 

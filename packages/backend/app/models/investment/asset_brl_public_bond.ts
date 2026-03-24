@@ -1,15 +1,15 @@
 import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type {
+  BondType,
+  IndexType,
+  InterestType,
+} from '@kdongs-mono/domain/types/investment/brl-public-bond'
 import { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
 import AssetBrlPublicBondBuy from '#models/investment/asset_brl_public_bond_buy'
 import AssetBrlPublicBondSell from '#models/investment/asset_brl_public_bond_sell'
 import Wallet from '#models/investment/wallet'
-import type {
-  BondType,
-  IndexType,
-  InterestType,
-} from '../../core/types/investment/brl_public_bond.js'
 
 export default class AssetBrlPublicBond extends BaseModel {
   static table = 'investment_asset_brl_public_bonds'
@@ -24,30 +24,30 @@ export default class AssetBrlPublicBond extends BaseModel {
   declare id: string
 
   @column()
-  declare walletId: string // ID of the wallet to which the bond belongs
+  declare walletId: string
   @belongsTo(() => Wallet)
   declare wallet: BelongsTo<typeof Wallet>
 
   @column()
-  declare isDone: boolean // Indicates if the bond is completed
+  declare isDone: boolean
 
   @column()
-  declare holderInstitution: string // Institution holding the bond
+  declare holderInstitution: string
 
   @column()
-  declare bondName: string // Name of the public bond investment
+  declare bondName: string
 
   @column()
-  declare bondType: BondType // Type of bond
+  declare bondType: BondType
 
   @column()
-  declare interestType: InterestType // Type of interest
+  declare interestType: InterestType
 
   @column()
-  declare indexType: IndexType // Type of index
+  declare indexType: IndexType
 
   @column.dateTime()
-  declare maturityDateUtc: DateTime // Maturity date of the bond
+  declare maturityDateUtc: DateTime
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

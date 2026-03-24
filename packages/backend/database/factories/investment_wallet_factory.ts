@@ -1,9 +1,9 @@
 import factory from '@adonisjs/lucid/factories'
-import Wallet from '#models/investment/wallet'
 import {
   acceptedCurrencyCodes,
-  type CurrencyCode,
-} from '../../app/core/types/investment/currency.js'
+  CurrencyCode,
+} from '@kdongs-mono/domain/types/investment/currency-code'
+import Wallet from '#models/investment/wallet'
 import { AssetBrlPrivateBondFactory } from './investment_asset_brl_private_bond_factory.js'
 import { AssetBrlPublicBondFactory } from './investment_asset_brl_public_bond_factory.js'
 import { AssetSefbfrFactory } from './investment_asset_sefbfr_factory.js'

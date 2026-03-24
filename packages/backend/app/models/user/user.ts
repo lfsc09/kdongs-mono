@@ -1,11 +1,11 @@
-import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
+import { AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { compose } from '@adonisjs/core/helpers'
 import hash from '@adonisjs/core/services/hash'
 import { BaseModel, beforeCreate, column } from '@adonisjs/lucid/orm'
-import type { DateTime } from 'luxon'
+import type { UserRole } from '@kdongs-mono/domain/types/user/user-role'
+import { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
-import type { UserRole } from '../../core/types/user/user_role.js'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   passwordColumnName: 'password',
@@ -15,6 +15,8 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
 export default class User extends compose(BaseModel, AuthFinder) {
   static table = 'users'
   static selfAssignPrimaryKey = true
+
+  currentAccessToken?: AccessToken
 
   @beforeCreate()
   static assignData(user: User) {
@@ -45,5 +47,8 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column.dateTime()
   declare deletedAt: DateTime | null
 
-  static accessTokens = DbAccessTokensProvider.forModel(User)
+  static accessTokens = DbAccessTokensProvider.forModel(User, {
+    expiresIn: '1 day',
+    prefix: 'kds_',
+  })
 }

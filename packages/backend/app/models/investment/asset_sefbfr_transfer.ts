@@ -3,6 +3,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Big from 'big.js'
 import type { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
+import { consumeBig, prepareBig } from '#models/helper/big'
 import AssetSefbfr from '#models/investment/asset_sefbfr'
 
 export default class AssetSefbfrTransfer extends BaseModel {
@@ -18,30 +19,30 @@ export default class AssetSefbfrTransfer extends BaseModel {
   declare id: string
 
   @column()
-  declare investmentAssetSefbfrId: string // ID of the SEFBFR asset to which this transfer belongs
+  declare investmentAssetSefbfrId: string
   @belongsTo(() => AssetSefbfr)
   declare assetSefbfr: BelongsTo<typeof AssetSefbfr>
 
   @column()
-  declare dateUtc: DateTime // Date of the SEFBFR transfer transaction
+  declare dateUtc: DateTime
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: prepareBig,
   })
-  declare sharesAmount: Big // Number of shares transferred (negative for sending institution, positive for receiving institution)
+  declare sharesAmount: Big
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: prepareBig,
   })
-  declare closePriceQuote: Big // Previous day closing price per share of transfer (only for receiving institution)
+  declare closePriceQuote: Big
 
   @column()
-  declare previousInstitution: string // Previous institution holding the shares
+  declare previousInstitution: string
 
   @column()
-  declare newInstitution: string // New institution receiving the shares
+  declare newInstitution: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

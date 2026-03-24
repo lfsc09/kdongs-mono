@@ -1,13 +1,13 @@
 import factory from '@adonisjs/lucid/factories'
-import { DateTime } from 'luxon'
-import AssetBrlPublicBond from '#models/investment/asset_brl_public_bond'
 import {
   acceptedInterestTypes,
   BondTypes,
   IndexTypes,
   type InterestType,
   InterestTypes,
-} from '../../app/core/types/investment/brl_public_bond.js'
+} from '@kdongs-mono/domain/types/investment/brl-public-bond'
+import { DateTime } from 'luxon'
+import AssetBrlPublicBond from '#models/investment/asset_brl_public_bond'
 import { AssetBrlPublicBondBuyFactory } from './investment_asset_brl_public_bond_buy_factory.js'
 import { AssetBrlPublicBondSellFactory } from './investment_asset_brl_public_bond_sell_factory.js'
 
@@ -27,7 +27,7 @@ export const AssetBrlPublicBondFactory = factory
   .define(AssetBrlPublicBond, async ({ faker }) => {
     const isDone = faker.datatype.boolean(0.3)
     const interestType = faker.helpers.arrayElement(acceptedInterestTypes as InterestType[])
-    const bondType = interestType === InterestTypes.fixed ? BondTypes.LTN : BondTypes.LFT
+    const bondType = interestType === InterestTypes.fixed ? BondTypes.ltn : BondTypes.lft
 
     if (!bondType) {
       throw new Error(`No valid bond type found`)

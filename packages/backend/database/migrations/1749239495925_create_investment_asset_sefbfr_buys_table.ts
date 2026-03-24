@@ -13,11 +13,16 @@ export default class extends BaseSchema {
         .inTable('investment_asset_sefbfrs')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date of the SEFBFR buy transaction
-      table.decimal('shares_amount', 20, 6).notNullable() // Amount of shares bought
-      table.decimal('price_quote', 20, 6).notNullable() // Price per share at the time of purchase
-      table.decimal('fees', 20, 6).nullable() // Fees associated with the buy transaction
-      table.text('details').nullable() // Additional details about the buy transaction
+      // Date of the SEFBFR buy transaction in UTC
+      table.datetime('date_utc').notNullable()
+      // Amount of shares bought (only positive)
+      table.decimal('shares_amount', 20, 6).notNullable().checkPositive()
+      // Price per share at the time of purchase (only positive)
+      table.decimal('price_quote', 20, 6).notNullable().checkPositive()
+      // Fees associated with the buy transaction (only negative)
+      table.decimal('fees', 20, 6).nullable().checkNegative()
+      // Additional details about the buy transaction
+      table.text('details').nullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

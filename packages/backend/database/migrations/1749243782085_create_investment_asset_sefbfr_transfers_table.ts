@@ -13,11 +13,16 @@ export default class extends BaseSchema {
         .inTable('investment_asset_sefbfrs')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date of the SEFBFR transfer transaction
-      table.decimal('shares_amount', 20, 6).notNullable() // Amount of shares transferred
-      table.decimal('close_price_quote', 20, 6).notNullable() // Previous day closing price per share of transfer
-      table.string('previous_institution', 500).notNullable() // Previous institution holding the shares
-      table.string('new_institution', 500).notNullable() // New institution receiving the shares
+      // Date of the SEFBFR transfer transaction in UTC
+      table.datetime('date_utc').notNullable()
+      // Amount of shares transferred (negative for sending institution, positive for receiving institution)
+      table.decimal('shares_amount', 20, 6).notNullable()
+      // Previous day closing price per share of transfer (only for receiving institution)
+      table.decimal('close_price_quote', 20, 6).nullable()
+      // Previous institution holding the shares (only for receiving institution)
+      table.string('previous_institution', 500).nullable()
+      // New institution receiving the shares (only for sending institution)
+      table.string('new_institution', 500).nullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

@@ -1,7 +1,7 @@
 import factory from '@adonisjs/lucid/factories'
+import { DoneStates } from '@kdongs-mono/domain/types/investment/sefbfr'
 import { DateTime } from 'luxon'
 import AssetSefbfr from '#models/investment/asset_sefbfr'
-import { DoneStates } from '../../app/core/types/investment/sefbfr.js'
 import { AssetSefbfrBonusShareFactory } from './investment_asset_sefbfr_bonus_share_factory.js'
 import { AssetSefbfrBuyFactory } from './investment_asset_sefbfr_buy_factory.js'
 import { AssetSefbfrDividendFactory } from './investment_asset_sefbfr_dividend_factory.js'

@@ -1,5 +1,6 @@
 import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type { CurrencyCode } from '@kdongs-mono/domain/types/investment/currency-code'
 import { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
 import AssetBrlPrivateBond from '#models/investment/asset_brl_private_bond'
@@ -7,7 +8,6 @@ import AssetBrlPublicBond from '#models/investment/asset_brl_public_bond'
 import AssetSefbfr from '#models/investment/asset_sefbfr'
 import WalletMovement from '#models/investment/wallet_movement'
 import User from '#models/user/user'
-import type { CurrencyCode } from '../../core/types/investment/currency.js'
 
 export default class Wallet extends BaseModel {
   static table = 'investment_wallets'
@@ -29,15 +29,15 @@ export default class Wallet extends BaseModel {
   declare id: string
 
   @column()
-  declare userId: string // ID of the user who owns the wallet
+  declare userId: string
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 
   @column()
-  declare name: string // Name of the investment wallet
+  declare name: string
 
   @column()
-  declare currencyCode: CurrencyCode // Wallet currency code
+  declare currencyCode: CurrencyCode
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

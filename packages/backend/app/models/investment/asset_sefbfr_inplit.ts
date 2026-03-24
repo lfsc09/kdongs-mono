@@ -3,6 +3,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Big from 'big.js'
 import type { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
+import { consumeBig, prepareBig } from '#models/helper/big'
 import AssetSefbfr from '#models/investment/asset_sefbfr'
 
 export default class AssetSefbfrInplit extends BaseModel {
@@ -18,18 +19,18 @@ export default class AssetSefbfrInplit extends BaseModel {
   declare id: string
 
   @column()
-  declare investmentAssetSefbfrId: string // ID of the SEFBFR asset to which this inplit belongs
+  declare investmentAssetSefbfrId: string
   @belongsTo(() => AssetSefbfr)
   declare assetSefbfr: BelongsTo<typeof AssetSefbfr>
 
   @column()
-  declare dateUtc: DateTime // Date of the SEFBFR inplit transaction
+  declare dateUtc: DateTime
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: prepareBig,
   })
-  declare factor: Big // Factor by which shares are inplit (e.g. 5 to 1, the factor is 5)
+  declare factor: Big
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

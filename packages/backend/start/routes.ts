@@ -8,14 +8,15 @@
 */
 
 import router from '@adonisjs/core/services/router'
-import { middleware } from './kernel.js'
+import { controllers } from '#generated/controllers'
+import { middleware } from '#start/kernel'
 
 /**
- * AUTHENTICATION
+ * USER
  */
-router.post('/login', '#controllers/auth/auth_controller.login')
+router.post('login', [controllers.user.User, 'login'])
 router
-  .post('/logout', '#controllers/auth/auth_controller.logout')
+  .delete('logout', [controllers.user.User, 'logout'])
   .middleware([middleware.cookieToAuthHeader(), middleware.auth()])
 
 /**
@@ -23,13 +24,10 @@ router
  */
 router
   .group(() => {
-    router.get('/performance', '#controllers/investments/analytics_controller.performance')
-    router.get(
-      '/liquidation-series',
-      '#controllers/investments/analytics_controller.liquidationSeries',
-    )
-    router.resource('wallets', '#controllers/investments/wallets_controller')
-    router.resource('wallets.movements', '#controllers/investments/wallet_movements_controller')
+    router.get('performance', [controllers.investment.Analytic, 'performance'])
+    router.get('liquidation-series', [controllers.investment.Analytic, 'liquidationSeries'])
+    router.resource('wallets', controllers.investment.Wallet)
+    router.resource('wallets.movements', controllers.investment.WalletMovement)
   })
   .prefix('/investments')
   .middleware([middleware.cookieToAuthHeader(), middleware.auth()])

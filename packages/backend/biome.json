@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.7/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -16,6 +16,7 @@
       "bin/**/*",
       "config/**/*",
       "database/**/*",
+      "!database/schema.ts",
       "docker/**/*",
       "providers/**/*",
       "start/**/*",

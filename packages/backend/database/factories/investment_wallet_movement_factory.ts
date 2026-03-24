@@ -1,17 +1,17 @@
 import factory from '@adonisjs/lucid/factories'
 import type { Faker } from '@faker-js/faker'
+import {
+  acceptedCurrencyCodes,
+  CurrencyCode,
+} from '@kdongs-mono/domain/types/investment/currency-code'
+import {
+  acceptedWalletMovementTypes,
+  WalletMovementType,
+  WalletMovementTypes,
+} from '@kdongs-mono/domain/types/investment/wallet-movement'
 import Big from 'big.js'
 import { DateTime } from 'luxon'
 import WalletMovement from '#models/investment/wallet_movement'
-import {
-  acceptedCurrencyCodes,
-  type CurrencyCode,
-} from '../../app/core/types/investment/currency.js'
-import {
-  acceptedWalletMovementTypes,
-  type WalletMovementType,
-  WalletMovementTypes,
-} from '../../app/core/types/investment/wallet_movement.js'
 
 const movementGenerator = (
   type: WalletMovementType,
@@ -32,7 +32,7 @@ const movementGenerator = (
         const originExchOpFeePercent = new Big(
           faker.number.float({ fractionDigits: 2, max: 0.04, min: 0 }),
         )
-        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent).abs().neg()
+        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent)
         originExchVetRate = originExchGrossRate.plus(originExchOpFee)
       }
 
@@ -51,7 +51,7 @@ const movementGenerator = (
         const originExchOpFeePercent = new Big(
           faker.number.float({ fractionDigits: 2, max: 0.04, min: 0 }),
         )
-        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent).abs().neg()
+        originExchOpFee = originExchGrossRate.times(originExchOpFeePercent)
         originExchVetRate = originExchGrossRate.plus(originExchOpFee)
       }
 

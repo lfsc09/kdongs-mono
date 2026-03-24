@@ -1,5 +1,5 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import { UserRole } from '../../app/core/types/user/user_role.js'
+import { UserRoles } from '@kdongs-mono/domain/types/user/user-role'
 
 export default class extends BaseSchema {
   protected tableName = 'users'
@@ -11,7 +11,7 @@ export default class extends BaseSchema {
       table.string('name').notNullable()
       table.string('email').notNullable().unique()
       table.string('password').notNullable()
-      table.string('role').notNullable().defaultTo('user').checkIn(Object.values(UserRole))
+      table.string('role').notNullable().defaultTo(UserRoles.user).checkIn(Object.values(UserRoles))
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

@@ -1,5 +1,5 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import { acceptedDoneStates } from '../../app/core/types/investment/sefbfr.js'
+import { acceptedDoneStates, DoneStates } from '@kdongs-mono/domain/types/investment/sefbfr'
 
 export default class extends BaseSchema {
   protected tableName = 'investment_asset_sefbfrs'
@@ -14,13 +14,16 @@ export default class extends BaseSchema {
         .inTable('investment_wallets')
         .onDelete('CASCADE')
 
+      // Indicates if the SEFBFR investment is completed
       table
         .string('done_state')
         .notNullable()
-        .defaultTo(acceptedDoneStates.at(0) ?? null)
-        .checkIn(acceptedDoneStates) // Indicates if the SEFBFR investment is completed
-      table.string('holder_institution', 500).notNullable() // Institution where the SEFBFR is held
-      table.string('asset_name').notNullable() // Name of the SEFBFR asset
+        .defaultTo(DoneStates.active)
+        .checkIn(acceptedDoneStates)
+      // Institution where the SEFBFR is held
+      table.string('holder_institution', 500).notNullable()
+      // Name of the SEFBFR asset
+      table.string('asset_name').notNullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

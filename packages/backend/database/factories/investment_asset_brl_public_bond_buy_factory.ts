@@ -1,9 +1,9 @@
 import factory from '@adonisjs/lucid/factories'
 import type { Faker } from '@faker-js/faker'
+import { type BondType, BondTypes } from '@kdongs-mono/domain/types/investment/brl-public-bond'
 import Big from 'big.js'
 import { DateTime } from 'luxon'
 import AssetBrlPublicBondBuy from '#models/investment/asset_brl_public_bond_buy'
-import { type BondType, BondTypes } from '../../app/core/types/investment/brl_public_bond.js'
 
 const getFees = (
   bondType: BondType | undefined,
@@ -12,9 +12,9 @@ const getFees = (
   faker: Faker,
 ) => {
   switch (bondType) {
-    case BondTypes.LTN:
+    case BondTypes.ltn:
       return unitPrice.times(sharesAmount).times(0.003).abs().neg() // Usually around 0.6% of (unit price * shares amount) (Buy + Sell)
-    case BondTypes.LFT:
+    case BondTypes.lft:
       return unitPrice.times(sharesAmount).times(0.0019).abs().neg() // Usually around 0.38% of (unit price * shares amount) (Buy + Sell)
     default:
       return unitPrice
@@ -45,14 +45,14 @@ export const AssetBrlPublicBondBuyFactory = factory
     b.indexValue = new Big(ctx.faker.number.float({ fractionDigits: 2, max: 0.15, min: 0.01 }))
     b.unitPrice = new Big(ctx.faker.number.float({ fractionDigits: 2, max: 900.0, min: 300.0 }))
     b.sharesAmount = new Big(ctx.faker.number.float({ fractionDigits: 2, max: 40, min: 1 })) // LTNs are usually bought in larger amounts
-    b.fees = getFees(BondTypes.LTN, b.unitPrice, b.sharesAmount, ctx.faker)
+    b.fees = getFees(BondTypes.ltn, b.unitPrice, b.sharesAmount, ctx.faker)
     b.createdAt = b.dateUtc
   })
   .state('asRandomLFT', (b, ctx) => {
     b.indexValue = new Big(ctx.faker.number.float({ fractionDigits: 4, max: 0.01, min: 0.0001 }))
     b.unitPrice = new Big(ctx.faker.number.float({ fractionDigits: 2, max: 20000.0, min: 10000.0 }))
     b.sharesAmount = new Big(ctx.faker.number.float({ fractionDigits: 4, max: 4, min: 0.009 })) // LFTs are usually bought in smaller amounts
-    b.fees = getFees(BondTypes.LFT, b.unitPrice, b.sharesAmount, ctx.faker)
+    b.fees = getFees(BondTypes.lft, b.unitPrice, b.sharesAmount, ctx.faker)
     b.createdAt = b.dateUtc
   })
   .state('recalculate', (b, ctx) => {

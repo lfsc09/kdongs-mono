@@ -1,4 +1,6 @@
+import { indexEntities } from '@adonisjs/core'
 import { defineConfig } from '@adonisjs/core/app'
+import { generateRegistry } from '@tuyau/core/hooks'
 
 export default defineConfig({
   /*
@@ -11,10 +13,7 @@ export default defineConfig({
   | during upgrade.
   |
   */
-  experimental: {
-    mergeMultipartFieldsAndFiles: true,
-    shutdownInReverseOrder: true,
-  },
+  experimental: {},
 
   /*
   |--------------------------------------------------------------------------
@@ -25,7 +24,10 @@ export default defineConfig({
   | will be scanned automatically from the "./commands" directory.
   |
   */
-  commands: [() => import('@adonisjs/core/commands'), () => import('@adonisjs/lucid/commands'), () => import('@adonisjs/bouncer/commands')],
+  commands: [
+    () => import('@adonisjs/core/commands'),
+    () => import('@adonisjs/lucid/commands'),
+  ],
 
   /*
   |--------------------------------------------------------------------------
@@ -44,10 +46,11 @@ export default defineConfig({
       environment: ['repl', 'test'],
     },
     () => import('@adonisjs/core/providers/vinejs_provider'),
-    () => import('@adonisjs/cors/cors_provider'),
+    () => import('@adonisjs/shield/shield_provider'),
     () => import('@adonisjs/lucid/database_provider'),
+    () => import('@adonisjs/cors/cors_provider'),
     () => import('@adonisjs/auth/auth_provider'),
-    () => import('@adonisjs/bouncer/bouncer_provider')
+    () => import('#providers/api_provider'),
   ],
 
   /*
@@ -58,7 +61,11 @@ export default defineConfig({
   | List of modules to import before starting the application.
   |
   */
-  preloads: [() => import('#start/routes'), () => import('#start/kernel')],
+  preloads: [
+    () => import('#start/routes'),
+    () => import('#start/kernel'),
+    () => import('#start/validator'),
+  ],
 
   /*
   |--------------------------------------------------------------------------
@@ -72,16 +79,36 @@ export default defineConfig({
   tests: {
     suites: [
       {
-        files: ['tests/unit/**/*.spec(.ts|.js)'],
+        files: ['tests/unit/**/*.spec.{ts,js}'],
         name: 'unit',
         timeout: 2000,
       },
       {
-        files: ['tests/functional/**/*.spec(.ts|.js)'],
+        files: ['tests/functional/**/*.spec.{ts,js}'],
         name: 'functional',
         timeout: 30000,
       },
     ],
     forceExit: false,
+  },
+
+  /*
+  |--------------------------------------------------------------------------
+  | Metafiles
+  |--------------------------------------------------------------------------
+  |
+  | A collection of files you want to copy to the build folder when creating
+  | the production build.
+  |
+  */
+  metaFiles: [],
+
+  hooks: {
+    init: [
+      indexEntities({
+        transformers: { enabled: true },
+      }),
+      generateRegistry(),
+    ],
   },
 })

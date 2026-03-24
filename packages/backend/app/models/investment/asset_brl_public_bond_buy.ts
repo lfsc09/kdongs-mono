@@ -3,6 +3,13 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Big from 'big.js'
 import type { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
+import {
+  consumeBig,
+  consumeNullableBig,
+  prepareBig,
+  prepareNullableNegativeBig,
+  preparePositiveBig,
+} from '#models/helper/big'
 import AssetBrlPublicBond from '#models/investment/asset_brl_public_bond'
 
 export default class AssetBrlPublicBondBuy extends BaseModel {
@@ -18,39 +25,39 @@ export default class AssetBrlPublicBondBuy extends BaseModel {
   declare id: string
 
   @column()
-  declare investmentAssetBrlPublicBondId: string // ID of the public bond investment to which this buy transaction belongs
+  declare investmentAssetBrlPublicBondId: string
   @belongsTo(() => AssetBrlPublicBond)
   declare assetBrlPublicBond: BelongsTo<typeof AssetBrlPublicBond>
 
   @column.dateTime()
-  declare dateUtc: DateTime // Date in UTC of the buy transaction
+  declare dateUtc: DateTime
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: prepareBig,
   })
-  declare indexValue: Big // Value of the index at the time of the buy
+  declare indexValue: Big
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: preparePositiveBig,
   })
-  declare unitPrice: Big // Price per unit at the time of the buy
+  declare unitPrice: Big
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: preparePositiveBig,
   })
-  declare sharesAmount: Big // Amount of shares bought in this transaction (only positive)
+  declare sharesAmount: Big
 
   @column({
-    consume: (value: string | null) => (value ? new Big(value) : null),
-    prepare: (value: Big | null) => (value ? value.toString() : null),
+    consume: consumeNullableBig,
+    prepare: prepareNullableNegativeBig,
   })
-  declare fees: Big | null // Fees associated with the buy transaction (only negative)
+  declare fees: Big | null
 
   @column()
-  declare details: string | null // Additional details about the buy transaction
+  declare details: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

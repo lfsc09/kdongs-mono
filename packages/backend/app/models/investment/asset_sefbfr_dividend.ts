@@ -3,6 +3,12 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Big from 'big.js'
 import type { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
+import {
+  consumeBig,
+  consumeNullableBig,
+  prepareBig,
+  prepareNullableNegativeBig,
+} from '#models/helper/big'
 import AssetSefbfr from '#models/investment/asset_sefbfr'
 
 export default class AssetSefbfrDividend extends BaseModel {
@@ -18,33 +24,33 @@ export default class AssetSefbfrDividend extends BaseModel {
   declare id: string
 
   @column()
-  declare investmentAssetSefbfrId: string // ID of the SEFBFR asset to which the dividend belongs
+  declare investmentAssetSefbfrId: string
   @belongsTo(() => AssetSefbfr)
   declare assetSefbfr: BelongsTo<typeof AssetSefbfr>
 
   @column()
-  declare dateUtc: DateTime // Date of the SEFBFR dividend transaction
+  declare dateUtc: DateTime
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: prepareBig,
   })
-  declare value: Big // Value of the dividend received
+  declare value: Big
 
   @column({
-    consume: (value: string | null) => (value ? new Big(value) : null),
-    prepare: (value: Big | null) => (value ? value.toString() : null),
+    consume: consumeNullableBig,
+    prepare: prepareNullableNegativeBig,
   })
-  declare taxes: Big | null // Taxes associated with the dividend transaction (only negative)
+  declare taxes: Big | null
 
   @column.dateTime()
-  declare dateComUtc: DateTime | null // Date of the dividend transaction in the company's records
+  declare dateComUtc: DateTime | null
 
   @column.dateTime()
-  declare datePaymentUtc: DateTime | null // Date when the dividend was paid
+  declare datePaymentUtc: DateTime | null
 
   @column()
-  declare details: string | null // Additional details about the dividend transaction
+  declare details: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

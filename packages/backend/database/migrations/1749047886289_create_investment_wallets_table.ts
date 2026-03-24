@@ -1,5 +1,5 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import { acceptedCurrencyCodes } from '../../app/core/types/investment/currency.js'
+import { acceptedCurrencyCodes } from '@kdongs-mono/domain/types/investment/currency-code'
 
 export default class extends BaseSchema {
   protected tableName = 'investment_wallets'
@@ -9,8 +9,10 @@ export default class extends BaseSchema {
       table.uuid('id').primary().notNullable()
       table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE')
 
-      table.string('name').notNullable().unique() // Name of the investment wallet
-      table.string('currency_code', 3).notNullable().checkIn(acceptedCurrencyCodes) // Wallet currency code (e.g., USD, BRL)
+      // Name of the investment wallet
+      table.string('name').notNullable().unique()
+      // Wallet currency code (e.g., USD, BRL)
+      table.string('currency_code', 3).notNullable().checkIn(acceptedCurrencyCodes)
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

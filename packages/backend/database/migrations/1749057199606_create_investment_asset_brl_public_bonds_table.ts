@@ -3,7 +3,7 @@ import {
   acceptedBondTypes,
   acceptedIndexTypes,
   acceptedInterestTypes,
-} from '../../app/core/types/investment/brl_public_bond.js'
+} from '@kdongs-mono/domain/types/investment/brl-public-bond'
 
 export default class extends BaseSchema {
   protected tableName = 'investment_asset_brl_public_bonds'
@@ -18,13 +18,20 @@ export default class extends BaseSchema {
         .inTable('investment_wallets')
         .onDelete('CASCADE')
 
-      table.boolean('is_done').notNullable().defaultTo(false) // Indicates if the bond is completed
-      table.string('holder_institution', 500).notNullable() // Institution holding the bond
-      table.string('bond_name').notNullable() // Name of the public bond investment
-      table.string('bond_type').notNullable().checkIn(acceptedBondTypes) // Type of index
-      table.string('interest_type').notNullable().checkIn(acceptedInterestTypes) // Type of interest
-      table.string('index_type').notNullable().checkIn(acceptedIndexTypes) // Type of index
-      table.datetime('maturity_date_utc').notNullable() // Maturity date of the bond
+      // Indicates if the bond is completed
+      table.boolean('is_done').notNullable().defaultTo(false)
+      // Institution holding the bond
+      table.string('holder_institution', 500).notNullable()
+      // Name of the public bond investment
+      table.string('bond_name').notNullable()
+      // Type of the bond
+      table.string('bond_type').notNullable().checkIn(acceptedBondTypes)
+      // Type of interest
+      table.string('interest_type').notNullable().checkIn(acceptedInterestTypes)
+      // Type of index
+      table.string('index_type').notNullable().checkIn(acceptedIndexTypes)
+      // Maturity date of the bond
+      table.datetime('maturity_date_utc').notNullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

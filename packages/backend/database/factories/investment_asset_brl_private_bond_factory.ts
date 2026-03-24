@@ -1,8 +1,5 @@
 import factory from '@adonisjs/lucid/factories'
 import type { Faker } from '@faker-js/faker'
-import Big from 'big.js'
-import { DateTime } from 'luxon'
-import AssetBrlPrivateBond from '#models/investment/asset_brl_private_bond'
 import {
   acceptedBondTypes,
   acceptedInterestTypes,
@@ -11,7 +8,10 @@ import {
   IndexTypes,
   type InterestType,
   InterestTypes,
-} from '../../app/core/types/investment/brl_private_bond.js'
+} from '@kdongs-mono/domain/types/investment/brl-private-bond'
+import Big from 'big.js'
+import { DateTime } from 'luxon'
+import AssetBrlPrivateBond from '#models/investment/asset_brl_private_bond'
 
 const BUSINESS_DAYS_PER_YEAR = 252
 const CALENDAR_DAYS_PER_YEAR = 365
@@ -163,7 +163,7 @@ const regularBondGenerator = (
     // Taxes are applied only for certain bond types
     if (
       acceptedBondTypes
-        .filter<BondType>(v => v === BondTypes.LCA || v === BondTypes.LCI)
+        .filter<BondType>(v => v === BondTypes.lca || v === BondTypes.lci)
         .includes(bondType)
     ) {
       taxesAmount = yieldAmount.add(iofAmount).times(getTaxFee(bondYieldDays)).abs().neg()

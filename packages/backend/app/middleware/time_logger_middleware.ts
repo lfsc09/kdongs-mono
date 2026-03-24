@@ -1,23 +1,19 @@
+import string from '@adonisjs/core/helpers/string'
 import type { HttpContext } from '@adonisjs/core/http'
-import logger from '@adonisjs/core/services/logger'
 import type { NextFn } from '@adonisjs/core/types/http'
 
 export default class TimeLoggerMiddleware {
-  async handle(ctx: HttpContext, next: NextFn) {
+  async handle({ request, response, logger }: HttpContext, next: NextFn) {
     // For high-precision (nanosecond resolution)
-    const start = process.hrtime.bigint()
+    const start = process.hrtime()
 
     await next()
 
-    const end = process.hrtime.bigint()
-    // Convert to milliseconds
-    const durationInMs = Number(end - start) / 1e6
+    const end = process.hrtime(start)
+    const responseStatus = response.getStatus()
+    const uri = request.url()
+    const method = request.method()
 
-    logger.info(
-      "[TimeLogger] -> Request to '%s %s' took %sms",
-      ctx.request.method(),
-      ctx.request.url(),
-      durationInMs.toFixed(3),
-    )
+    logger.info(`${method} ${uri}: ${responseStatus} (${string.prettyHrTime(end)})`)
   }
 }

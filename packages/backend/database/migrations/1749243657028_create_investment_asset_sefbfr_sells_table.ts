@@ -13,12 +13,18 @@ export default class extends BaseSchema {
         .inTable('investment_asset_sefbfrs')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date of the SEFBFR sell transaction
-      table.decimal('shares_amount', 20, 6).notNullable() // Amount of shares sold
-      table.decimal('price_quote', 20, 6).notNullable() // Price per share at the time of sale
-      table.decimal('fees', 20, 6).nullable() // Fees associated with the sell transaction
-      table.decimal('taxes', 20, 6).nullable() // Taxes associated with the sell transaction
-      table.text('details').nullable() // Additional details about the sell transaction
+      // Date of the SEFBFR sell transaction in UTC
+      table.datetime('date_utc').notNullable()
+      // Amount of shares sold (only negative)
+      table.decimal('shares_amount', 20, 6).notNullable().checkNegative()
+      // Price per share at the time of sale (only positive)
+      table.decimal('price_quote', 20, 6).notNullable().checkPositive()
+      // Fees associated with the sell transaction (only negative)
+      table.decimal('fees', 20, 6).nullable().checkNegative()
+      // Taxes associated with the sell transaction (only negative)
+      table.decimal('taxes', 20, 6).nullable().checkNegative()
+      // Additional details about the sell transaction
+      table.text('details').nullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

@@ -3,6 +3,12 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Big from 'big.js'
 import type { DateTime } from 'luxon'
 import { v7 as uuidv7 } from 'uuid'
+import {
+  consumeBig,
+  consumeNullableBig,
+  prepareNullableNegativeBig,
+  preparePositiveBig,
+} from '#models/helper/big'
 import AssetSefbfr from '#models/investment/asset_sefbfr'
 
 export default class AssetSefbfrBuy extends BaseModel {
@@ -18,33 +24,33 @@ export default class AssetSefbfrBuy extends BaseModel {
   declare id: string
 
   @column()
-  declare investmentAssetSefbfrId: string // ID of the SEFBFR asset to which this buy transaction belongs
+  declare investmentAssetSefbfrId: string
   @belongsTo(() => AssetSefbfr)
   declare assetSefbfr: BelongsTo<typeof AssetSefbfr>
 
   @column()
-  declare dateUtc: DateTime // Date of the SEFBFR buy transaction
+  declare dateUtc: DateTime
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: preparePositiveBig,
   })
-  declare sharesAmount: Big // Amount of shares bought (only positive)
+  declare sharesAmount: Big
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: preparePositiveBig,
   })
-  declare priceQuote: Big // Price per share at the time of purchase
+  declare priceQuote: Big
 
   @column({
-    consume: (value: string | null) => (value ? new Big(value) : null),
-    prepare: (value: Big | null) => (value ? value.toString() : null),
+    consume: consumeNullableBig,
+    prepare: prepareNullableNegativeBig,
   })
-  declare fees: Big | null // Fees associated with the buy transaction (only negative)
+  declare fees: Big | null
 
   @column()
-  declare details: string | null // Additional details about the buy transaction
+  declare details: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

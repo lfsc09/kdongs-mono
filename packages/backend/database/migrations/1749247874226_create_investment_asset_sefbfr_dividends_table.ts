@@ -13,12 +13,18 @@ export default class extends BaseSchema {
         .inTable('investment_asset_sefbfrs')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date of the SEFBFR dividend transaction
-      table.decimal('value', 20, 6).notNullable() // Value of the dividend received
-      table.decimal('taxes', 20, 6).nullable() // Taxes associated with the dividend transaction
-      table.datetime('date_com_utc').nullable() // Date of the dividend transaction in the company's records
-      table.datetime('date_payment_utc').nullable() // Date when the dividend was paid
-      table.text('details').nullable() // Additional details about the dividend transaction
+      // Date of the SEFBFR dividend transaction in UTC
+      table.datetime('date_utc').notNullable()
+      // Value of the dividend received
+      table.decimal('value', 20, 6).notNullable()
+      // Taxes associated with the dividend transaction (only negative)
+      table.decimal('taxes', 20, 6).nullable().checkNegative()
+      // Date of the dividend transaction in the company's records in UTC
+      table.datetime('date_com_utc').nullable()
+      // Date when the dividend was paid in UTC
+      table.datetime('date_payment_utc').nullable()
+      // Additional details about the dividend transaction
+      table.text('details').nullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

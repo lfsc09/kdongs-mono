@@ -13,12 +13,18 @@ export default class extends BaseSchema {
         .inTable('investment_asset_brl_public_bonds')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date in UTC of the buy transaction
-      table.decimal('index_value', 20, 6).notNullable() // Value of the index at the time of the buy
-      table.decimal('unit_price', 20, 6).notNullable() // Price per unit at the time of the buy
-      table.decimal('shares_amount', 20, 6).notNullable() // Amount of shares bought
-      table.decimal('fees', 20, 6).nullable() // Fees associated with the buy transaction
-      table.text('details').nullable() // Additional details about the buy transaction
+      // Date in UTC of the buy transaction
+      table.datetime('date_utc').notNullable()
+      // Value of the index at the time of the buy
+      table.decimal('index_value', 20, 6).notNullable()
+      // Price per unit at the time of the buy (only positive)
+      table.decimal('unit_price', 20, 6).notNullable().checkPositive()
+      // Amount of shares bought in this transaction (only positive)
+      table.decimal('shares_amount', 20, 6).notNullable().checkPositive()
+      // Fees associated with the buy transaction (only negative)
+      table.decimal('fees', 20, 6).nullable().checkNegative()
+      // Additional details about the buy transaction
+      table.text('details').nullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

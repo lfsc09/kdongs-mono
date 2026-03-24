@@ -13,12 +13,18 @@ export default class extends BaseSchema {
         .inTable('investment_asset_brl_public_bonds')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date in UTC of the sell transaction
-      table.decimal('unit_price', 20, 6).notNullable() // Price per unit at the time of the sell
-      table.decimal('shares_amount', 20, 6).notNullable() // Amount of shares sold
-      table.decimal('taxes', 20, 6).nullable() // Taxes associated with the sell transaction
-      table.decimal('fees', 20, 6).nullable() // Fees associated with the sell transaction (e.g., brokerage fees, IOF, etc.)
-      table.text('details').nullable() // Additional details about the sell transaction
+      // Date in UTC of the sell transaction
+      table.datetime('date_utc').notNullable()
+      // Price per unit at the time of the sell (only positive)
+      table.decimal('unit_price', 20, 6).notNullable().checkPositive()
+      // Amount of shares sold in this transaction (only negative)
+      table.decimal('shares_amount', 20, 6).notNullable().checkNegative()
+      // Taxes associated with the sell transaction (only negative)
+      table.decimal('taxes', 20, 6).nullable().checkNegative()
+      // Fees associated with the sell transaction (only negative)
+      table.decimal('fees', 20, 6).nullable().checkNegative()
+      // Additional details about the sell transaction
+      table.text('details').nullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

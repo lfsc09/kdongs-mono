@@ -13,8 +13,10 @@ export default class extends BaseSchema {
         .inTable('investment_asset_sefbfrs')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date of the SEFBFR split transaction
-      table.decimal('factor', 20, 6).notNullable() // Factor by which shares are split
+      // Date of the SEFBFR split transaction in UTC
+      table.datetime('date_utc').notNullable()
+      // Factor by which shares are split (e.g. 1 to 5, the factor is 5)
+      table.decimal('factor', 20, 6).notNullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

@@ -13,9 +13,12 @@ export default class extends BaseSchema {
         .inTable('investment_asset_sefbfrs')
         .onDelete('CASCADE')
 
-      table.datetime('date_utc').notNullable() // Date of the SEFBFR bonus shares transaction
-      table.decimal('value', 20, 6).notNullable() // Value of the bonus shares received
-      table.decimal('factor', 20, 6).notNullable() // Factor by which the shares are increased
+      // Date of the SEFBFR bonus shares transaction in UTC
+      table.datetime('date_utc').notNullable()
+      // Value of the bonus shares received
+      table.decimal('value', 20, 6).notNullable()
+      // Factor by which the shares are increased (always in percentage)
+      table.decimal('factor', 20, 6).notNullable()
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()

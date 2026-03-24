@@ -1,14 +1,22 @@
 import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Big from 'big.js'
-import type { DateTime } from 'luxon'
-import { v7 as uuidv7 } from 'uuid'
-import Wallet from '#models/investment/wallet'
 import type {
   BondType,
   IndexType,
   InterestType,
-} from '../../core/types/investment/brl_private_bond.js'
+} from '@kdongs-mono/domain/types/investment/brl-private-bond'
+import Big from 'big.js'
+import type { DateTime } from 'luxon'
+import { v7 as uuidv7 } from 'uuid'
+import {
+  consumeBig,
+  consumeNullableBig,
+  prepareBig,
+  prepareNullableBig,
+  prepareNullableNegativeBig,
+  preparePositiveBig,
+} from '#models/helper/big'
+import Wallet from '#models/investment/wallet'
 
 export default class AssetBrlPrivateBond extends BaseModel {
   static table = 'investment_asset_brl_private_bonds'
@@ -23,72 +31,72 @@ export default class AssetBrlPrivateBond extends BaseModel {
   declare id: string
 
   @column()
-  declare walletId: string // ID of the wallet to which the bond investment belongs
+  declare walletId: string
   @belongsTo(() => Wallet)
   declare wallet: BelongsTo<typeof Wallet>
 
   @column()
-  declare isDone: boolean // Indicates if the bond investment is completed
+  declare isDone: boolean
 
   @column()
-  declare holderInstitution: string // Institution where the bond is held
+  declare holderInstitution: string
 
   @column()
-  declare emitterInstitution: string // Institution that issued the bond
+  declare emitterInstitution: string
 
   @column()
-  declare bondName: string // Name of the bond
+  declare bondName: string
 
   @column()
-  declare bondType: BondType // Type of the bond
+  declare bondType: BondType
 
   @column()
-  declare interestType: InterestType // Type of interest
+  declare interestType: InterestType
 
   @column()
-  declare indexType: IndexType // Index type
+  declare indexType: IndexType
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: prepareBig,
   })
-  declare indexValue: Big // Value of the index
+  declare indexValue: Big
 
   @column.dateTime()
-  declare maturityDateUtc: DateTime // Maturity date of the bond in UTC
+  declare maturityDateUtc: DateTime
 
   @column.dateTime()
-  declare enterDateUtc: DateTime // Date when the bond was acquired in UTC
+  declare enterDateUtc: DateTime
 
   @column.dateTime()
-  declare exitDateUtc: DateTime | null // Date when the bond was sold or ended in UTC
+  declare exitDateUtc: DateTime | null
 
   @column({
-    consume: (value: string) => new Big(value),
-    prepare: (value: Big) => value.toString(),
+    consume: consumeBig,
+    prepare: preparePositiveBig,
   })
-  declare inputAmount: Big // Amount invested in the bond
+  declare inputAmount: Big
 
   @column({
-    consume: (value: string | null) => (value ? new Big(value) : null),
-    prepare: (value: Big | null) => (value ? value.toString() : null),
+    consume: consumeNullableBig,
+    prepare: prepareNullableBig,
   })
-  declare grossAmount: Big | null // Gross amount of the bond
+  declare grossAmount: Big | null
 
   @column({
-    consume: (value: string | null) => (value ? new Big(value) : null),
-    prepare: (value: Big | null) => (value ? value.toString() : null),
+    consume: consumeNullableBig,
+    prepare: prepareNullableNegativeBig,
   })
-  declare fees: Big | null // Fees associated with the bond (e.g., brokerage fees, IOF, etc.) (only negative)
+  declare fees: Big | null
 
   @column({
-    consume: (value: string | null) => (value ? new Big(value) : null),
-    prepare: (value: Big | null) => (value ? value.toString() : null),
+    consume: consumeNullableBig,
+    prepare: prepareNullableNegativeBig,
   })
-  declare taxes: Big | null // Other taxes applied to the bond (only negative)
+  declare taxes: Big | null
 
   @column()
-  declare details: string | null // Additional details about the bond
+  declare details: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
