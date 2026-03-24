@@ -7,6 +7,7 @@ x-api-adonisjs-env: &api-adonisjs-env
   DB_PORT: 5432
   DB_USER: adonisjs
   DB_DATABASE: app
+  LIMITER_STORE: redis
 
 x-api-postgres-env: &api-postgres-env
   POSTGRES_DB: app
@@ -23,6 +24,8 @@ services:
     restart: unless-stopped
     depends_on:
       api-postgres:
+        condition: service_healthy
+      api-redis:
         condition: service_healthy
     environment:
       <<: *api-adonisjs-env
@@ -41,7 +44,7 @@ services:
           memory: '0.4G'
 
   api-postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: api-postgres
     restart: unless-stopped
     environment:
@@ -59,7 +62,7 @@ services:
       - api-network
     volumes:
       - ./postgres/init/local.init-setup.sh:/docker-entrypoint-initdb.d/init-setup.sh
-      - api-postgres:/var/lib/postgresql/data
+      - api-postgres:/var/lib/postgresql
     command: >
       postgres
       -c shared_preload_libraries=pg_stat_statements
@@ -75,6 +78,35 @@ services:
           cpus: '0.50'
           memory: '1G'
 
+  api-redis:
+    image: redis:8-alpine
+    container_name: api-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - '8002:6379'
+    networks:
+      - api-network
+    volumes:
+      - api-redis:/data
+    # Note: set --max-memory to about 75% of docker limit, to leave room for redis process overhead
+    command: >
+      redis-server
+      --maxmemory 300mb
+      --maxmemory-policy allkeys-lru
+    profiles:
+      - db-only
+      - full
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.4G'
+
 secrets:
   root_pass:
     file: ./secrets/postgres_root_pass.txt
@@ -85,6 +117,5 @@ networks:
 
 volumes:
   api-adonisjs:
-    driver: local
   api-postgres:
-    driver: local
+  api-redis:

@@ -10,14 +10,17 @@
 import router from '@adonisjs/core/services/router'
 import { controllers } from '#generated/controllers'
 import { middleware } from '#start/kernel'
+import { loginThrottle, throttle } from '#start/limiter'
 
 /**
  * USER
  */
-router.post('login', [controllers.user.User, 'login'])
+router.post('login', [controllers.user.User, 'login']).use(loginThrottle)
+
 router
   .delete('logout', [controllers.user.User, 'logout'])
   .middleware([middleware.cookieToAuthHeader(), middleware.auth()])
+  .use(throttle)
 
 /**
  * INVESTMENTS
@@ -31,3 +34,4 @@ router
   })
   .prefix('/investments')
   .middleware([middleware.cookieToAuthHeader(), middleware.auth()])
+  .use(throttle)
