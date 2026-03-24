@@ -15,11 +15,11 @@ The application uses signals for state management, standalone components, and fo
 Will update `package.json` with newer versions. **May break, if there are major version changes**
 
 ```bash
-npm run dev:backend:dependencies
+npm run dev:frontend:dependencies
 ```
 
 ```bash
-npm run dev:backend:dependencies:update
+npm run dev:frontend:dependencies:update
 ```
 
 To install latests packages run.

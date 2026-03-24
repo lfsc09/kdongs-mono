@@ -52,10 +52,10 @@ export class IdentityService {
   }
 
   clearAll(): void {
+    localStorage.removeItem(`userIdentity:${environment.host}`)
     if (this._identity() === null) return
     this._identity.set(null)
     this._tokenExpLeft$.next(0)
-    localStorage.removeItem(`userIdentity:${environment.host}`)
   }
 
   /**
