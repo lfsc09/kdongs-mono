@@ -76,7 +76,7 @@ export default class WalletMovementController {
   async edit({ params, response, auth }: HttpContext) {
     if (!auth.user!.currentAccessToken?.allows(UserAbilities['wallet.mutate']))
       return response.forbidden()
-    const input = await updateValidator.validate({
+    const input = await editValidator.validate({
       movementId: params.id,
       userId: auth.user?.id ?? '',
       walletId: params.wallet_id,
@@ -91,7 +91,7 @@ export default class WalletMovementController {
   async update({ params, request, response, auth }: HttpContext) {
     if (!auth.user!.currentAccessToken?.allows(UserAbilities['wallet.mutate']))
       return response.forbidden()
-    const input = await editValidator.validate({
+    const input = await updateValidator.validate({
       ...request.body(),
       movementId: params.id,
       userId: auth.user?.id ?? '',
