@@ -6,8 +6,8 @@ import { WalletFactory } from '#database/factories/investment_wallet_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import { userTokenAbilities } from '#services/user/helpers/user'
 
-test.group('Update a user wallet', group => {
-  group.each.setup(() => testUtils.db().truncate())
+test.group('[update] user wallet', group => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   /**
    * ACCESS TESTS
@@ -63,7 +63,7 @@ test.group('Update a user wallet', group => {
     const user = await UserFactory.merge({ role: UserRoles.user }).create()
     const wallet = await WalletFactory.merge({ userId: user.id }).create()
     const output = await client
-      .patch(`/investments/wallets/${wallet.id}`)
+      .patch(`investments/wallets/${wallet.id}`)
       .json({ name: 12 })
       .withGuard('api')
       .loginAs(user, userTokenAbilities(user.role))

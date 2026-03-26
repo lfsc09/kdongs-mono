@@ -4,7 +4,7 @@ import { acceptedCurrencyCodes } from '@kdongs-mono/domain/types/investment/curr
 import { v7 as uuidv7 } from 'uuid'
 import { updateValidator } from '#validators/investment/wallet'
 
-test.group('Update a user wallet validator', () => {
+test.group('[update] user wallet (validator)', () => {
   const faker = new Faker({
     locale: [pt_BR, en],
   })
@@ -53,39 +53,39 @@ test.group('Update a user wallet validator', () => {
 
   test('should fail [missing userId]').run(({ assert }) => {
     const input = { walletId: uuidv7() }
-    assert.throws(() => updateValidator.validate(input))
+    assert.rejects(() => updateValidator.validate(input))
   })
 
   test('should fail [missing walletId]').run(({ assert }) => {
     const input = { userId: uuidv7() }
-    assert.throws(() => updateValidator.validate(input))
+    assert.rejects(() => updateValidator.validate(input))
   })
 
   test("should fail [invalid userId]['{$self}']")
     .with(['invalid-uuid'])
     .run(({ assert }, userId) => {
       const input = { userId, walletId: uuidv7() }
-      assert.throws(() => updateValidator.validate(input))
+      assert.rejects(() => updateValidator.validate(input))
     })
 
   test("should fail [invalid walletId]['{$self}']")
     .with(['invalid-uuid'])
     .run(({ assert }, walletId) => {
       const input = { userId: uuidv7(), walletId }
-      assert.throws(() => updateValidator.validate(input))
+      assert.rejects(() => updateValidator.validate(input))
     })
 
   test("should fail [invalid name]['{$self}']")
     .with(['', 'a'.repeat(256), 1])
     .run(({ assert }, name) => {
       const input = { name, userId: uuidv7(), walletId: uuidv7() }
-      assert.throws(() => updateValidator.validate(input))
+      assert.rejects(() => updateValidator.validate(input))
     })
 
   test("should fail [invalid currencyCode]['{$self}']")
     .with(['', ' ', 'USA', 1, -1])
     .run(({ assert }, currencyCode) => {
       const input = { currencyCode, userId: uuidv7(), walletId: uuidv7() }
-      assert.throws(() => updateValidator.validate(input))
+      assert.rejects(() => updateValidator.validate(input))
     })
 })

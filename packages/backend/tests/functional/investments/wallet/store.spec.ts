@@ -5,8 +5,8 @@ import { WalletFactory } from '#database/factories/investment_wallet_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import { userTokenAbilities } from '#services/user/helpers/user'
 
-test.group('Create a user wallet', group => {
-  group.each.setup(() => testUtils.db().truncate())
+test.group('[store] user wallet', group => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   /**
    * ACCESS TESTS

@@ -4,7 +4,7 @@ import { acceptedCurrencyCodes } from '@kdongs-mono/domain/types/investment/curr
 import { v7 as uuidv7 } from 'uuid'
 import { storeValidator } from '#validators/investment/wallet'
 
-test.group('Create a user wallet validator', () => {
+test.group('[store] user wallet (validator)', () => {
   const faker = new Faker({
     locale: [pt_BR, en],
   })
@@ -31,7 +31,7 @@ test.group('Create a user wallet validator', () => {
       currencyCode: faker.helpers.arrayElement(acceptedCurrencyCodes),
       name: faker.finance.accountName(),
     }
-    assert.throws(() => storeValidator.validate(input))
+    assert.rejects(() => storeValidator.validate(input))
   })
 
   test('should fail [missing name]').run(({ assert }) => {
@@ -39,12 +39,12 @@ test.group('Create a user wallet validator', () => {
       currencyCode: faker.helpers.arrayElement(acceptedCurrencyCodes),
       userId: uuidv7(),
     }
-    assert.throws(() => storeValidator.validate(input))
+    assert.rejects(() => storeValidator.validate(input))
   })
 
   test('should fail [missing currencyCode]').run(({ assert }) => {
     const input = { name: faker.finance.accountName(), userId: uuidv7() }
-    assert.throws(() => storeValidator.validate(input))
+    assert.rejects(() => storeValidator.validate(input))
   })
 
   test("should fail [invalid userId]['{$self}']")
@@ -55,7 +55,7 @@ test.group('Create a user wallet validator', () => {
         name: faker.finance.accountName(),
         userId,
       }
-      assert.throws(() => storeValidator.validate(input))
+      assert.rejects(() => storeValidator.validate(input))
     })
 
   test("should fail [invalid name]['{$self}']")
@@ -66,13 +66,13 @@ test.group('Create a user wallet validator', () => {
         name,
         userId: uuidv7(),
       }
-      assert.throws(() => storeValidator.validate(input))
+      assert.rejects(() => storeValidator.validate(input))
     })
 
   test("should fail [invalid currencyCode]['{$self}']")
     .with(['', ' ', 'USA', 1, -1])
     .run(({ assert }, currencyCode) => {
       const input = { currencyCode, name: faker.finance.accountName(), userId: uuidv7() }
-      assert.throws(() => storeValidator.validate(input))
+      assert.rejects(() => storeValidator.validate(input))
     })
 })

@@ -2,8 +2,8 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { test } from '@japa/runner'
 import { UserFactory } from '#database/factories/user_factory'
 
-test.group('Login user', group => {
-  group.each.setup(() => testUtils.db().truncate())
+test.group('[login] user', group => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('should sucessfully login user', async ({ client, assert }) => {
     const user = await UserFactory.merge({ password: 'password' }).create()

@@ -5,8 +5,8 @@ import { WalletFactory } from '#database/factories/investment_wallet_factory'
 import { UserFactory } from '#database/factories/user_factory'
 import { userTokenAbilities } from '#services/user/helpers/user'
 
-test.group('List user wallets', group => {
-  group.each.setup(() => testUtils.db().truncate())
+test.group('[index] user wallets', group => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   /**
    * ACCESS TESTS
@@ -79,22 +79,23 @@ test.group('List user wallets', group => {
       .loginAs(user, userTokenAbilities(user.role))
     output.assertStatus(200)
     const body = output.body()
+    assert.property(body, 'metadata')
     assert.property(body, 'data')
+    assert.onlyProperties(body.metadata, ['limit', 'page', 'totalCount', 'totalPages'])
     assert.property(body.data, 'wallets')
     assert.lengthOf(body.data.wallets, 1)
     assert.onlyProperties(body.data.wallets[0], [
       'id',
+      'isActive',
       'name',
       'currencyCode',
+      'trend',
       'initialBalance',
       'currentBalance',
       'profitInCurrency',
       'profitInPerc',
-      'trend',
       'createdAt',
       'updatedAt',
     ])
-    assert.property(body, 'metadata')
-    assert.onlyProperties(body.metadata, ['limit', 'page', 'totalCount', 'totalPages'])
   })
 })

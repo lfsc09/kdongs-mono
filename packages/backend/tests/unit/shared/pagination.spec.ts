@@ -2,7 +2,7 @@ import { en, Faker, pt_BR } from '@faker-js/faker'
 import { test } from '@japa/runner'
 import { paginationValidator } from '#validators/shared/pagination'
 
-test.group('Pagination validator', () => {
+test.group('pagination (validator)', () => {
   const faker = new Faker({
     locale: [pt_BR, en],
   })
@@ -60,7 +60,7 @@ test.group('Pagination validator', () => {
         sortBy: 'colName',
         sortOrder: 'asc',
       }
-      assert.throws(() => paginationValidator.validate(input))
+      assert.rejects(() => paginationValidator.validate(input))
     })
 
   test("should fail [invalid limit]['{$self}']")
@@ -72,7 +72,7 @@ test.group('Pagination validator', () => {
         sortBy: 'colName',
         sortOrder: 'asc',
       }
-      assert.throws(() => paginationValidator.validate(input))
+      assert.rejects(() => paginationValidator.validate(input))
     })
 
   test("should fail [invalid sortBy]['{$self}']")
@@ -84,7 +84,7 @@ test.group('Pagination validator', () => {
         sortBy,
         sortOrder: 'asc',
       }
-      assert.throws(() => paginationValidator.validate(input))
+      assert.rejects(() => paginationValidator.validate(input))
     })
 
   test("should fail [invalid sortOrder]['{$self}']")
@@ -96,6 +96,6 @@ test.group('Pagination validator', () => {
         sortBy: 'colName',
         sortOrder,
       }
-      assert.throws(() => paginationValidator.validate(input))
+      assert.rejects(() => paginationValidator.validate(input))
     })
 })
