@@ -11,13 +11,4 @@ export const UserFactory = factory
       role: faker.helpers.arrayElement(Object.values(UserRoles) as UserRole[]),
     }
   })
-  .state('asAdmin', u => {
-    u.role = UserRoles.admin
-  })
-  .state('asUser', u => {
-    u.role = UserRoles.user
-  })
-  .state('asVisitor', u => {
-    u.role = UserRoles.visitor
-  })
   .build()

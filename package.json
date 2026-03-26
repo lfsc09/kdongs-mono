@@ -1,6 +1,6 @@
 {
   "name": "kdongs-mono",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -30,8 +30,7 @@
     "dev:backend:migrate-with-seed": "npm run migration:fresh:seed --workspace @kdongs-mono/backend",
     "dev:backend:format": "npm run biome:check --workspace @kdongs-mono/backend",
     "test:frontend": "npm run test --workspace @kdongs-mono/frontend",
-    "test:backend": "npm run test --workspace @kdongs-mono/backend",
-    "test:backend:migrate-fresh": "npm run test:migration:fresh --workspace @kdongs-mono/backend"
+    "test:backend": "npm run test --workspace @kdongs-mono/backend"
   },
   "repository": {
     "type": "git",
