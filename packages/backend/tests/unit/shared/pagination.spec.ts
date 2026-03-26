@@ -34,68 +34,68 @@ test.group('Pagination validator', () => {
         sortOrder: 'desc',
       },
     ])
-    .run(async ({ expect }, input) => {
+    .run(async ({ assert }, input) => {
       const output = await paginationValidator.validate(input)
-      expect(output).toBeDefined()
-      expect(output.page).toBe(input.page)
-      expect(output.limit).toBe(input.limit)
+      assert.isDefined(output)
+      assert.equal(output.page, input.page)
+      assert.equal(output.limit, input.limit)
       if (input.sortBy === undefined || input.sortBy === null) {
-        expect(output.sortBy).toBeUndefined()
+        assert.isUndefined(output.sortBy)
       } else {
-        expect(output.sortBy).toBe(input.sortBy)
+        assert.equal(output.sortBy, input.sortBy)
       }
       if (input.sortOrder === undefined || input.sortOrder === null) {
-        expect(output.sortOrder).toBeUndefined()
+        assert.isUndefined(output.sortOrder)
       } else {
-        expect(output.sortOrder).toBe(input.sortOrder)
+        assert.equal(output.sortOrder, input.sortOrder)
       }
     })
 
   test("should fail [invalid page]['{$self}']")
     .with([undefined, null, -1, 0, '', ' ', 'a'])
-    .run(({ expect }, page) => {
+    .run(({ assert }, page) => {
       const input = {
         limit: faker.number.int({ max: 100, min: 1 }),
         page,
         sortBy: 'colName',
         sortOrder: 'asc',
       }
-      expect(() => paginationValidator.validate(input)).rejects.toThrow()
+      assert.throws(() => paginationValidator.validate(input))
     })
 
   test("should fail [invalid limit]['{$self}']")
     .with([undefined, null, -1, 0, '', ' ', 'a'])
-    .run(({ expect }, limit) => {
+    .run(({ assert }, limit) => {
       const input = {
         limit,
         page: faker.number.int({ min: 1 }),
         sortBy: 'colName',
         sortOrder: 'asc',
       }
-      expect(() => paginationValidator.validate(input)).rejects.toThrow()
+      assert.throws(() => paginationValidator.validate(input))
     })
 
   test("should fail [invalid sortBy]['{$self}']")
     .with([[-1, 0, '']])
-    .run(({ expect }, sortBy) => {
+    .run(({ assert }, sortBy) => {
       const input = {
         limit: faker.number.int({ max: 100, min: 1 }),
         page: faker.number.int({ min: 1 }),
         sortBy,
         sortOrder: 'asc',
       }
-      expect(() => paginationValidator.validate(input)).rejects.toThrow()
+      assert.throws(() => paginationValidator.validate(input))
     })
 
   test("should fail [invalid sortOrder]['{$self}']")
     .with([[-1, 0, '', 'something']])
-    .run(({ expect }, sortOrder) => {
+    .run(({ assert }, sortOrder) => {
       const input = {
         limit: faker.number.int({ max: 100, min: 1 }),
         page: faker.number.int({ min: 1 }),
         sortBy: 'colName',
         sortOrder,
       }
-      expect(() => paginationValidator.validate(input)).rejects.toThrow()
+      assert.throws(() => paginationValidator.validate(input))
     })
 })

@@ -391,15 +391,6 @@ npm run dev:backend:migrate-with-seed
 npm run dev:backend:migrate-fresh
 ```
 
-##### migrations for testing purposes
-
-> Test migrations don't need seeding.
-
-```bash
-# migrate with .env.test
-npm run test:backend:migrate-fresh
-```
-
 </br>
 
 ## Run
@@ -427,12 +418,6 @@ npm run dev:mono
 ## Run tests
 
 ##### backend tests
-
-> Migrate the test-db first
-
-```bash
-npm run test:backend:migrate-fresh
-```
 
 ```bash
 npm run test:backend

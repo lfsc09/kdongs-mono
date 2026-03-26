@@ -1,54 +1,59 @@
+import testUtils from '@adonisjs/core/services/test_utils'
 import { test } from '@japa/runner'
+import { UserRoles } from '@kdongs-mono/domain/types/user/user-role'
 import { WalletFactory } from '#database/factories/investment_wallet_factory'
 import { UserFactory } from '#database/factories/user_factory'
-import User from '#models/user/user'
-import type { UserRole } from '../../../../app/core/types/user/user_role.js'
+import { userTokenAbilities } from '#services/user/helpers/user'
 
 test.group('Create a user wallet', group => {
-  group.each.setup(async () => {
-    await User.query().delete()
-  })
-
-  group.teardown(async () => {
-    await User.query().delete()
-  })
+  group.each.setup(() => testUtils.db().truncate())
 
   /**
    * ACCESS TESTS
    */
-  test('should not be able to create user wallet [no token]', async ({ client, expect }) => {
-    const output = await client.post('/investments/wallets/')
-    expect(output.status()).toBe(401)
+  test('should not be able to create user wallet [no token]', async ({ client }) => {
+    const output = await client.post('investments/wallets')
+    output.assertStatus(401)
   })
 
-  test("should be able to create user wallet [accepted '{$self}' role token]")
-    .with(['user', 'admin'])
-    .run(async ({ client, expect }, userRole) => {
-      const user = await UserFactory.merge({ role: userRole as unknown as UserRole }).create()
+  test("should not be able to create user wallet [unaccepted '{$self}' role token]")
+    .with([UserRoles.visitor])
+    .run(async ({ client }, role) => {
+      const user = await UserFactory.merge({ role }).create()
       const input = await WalletFactory.makeStubbed()
       const output = await client
-        .post('/investments/wallets')
+        .post('investments/wallets')
         .json(input.toJSON())
         .withGuard('api')
-        .loginAs(user)
-      expect(output.status()).toBe(201)
+        .loginAs(user, userTokenAbilities(role))
+      output.assertStatus(403)
+    })
+
+  test("should be able to create user wallet [accepted '{$self}' role token]")
+    .with([UserRoles.admin, UserRoles.user])
+    .run(async ({ client }, role) => {
+      const user = await UserFactory.merge({ role }).create()
+      const input = await WalletFactory.makeStubbed()
+      const output = await client
+        .post('investments/wallets')
+        .json(input.toJSON())
+        .withGuard('api')
+        .loginAs(user, userTokenAbilities(role))
+      output.assertStatus(201)
     })
 
   /**
    * REQUEST BODY TEST
    */
-  test('should not be able to create user wallet [invalid request data]', async ({
-    client,
-    expect,
-  }) => {
-    const user = await UserFactory.create()
+  test('should not be able to create user wallet [invalid request data]', async ({ client }) => {
+    const user = await UserFactory.merge({ role: UserRoles.user }).create()
     const input = await WalletFactory.makeStubbed()
     input.name = ''
     const output = await client
-      .post('/investments/wallets')
+      .post('investments/wallets')
       .json(input.toJSON())
       .withGuard('api')
-      .loginAs(user)
-    expect(output.status()).toBe(422)
+      .loginAs(user, userTokenAbilities(user.role))
+    output.assertStatus(422)
   })
 })
