@@ -14,7 +14,7 @@ import { Env } from '@adonisjs/core/env'
 export default await Env.create(new URL('../', import.meta.url), {
   APP_KEY: Env.schema.secret(),
   APP_URL: Env.schema.string({ format: 'url', tld: false }),
-  CORS_ORIGIN: Env.schema.string(),
+  CORS_ORIGIN: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string(),
   DB_HOST: Env.schema.string({ format: 'host' }),
   DB_PASSWORD: Env.schema.string(),

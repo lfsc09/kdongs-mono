@@ -32,6 +32,6 @@ router
     router.resource('wallets', controllers.investment.Wallet)
     router.resource('wallets.movements', controllers.investment.WalletMovement)
   })
-  .prefix('/investments')
+  .prefix('investments')
   .middleware([middleware.cookieToAuthHeader(), middleware.auth()])
   .use(throttle)
