@@ -10,16 +10,16 @@ A set of web tools, that over the years I could not find software (paid) that wo
 
 ## Roadmap
 
-### Finished
+### Done
 
 - [x] Wallet management (create, delete);
+- [x] Wallet profit calculation;
+- [x] Make wallet movements (deposit, withdraw);
 
 ### In Progress
 
-- [x] Make wallet movements (deposit, withdraw);
 - [ ] Manage asset inclusion in wallets;
-- [ ] Wallet profit calculation;
-- [x] Deployment scripts
+- [ ] Deployment scripts
 
 ### Backlog
 
@@ -362,6 +362,8 @@ npm run dev:setup
 #### 4. Bring up the backend ecosystem.
 
 ##### only db
+
+> Postgres + Redis
 
 ```bash
 npm run dev:docker-db-up

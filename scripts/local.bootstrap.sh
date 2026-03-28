@@ -1,6 +1,11 @@
 #!/bin/bash
 
 ###
+# Domain build
+###
+npm run dev:domain:build
+
+###
 # Backend setup
 ###
 cd packages/backend || exit 1
