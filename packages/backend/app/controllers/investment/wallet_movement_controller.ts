@@ -81,7 +81,7 @@ export default class WalletMovementController {
       userId: auth.user?.id ?? '',
       walletId: params.wallet_id,
     })
-    const output = await this.walletMovementService.update(input)
+    const output = await this.walletMovementService.edit(input)
     return response.status(200).json(output)
   }
 
@@ -97,7 +97,7 @@ export default class WalletMovementController {
       userId: auth.user?.id ?? '',
       walletId: params.wallet_id,
     })
-    const output = await this.walletMovementService.edit(input)
+    const output = await this.walletMovementService.update(input)
     return response.status(200).json(output)
   }
 
