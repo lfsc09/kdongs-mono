@@ -49,6 +49,13 @@ export const investmentsRoutes: Routes = [
           ),
       },
       {
+        path: 'wallets/:walletId/movements/:movementId',
+        loadComponent: () =>
+          import('./wallet-movement/wallet-movement-detail/wallet-movement-detail').then(
+            module => module.WalletMovementDetail
+          ),
+      },
+      {
         path: 'wallets/:walletId/movements/:movementId/edit',
         loadComponent: () =>
           import('./wallet-movement/wallet-movement-form/wallet-movement-form').then(

@@ -90,13 +90,13 @@
         </form>
       }
     </div>
-    @if (currentMessage()) {
-      <kdongs-cp-message
+    @if (log()) {
+      <kdongs-cp-log-toast
         class="w-full md:w-[32em]"
-        [title]="currentMessage()!.title"
-        [message]="currentMessage()!.message"
-        [icon]="currentMessage()!.icon"
-        [severity]="currentMessage()!.severity"
+        [title]="log()!.title"
+        [message]="log()!.message"
+        [icon]="log()!.icon"
+        [severity]="log()!.severity"
         [animate]="'up'"
       />
     }

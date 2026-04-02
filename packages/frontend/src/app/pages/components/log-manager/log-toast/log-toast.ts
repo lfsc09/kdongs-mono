@@ -1,11 +1,8 @@
 import { Component, input } from '@angular/core'
-import {
-  MessageDetail,
-  MessageSeverity,
-} from '../../../../infra/services/message/message-manager.model'
+import { LogDetail, LogSeverity } from '../../../../infra/services/log/log-manager.model'
 
 @Component({
-  selector: 'kdongs-cp-message',
+  selector: 'kdongs-cp-log-toast',
   template: `
     <div
       class="py-2 px-3 flex flex-col gap-3 border rounded-md text-sm text-gray-500 dark:text-gray-400 {{
@@ -28,24 +25,24 @@ import {
     '[animate.leave]': 'animation[animate()].leave',
   },
 })
-export class Message {
+export class LogToast {
   /**
    * SIGNALS
    */
-  title = input<MessageDetail['title']>()
-  message = input<MessageDetail['message']>()
-  icon = input<MessageDetail['icon']>()
-  severity = input<MessageDetail['severity']>(MessageSeverity.INFO)
+  title = input<LogDetail['title']>()
+  message = input<LogDetail['message']>()
+  icon = input<LogDetail['icon']>()
+  severity = input<LogDetail['severity']>(LogSeverity.info)
   animate = input<'up' | 'down' | 'left' | 'right'>('left')
 
   /**
    * VARS
    */
   protected colors = {
-    [MessageSeverity.ERROR]: 'border-red-400 bg-red-50',
-    [MessageSeverity.WARNING]: 'border-yellow-400 bg-yellow-50',
-    [MessageSeverity.SUCCESS]: 'border-lime-400 bg-lime-50',
-    [MessageSeverity.INFO]: 'border-cyan-400 bg-cyan-50',
+    [LogSeverity.error]: 'border-red-400 bg-red-50',
+    [LogSeverity.warning]: 'border-yellow-400 bg-yellow-50',
+    [LogSeverity.success]: 'border-lime-400 bg-lime-50',
+    [LogSeverity.info]: 'border-indigo-400 bg-indigo-50',
   }
 
   protected animation = {

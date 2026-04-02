@@ -44,7 +44,7 @@ export class Wallet extends Datatable implements OnDestroy {
         debounceTime(150),
         tap(() => this.loading.set(true)),
         switchMap(([page, pageSize]) => {
-          return this._investmentsGatewayService.listUserWallets({ page, limit: pageSize })
+          return this._investmentsGatewayService.indexWallet({ page, limit: pageSize })
         })
       )
       .subscribe({

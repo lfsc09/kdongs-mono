@@ -2,44 +2,32 @@ import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core'
 import { ActivatedRoute, RouterLink } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
-import {
-  Comms,
-  MessageDetail,
-  MessageRegion,
-} from '../../../../../../infra/services/message/message-manager.model'
-import { MessageManagerService } from '../../../../../../infra/services/message/message-manager.service'
-import { Message } from '../../../../../components/message-manager/message/message'
+import { Comms, LogDetail } from '../../../../../../infra/services/log/log-manager.model'
+import { LogManagerService } from '../../../../../../infra/services/log/log-manager.service'
 import { WalletMovement } from '../../wallet-movement/wallet-movement'
 
 @Component({
   selector: 'kdongs-wallet-detail',
-  imports: [RouterLink, Message, WalletMovement],
+  imports: [RouterLink, WalletMovement],
   templateUrl: './wallet-detail.html',
 })
 export class WalletDetail implements OnInit, OnDestroy, Comms {
   /**
    * SERVICES
    */
-  readonly messageManagerService = inject(MessageManagerService)
+  readonly logManagerService = inject(LogManagerService)
   private readonly _investmentsGatewayService = inject(InvestmentsGatewayService)
   private readonly _route = inject(ActivatedRoute)
 
   /**
    * SIGNALS
    */
-  currentMessage = signal<MessageDetail | null>(null)
+  log = signal<LogDetail | null>(null)
   protected loading = signal<boolean>(false)
 
   /**
    * VARS
    */
-  messageChannelSubscription: Subscription | undefined
-  messageTimeAliveInterval: ReturnType<typeof setTimeout> | undefined
-  readonly messageChannel = {
-    id: crypto.randomUUID(),
-    name: 'wallets-chn',
-    region: MessageRegion.LOCAL,
-  }
   protected readonly walletId: string | undefined
   private _investmentsSubscription: Subscription | undefined
 
@@ -51,11 +39,6 @@ export class WalletDetail implements OnInit, OnDestroy, Comms {
 
   ngOnDestroy(): void {
     this._investmentsSubscription?.unsubscribe()
-    this.messageChannelSubscription?.unsubscribe()
-    this.messageManagerService.unregisterChannel(this.messageChannel.id)
-    if (this.messageTimeAliveInterval) {
-      clearTimeout(this.messageTimeAliveInterval)
-    }
   }
 
   /**

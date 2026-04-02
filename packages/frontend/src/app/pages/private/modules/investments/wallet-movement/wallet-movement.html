@@ -35,7 +35,7 @@
             @for (movement of walletMovements(); track movement.id) {
               <tr
                 class="*:border-background-2/40 hover:bg-background-1 cursor-pointer *:border-b *:p-4 *:text-sm"
-                [routerLink]="[movement.id]"
+                [routerLink]="['movements', movement.id]"
               >
                 <td class="relative text-left">
                   <span

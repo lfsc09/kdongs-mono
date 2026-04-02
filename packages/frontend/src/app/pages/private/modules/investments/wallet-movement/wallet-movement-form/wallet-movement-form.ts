@@ -13,37 +13,37 @@ import { InvestmentsGatewayService } from '../../../../../../infra/gateways/inve
 import { GatewayError } from '../../../../../../infra/gateways/shared/default-gateway.model'
 import {
   Comms,
-  MessageDetail,
-  MessageRegion,
-  MessageSeverity,
-} from '../../../../../../infra/services/message/message-manager.model'
-import { MessageManagerService } from '../../../../../../infra/services/message/message-manager.service'
+  LogChannels,
+  LogDetail,
+  LogSeverity,
+} from '../../../../../../infra/services/log/log-manager.model'
+import { LogManagerService } from '../../../../../../infra/services/log/log-manager.service'
 import {
-  basicMessageCallback,
-  handleBasicErrorMessage,
-} from '../../../../../../infra/services/message/message-manager.util'
+  handleBasicErrorLog,
+  handleBasicLogSub,
+} from '../../../../../../infra/services/log/log-manager.util'
 import { LoadingSpinner } from '../../../../../components/loading-spinner/loading-spinner'
-import { Message } from '../../../../../components/message-manager/message/message'
+import { LogToast } from '../../../../../components/log-manager/log-toast/log-toast'
 import { LoadingBar } from '../../../../components/loading-bar/loading-bar'
 import { WalletMovementFormData, walletMovementFormSchema } from './wallet-movement-form.model'
 
 @Component({
   selector: 'kdongs-wallet-movement-form',
-  imports: [FormRoot, FormField, Message, LoadingBar, LoadingSpinner, InputDecimalDirective],
+  imports: [FormRoot, FormField, LogToast, LoadingBar, LoadingSpinner, InputDecimalDirective],
   templateUrl: './wallet-movement-form.html',
 })
 export class WalletMovementForm implements OnInit, OnDestroy, Comms {
   /**
    * SERVICES
    */
-  readonly messageManagerService = inject(MessageManagerService)
+  readonly logManagerService = inject(LogManagerService)
   private readonly _investmentsGatewayService = inject(InvestmentsGatewayService)
   private readonly _route = inject(ActivatedRoute)
 
   /**
    * SIGNALS
    */
-  currentMessage = signal<MessageDetail | null>(null)
+  log = signal<LogDetail | null>(null)
   protected movementId = signal<string | undefined>(undefined)
   protected loading = signal<'not' | 'loading' | 'sending'>('not')
   protected formData = signal<CreateWalletMovementResponse | EditWalletMovementResponse | null>(
@@ -109,13 +109,8 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
   /**
    * VARS
    */
-  messageChannelSubscription: Subscription | undefined
-  messageTimeAliveInterval: ReturnType<typeof setTimeout> | undefined
-  readonly messageChannel = {
-    id: crypto.randomUUID(),
-    name: 'wallets-chn',
-    region: MessageRegion.LOCAL,
-  }
+  logChannelSubscription: Subscription | undefined
+  logTtlInterval: ReturnType<typeof setTimeout> | undefined
   protected readonly walletId: string | undefined
   private _defaultCurrencyCodeBrlIndex: number | undefined = undefined
   private _investmentsSubscription: Subscription | undefined
@@ -126,11 +121,10 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
   }
 
   ngOnInit(): void {
-    // Register message channel
-    this.messageChannelSubscription = this.messageManagerService
-      .registerChannel(this.messageChannel.id, this.messageChannel.name, this.messageChannel.region)
-      .subscribe((message: MessageDetail) => {
-        this.messageTimeAliveInterval = basicMessageCallback(message, this.currentMessage)
+    this.logChannelSubscription = this.logManagerService
+      .channel(LogChannels.local)
+      .subscribe((log: LogDetail) => {
+        this.logTtlInterval = handleBasicLogSub(log, this.log)
       })
 
     // Fetch wallet data based on walletId input
@@ -162,13 +156,12 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
           error: (error: Error | GatewayError) => {
             this.loading.set('not')
             this.formData.set(null)
-            handleBasicErrorMessage(
-              this.messageManagerService,
+            handleBasicErrorLog(
+              this.logManagerService,
               error,
-              this.messageChannel,
-              MessageSeverity.ERROR,
-              { tag: 'CreateWallet' },
-              { timeAlive: 7000, shouldDelete: true }
+              LogChannels.local,
+              ['CreateWalletMovement'],
+              '7s'
             )
           },
         })
@@ -204,13 +197,12 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
           error: (error: Error | GatewayError) => {
             this.loading.set('not')
             this.formData.set(null)
-            handleBasicErrorMessage(
-              this.messageManagerService,
+            handleBasicErrorLog(
+              this.logManagerService,
               error,
-              this.messageChannel,
-              MessageSeverity.ERROR,
-              { tag: 'EditWallet' },
-              { timeAlive: 7000, shouldDelete: true }
+              LogChannels.local,
+              ['EditWalletMovement'],
+              '7s'
             )
           },
         })
@@ -219,10 +211,9 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
 
   ngOnDestroy(): void {
     this._investmentsSubscription?.unsubscribe()
-    this.messageChannelSubscription?.unsubscribe()
-    this.messageManagerService.unregisterChannel(this.messageChannel.id)
-    if (this.messageTimeAliveInterval) {
-      clearTimeout(this.messageTimeAliveInterval)
+    this.logChannelSubscription?.unsubscribe()
+    if (this.logTtlInterval) {
+      clearTimeout(this.logTtlInterval)
     }
   }
 
@@ -342,25 +333,25 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
       .subscribe({
         next: () => {
           this.loading.set('not')
-          this.messageManagerService.sendMessage(
+          this.logManagerService.log(
             {
               title: 'Movement created successfully',
-              severity: MessageSeverity.SUCCESS,
+              severity: LogSeverity.success,
+              tags: ['StoreWalletMovement'],
             },
-            this.messageChannel.id,
-            this.messageChannel.region
+            '7s',
+            LogChannels.local
           )
           this._resetForm()
         },
         error: (error: Error | GatewayError) => {
           this.loading.set('not')
-          handleBasicErrorMessage(
-            this.messageManagerService,
+          handleBasicErrorLog(
+            this.logManagerService,
             error,
-            this.messageChannel,
-            MessageSeverity.ERROR,
-            { tag: 'CreateWalletMovement' },
-            { timeAlive: 7000, shouldDelete: true }
+            LogChannels.local,
+            ['StoreWalletMovement'],
+            '7s'
           )
         },
       })
@@ -400,25 +391,25 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
       .subscribe({
         next: () => {
           this.loading.set('not')
-          this.messageManagerService.sendMessage(
+          this.logManagerService.log(
             {
               title: 'Wallet movement updated successfully',
-              severity: MessageSeverity.SUCCESS,
+              severity: LogSeverity.success,
+              tags: ['UpdateWalletMovement'],
             },
-            this.messageChannel.id,
-            this.messageChannel.region
+            '7s',
+            LogChannels.local
           )
           this._resetForm()
         },
         error: (error: Error | GatewayError) => {
           this.loading.set('not')
-          handleBasicErrorMessage(
-            this.messageManagerService,
+          handleBasicErrorLog(
+            this.logManagerService,
             error,
-            this.messageChannel,
-            MessageSeverity.ERROR,
-            { tag: 'UpdateWalletMovement' },
-            { timeAlive: 7000, shouldDelete: true }
+            LogChannels.local,
+            ['UpdateWalletMovement'],
+            '7s'
           )
         },
       })

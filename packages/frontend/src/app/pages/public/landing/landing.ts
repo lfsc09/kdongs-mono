@@ -6,22 +6,22 @@ import { LoginGatewayService } from '../../../infra/gateways/login/login-gateway
 import { GatewayError } from '../../../infra/gateways/shared/default-gateway.model'
 import {
   Comms,
-  MessageDetail,
-  MessageRegion,
-  MessageSeverity,
-} from '../../../infra/services/message/message-manager.model'
-import { MessageManagerService } from '../../../infra/services/message/message-manager.service'
+  LogChannels,
+  LogDetail,
+  LogSeverity,
+} from '../../../infra/services/log/log-manager.model'
+import { LogManagerService } from '../../../infra/services/log/log-manager.service'
 import {
-  basicMessageCallback,
-  handleBasicErrorMessage,
-} from '../../../infra/services/message/message-manager.util'
-import { Message } from '../../components/message-manager/message/message'
+  handleBasicErrorLog,
+  handleBasicLogSub,
+} from '../../../infra/services/log/log-manager.util'
+import { LogToast } from '../../components/log-manager/log-toast/log-toast'
 import { LoadingBar } from '../../private/components/loading-bar/loading-bar'
 import { LandingFormData, landingFormSchema } from './landing.model'
 
 @Component({
   selector: 'kdongs-landing',
-  imports: [FormRoot, FormField, Message, LoadingBar],
+  imports: [FormRoot, FormField, LogToast, LoadingBar],
   providers: [LoginGatewayService],
   templateUrl: './landing.html',
 })
@@ -29,14 +29,14 @@ export class Landing implements OnInit, OnDestroy, Comms {
   /**
    * SERVICES
    */
-  readonly messageManagerService = inject(MessageManagerService)
+  readonly logManagerService = inject(LogManagerService)
   private readonly _routerService = inject(Router)
   private readonly _loginService = inject(LoginGatewayService)
 
   /**
    * SIGNALS
    */
-  currentMessage = signal<MessageDetail | null>(null)
+  log = signal<LogDetail | null>(null)
   protected loading = signal<boolean>(false)
   protected currentSliderContent = signal<number>(0)
   protected formModel = signal<LandingFormData>({
@@ -52,32 +52,26 @@ export class Landing implements OnInit, OnDestroy, Comms {
   /**
    * VARS
    */
-  messageChannelSubscription: Subscription | undefined
-  messageTimeAliveInterval: ReturnType<typeof setTimeout> | undefined
-  readonly messageChannel = {
-    id: crypto.randomUUID(),
-    name: 'landing-chn',
-    region: MessageRegion.LOCAL,
-  }
+  logChannelSubscription: Subscription | undefined
+  logTtlInterval: ReturnType<typeof setTimeout> | undefined
   private _authenticationSubscription: Subscription | undefined
   private _carouselInterval: ReturnType<typeof setInterval> | undefined
 
   ngOnInit(): void {
-    this.messageChannelSubscription = this.messageManagerService
-      .registerChannel(this.messageChannel.id, this.messageChannel.name, this.messageChannel.region)
-      .subscribe((message: MessageDetail) => {
-        this.messageTimeAliveInterval = basicMessageCallback(message, this.currentMessage)
+    this.logChannelSubscription = this.logManagerService
+      .channel(LogChannels.local)
+      .subscribe((log: LogDetail) => {
+        this.logTtlInterval = handleBasicLogSub(log, this.log)
       })
     this._startCarousel()
   }
 
   ngOnDestroy(): void {
     this._authenticationSubscription?.unsubscribe()
-    this.messageChannelSubscription?.unsubscribe()
-    this.messageManagerService.unregisterChannel(this.messageChannel.id)
+    this.logChannelSubscription?.unsubscribe()
     this._stopCarousel()
-    if (this.messageTimeAliveInterval) {
-      clearTimeout(this.messageTimeAliveInterval)
+    if (this.logTtlInterval) {
+      clearTimeout(this.logTtlInterval)
     }
   }
 
@@ -88,29 +82,25 @@ export class Landing implements OnInit, OnDestroy, Comms {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        this.messageManagerService.sendMessage(
+        this.logManagerService.log(
           {
             title: 'Copied to clipboard',
-            severity: MessageSeverity.INFO,
+            severity: LogSeverity.info,
             icon: 'fa-regular fa-copy',
+            tags: ['Landing', 'clipboard'],
           },
-          undefined,
-          undefined,
-          undefined,
-          { timeAlive: 3000, shouldDelete: true }
+          '3s'
         )
       })
       .catch(_err => {
-        this.messageManagerService.sendMessage(
+        this.logManagerService.log(
           {
             title: 'Copy failed',
             message: '(╯°□°)╯︵ ┻━┻ Please try again later.',
-            severity: MessageSeverity.ERROR,
+            severity: LogSeverity.error,
+            tags: ['Landing', 'clipboard'],
           },
-          undefined,
-          undefined,
-          undefined,
-          { timeAlive: 3000, shouldDelete: true }
+          '3s'
         )
       })
   }
@@ -140,13 +130,12 @@ export class Landing implements OnInit, OnDestroy, Comms {
       error: (error: Error | GatewayError) => {
         this.loading.set(false)
         this.form().reset()
-        handleBasicErrorMessage(
-          this.messageManagerService,
+        handleBasicErrorLog(
+          this.logManagerService,
           error,
-          this.messageChannel,
-          MessageSeverity.ERROR,
-          { tag: 'Authentication' },
-          { timeAlive: 7000, shouldDelete: true }
+          LogChannels.local,
+          ['Landing', 'authentication'],
+          '7s'
         )
       },
     })

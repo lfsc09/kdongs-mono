@@ -1,13 +1,13 @@
 import { Component, DOCUMENT, effect, inject } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { ThemeManagerService } from './infra/services/theme/theme-manager.service'
-import { MessageDocker } from './pages/components/message-manager/message-docker/message-docker'
+import { LogDocker } from './pages/components/log-manager/log-docker/log-docker'
 
 @Component({
   selector: 'kdongs-root',
-  imports: [RouterOutlet, MessageDocker],
+  imports: [RouterOutlet, LogDocker],
   template: `
-    <kdongs-cp-message-docker />
+    <kdongs-cp-log-docker />
     <router-outlet />
   `,
 })

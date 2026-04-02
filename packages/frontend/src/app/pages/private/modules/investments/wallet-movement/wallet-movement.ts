@@ -45,7 +45,7 @@ export class WalletMovement extends Datatable implements OnDestroy {
         debounceTime(150),
         tap(() => this.loading.set(true)),
         switchMap(([page, pageSize]) => {
-          return this._investmentsGatewayService.listUserWalletMovements({
+          return this._investmentsGatewayService.indexWalletMovement({
             page,
             limit: pageSize,
             walletId: this.walletId(),
@@ -54,7 +54,6 @@ export class WalletMovement extends Datatable implements OnDestroy {
       )
       .subscribe({
         next: response => {
-          console.log(response)
           this.walletMovements.set(response.data.movements)
           this.currPage.set(response.metadata.page)
           this.pageSize.set(response.metadata.limit)

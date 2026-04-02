@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core'
 import {
+  ShowWalletMovementRequest,
+  ShowWalletMovementResponse,
+} from '@kdongs-mono/domain/dto/investment/wallet-movement/wallet-movement-dto'
+import {
   AdonisJSPaginationResponse,
   AdonisJSResponse,
 } from '@kdongs-mono/domain/dto/shared/default-response-dto'
@@ -39,7 +43,7 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
    * WALLETS
    *
    */
-  listUserWallets(
+  indexWallet(
     request: IndexWalletRequest
   ): Observable<AdonisJSPaginationResponse<IndexWalletResponse>> {
     return this.http
@@ -175,7 +179,7 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
    * WALLET MOVEMENTS
    *
    */
-  listUserWalletMovements(
+  indexWalletMovement(
     request: IndexWalletMovementRequest
   ): Observable<AdonisJSPaginationResponse<IndexWalletMovementResponse>> {
     return this.http
@@ -192,6 +196,28 @@ export class InvestmentsGatewayService extends DefaultGatewayService {
           return this.parseResponse<IndexWalletMovementResponse>(
             response.body
           ) as AdonisJSPaginationResponse<IndexWalletMovementResponse>
+        }),
+        catchError(error => {
+          return throwError(() => this.parseError(error))
+        })
+      )
+  }
+
+  showWalletMovement(
+    request: ShowWalletMovementRequest
+  ): Observable<AdonisJSResponse<ShowWalletMovementResponse>> {
+    return this.http
+      .get<AdonisJSResponse<ShowWalletMovementResponse>>(
+        `${this.apiUrl}/investments/wallets/${request.walletId}/movements/${request.movementId}`,
+        {
+          observe: 'response',
+          withCredentials: true,
+          params: request,
+        }
+      )
+      .pipe(
+        map(response => {
+          return this.parseResponse<ShowWalletMovementResponse>(response.body)
         }),
         catchError(error => {
           return throwError(() => this.parseError(error))
