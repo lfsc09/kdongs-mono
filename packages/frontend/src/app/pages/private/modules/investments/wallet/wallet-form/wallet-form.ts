@@ -1,5 +1,6 @@
-import { Component, inject, input, OnDestroy, OnInit, signal } from '@angular/core'
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core'
 import { form, FormField, FormRoot } from '@angular/forms/signals'
+import { ActivatedRoute } from '@angular/router'
 import {
   CreateWalletResponse,
   EditWalletResponse,
@@ -35,12 +36,13 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
    */
   readonly messageManagerService = inject(MessageManagerService)
   private readonly _investmentsGatewayService = inject(InvestmentsGatewayService)
+  private readonly _route = inject(ActivatedRoute)
 
   /**
    * SIGNALS
    */
-  walletId = input<string | undefined>(undefined)
   currentMessage = signal<MessageDetail | null>(null)
+  protected walletId = signal<string | undefined>(undefined)
   protected loading = signal<'not' | 'loading' | 'sending'>('not')
   protected formData = signal<CreateWalletResponse | EditWalletResponse | null>(null)
   protected formModel = signal<WalletFormData>({
@@ -65,6 +67,10 @@ export class WalletForm implements OnInit, OnDestroy, Comms {
   }
   private _defaultCurrencyCodeBrlIndex: number | undefined = undefined
   private _investmentsSubscription: Subscription | undefined
+
+  constructor() {
+    this.walletId.set(this._route.snapshot.paramMap.get('walletId') ?? undefined)
+  }
 
   ngOnInit(): void {
     // Register message channel

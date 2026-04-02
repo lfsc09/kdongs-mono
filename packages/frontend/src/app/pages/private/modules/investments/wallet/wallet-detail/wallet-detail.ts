@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core'
-import { ActivatedRoute } from '@angular/router'
+import { ActivatedRoute, RouterLink } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { InvestmentsGatewayService } from '../../../../../../infra/gateways/investments/investments-gateway.service'
 import {
@@ -13,7 +13,7 @@ import { WalletMovement } from '../../wallet-movement/wallet-movement'
 
 @Component({
   selector: 'kdongs-wallet-detail',
-  imports: [Message, WalletMovement],
+  imports: [RouterLink, Message, WalletMovement],
   templateUrl: './wallet-detail.html',
 })
 export class WalletDetail implements OnInit, OnDestroy, Comms {

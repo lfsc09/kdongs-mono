@@ -1,6 +1,6 @@
-import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core'
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core'
 import { form, FormField, FormRoot } from '@angular/forms/signals'
-import { ActivatedRoute, RouterLink } from '@angular/router'
+import { ActivatedRoute } from '@angular/router'
 import {
   CreateWalletMovementResponse,
   EditWalletMovementResponse,
@@ -29,15 +29,7 @@ import { WalletMovementFormData, walletMovementFormSchema } from './wallet-movem
 
 @Component({
   selector: 'kdongs-wallet-movement-form',
-  imports: [
-    FormRoot,
-    FormField,
-    Message,
-    LoadingBar,
-    LoadingSpinner,
-    InputDecimalDirective,
-    RouterLink,
-  ],
+  imports: [FormRoot, FormField, Message, LoadingBar, LoadingSpinner, InputDecimalDirective],
   templateUrl: './wallet-movement-form.html',
 })
 export class WalletMovementForm implements OnInit, OnDestroy, Comms {
@@ -51,8 +43,8 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
   /**
    * SIGNALS
    */
-  movementId = input<string | undefined>(undefined)
   currentMessage = signal<MessageDetail | null>(null)
+  protected movementId = signal<string | undefined>(undefined)
   protected loading = signal<'not' | 'loading' | 'sending'>('not')
   protected formData = signal<CreateWalletMovementResponse | EditWalletMovementResponse | null>(
     null
@@ -129,6 +121,7 @@ export class WalletMovementForm implements OnInit, OnDestroy, Comms {
   private _investmentsSubscription: Subscription | undefined
 
   constructor() {
+    this.movementId.set(this._route.snapshot.paramMap.get('movementId') ?? undefined)
     this.walletId = this._route.snapshot.paramMap.get('walletId') ?? undefined
   }
 
