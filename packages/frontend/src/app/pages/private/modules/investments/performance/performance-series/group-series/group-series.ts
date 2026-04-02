@@ -67,7 +67,7 @@ export class GroupSeries implements OnDestroy {
       contents: {
         bindto: '#groupChartLegend',
         template: (id: string, color: string) => {
-          return `<span class="flex flex-row items-center justify-center gap-1.5 p-2 rounded-lg bg-background-0">
+          return `<span class="flex flex-row items-center justify-center gap-1.5 p-2 rounded-lg bg-background-0 text-foreground-0">
             <span class="rounded-full h-2 w-2" style="background-color:${color}"></span>
             <span class="text-xs">${id}</span>
           </span>`

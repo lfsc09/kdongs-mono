@@ -12,7 +12,7 @@
 } @else if (performance() !== undefined) {
   <div class="flex flex-col gap-6">
     <span class="text-2xl font-medium text-lime-500 select-none">Indicators</span>
-    <span class="chip chip-xs bg-background-2 w-fit font-bold">
+    <span class="chip chip-xs w-fit font-bold">
       {{ performance()?.dateStartUtc | date: 'MMM yyyy' }} -
       {{ performance()?.dateEndUtc | date: 'MMM yyyy' }}
     </span>

@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-2">
   <div class="flex flex-col gap-2">
     <div
-      class="bg-background-1 flex flex-row items-center justify-between gap-2 rounded px-6 py-3 shadow"
+      class="bg-background-1 text-foreground-1 flex flex-row items-center justify-between gap-2 rounded px-6 py-3 shadow"
     >
       <div class="flex gap-2">
         <span class="chip chip-xs select-none">{{
@@ -24,13 +24,13 @@
       </button>
       <ng-template #options>
         <div
-          class="bg-background-0 my-1.5 flex min-w-[300px] flex-col items-start justify-center gap-1.5 rounded p-2 shadow"
+          class="bg-background-0 text-foreground-0 my-1.5 flex min-w-[300px] flex-col items-start justify-center gap-1.5 rounded p-2 shadow"
           cdkMenu
         >
           <!-- Unify Datasets -->
           <div class="group/info hover:bg-background-1 relative w-full rounded">
             <div
-              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+              class="bg-background-2 text-foreground-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
             >
               <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info"></i>
@@ -61,7 +61,7 @@
           <!-- Generate Balance or Profits only -->
           <div class="group/info hover:bg-background-1 relative w-full rounded">
             <div
-              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+              class="bg-background-2 text-foreground-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
             >
               <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info text-xs"></i>
@@ -93,20 +93,24 @@
           <!-- Tendency Type -->
           <div class="group/info hover:bg-background-1 relative w-full rounded">
             <div
-              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+              class="bg-background-2 text-foreground-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
             >
               <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info text-xs"></i>
                 Which type of tendency to use in calculations. (<b>Unified</b> datasets only)
               </p>
-              <ul class="mt-1 list-inside list-disc text-xs leading-normal">
+              <ul class="mt-1 list-inside list-disc space-y-1 text-xs leading-normal">
                 <li>
-                  <b>Shorter</b>: More reactive to recent changes. ["5" for short-term and "20" for
-                  long-term]
+                  <b>Shorter</b>: More reactive to recent changes.
+                  <span class="text-[.65rem] italic"
+                    >("5" period for short-term and "20" for long-term)</span
+                  >
                 </li>
                 <li>
-                  <b>Longer</b>: Smoother and less reactive. ["21" for short-term and "100" for
-                  long-term]
+                  <b>Longer</b>: Smoother and less reactive.
+                  <span class="text-[.65rem] italic"
+                    >("21" period for short-term and "100" for long-term)</span
+                  >
                 </li>
               </ul>
             </div>
@@ -135,7 +139,7 @@
           <!-- Compare Input/Gross/Net -->
           <div class="group/info hover:bg-background-1 relative w-full rounded">
             <div
-              class="bg-background-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
+              class="bg-background-2 text-foreground-2 absolute top-0 -left-4 z-[200] hidden w-64 -translate-x-full rounded p-2 shadow group-hover/info:block"
             >
               <p class="text-xs leading-normal">
                 <i class="fa-solid fa-circle-info text-xs"></i>
@@ -168,7 +172,7 @@
       </ng-template>
     </div>
   </div>
-  <div class="bg-background-1 flex flex-col gap-1 rounded p-4 shadow">
+  <div class="bg-background-1 text-foreground-1 flex flex-col gap-1 rounded p-4 shadow">
     <div class="flex flex-row items-center">
       <div id="evolutionChart"></div>
     </div>

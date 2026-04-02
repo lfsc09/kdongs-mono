@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core'
 import { form, FormField, FormRoot } from '@angular/forms/signals'
-import { ActivatedRoute } from '@angular/router'
+import { ActivatedRoute, RouterLink } from '@angular/router'
 import {
   CreateWalletMovementResponse,
   EditWalletMovementResponse,
@@ -29,7 +29,15 @@ import { WalletMovementFormData, walletMovementFormSchema } from './wallet-movem
 
 @Component({
   selector: 'kdongs-wallet-movement-form',
-  imports: [FormRoot, FormField, Message, LoadingBar, LoadingSpinner, InputDecimalDirective],
+  imports: [
+    FormRoot,
+    FormField,
+    Message,
+    LoadingBar,
+    LoadingSpinner,
+    InputDecimalDirective,
+    RouterLink,
+  ],
   templateUrl: './wallet-movement-form.html',
 })
 export class WalletMovementForm implements OnInit, OnDestroy, Comms {

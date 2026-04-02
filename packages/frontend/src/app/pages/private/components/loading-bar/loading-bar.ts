@@ -4,7 +4,7 @@ import { Component, input, ViewEncapsulation } from '@angular/core'
   selector: 'kdongs-cp-loading-bar',
   template: `
     <div
-      class="w-full transition-all rounded relative bg-slate-200 dark:bg-slate-700 {{
+      class="w-full transition-all rounded relative bg-gray-200 dark:bg-gray-700 {{
         sizes[size()]
       }}"
     >
@@ -42,7 +42,7 @@ export class LoadingBar {
    * SIGNALS
    */
   size = input<'sm' | 'md'>('md')
-  color = input<'slate' | 'lime'>('lime')
+  color = input<'gray' | 'lime'>('lime')
   randomStartDelay = Math.random() * 1.5
 
   /**
@@ -53,7 +53,7 @@ export class LoadingBar {
     md: 'h-2',
   }
   protected barColors = {
-    slate: 'bg-slate-400 dark:bg-slate-500',
+    gray: 'bg-gray-400 dark:bg-gray-500',
     lime: 'bg-lime-500 dark:bg-lime-500',
   }
 }

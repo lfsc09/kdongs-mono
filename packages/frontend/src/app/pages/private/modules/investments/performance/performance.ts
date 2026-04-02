@@ -11,7 +11,7 @@ import { PerformanceService } from './performance.service'
     @if (!performanceService.filterSidebarCollapsed()) {
       <kdongs-performance-filter />
     }
-    <section class="bg-background-0 flex flex-col gap-12 px-6 py-12">
+    <section class="bg-background-0 text-foreground-0 flex flex-col gap-12 px-6 py-12">
       <kdongs-performance-indicator />
       <kdongs-performance-series />
     </section>

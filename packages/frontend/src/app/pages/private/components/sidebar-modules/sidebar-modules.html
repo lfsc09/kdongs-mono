@@ -1,22 +1,22 @@
 <section
-  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-slate-200/40 backdrop-blur-[2px] dark:bg-slate-900/80"
+  class="fixed top-0 right-0 bottom-0 left-0 z-[1000] bg-gray-200/40 backdrop-blur-[2px] dark:bg-gray-950/80"
   (click)="sidebarModulesService.handleCollapse()"
 ></section>
 <section
-  class="bg-background-1 fixed top-1/2 left-1/2 z-[1001] w-full -translate-x-1/2 -translate-y-1/2 space-y-5 rounded shadow-md md:w-[350px]"
+  class="bg-background-1 text-foreground-1 fixed top-1/2 left-1/2 z-[1001] w-full -translate-x-1/2 -translate-y-1/2 space-y-5 rounded-lg shadow-md md:w-[350px]"
   animate.enter="animate-slide-down-in"
 >
   <div class="flex flex-row items-center justify-start gap-3 px-6 pt-6 select-none">
     <div class="flex flex-col justify-center gap-0.5">
-      <span class="font-semibold text-lime-500">{{
+      <span class="text-xl font-semibold text-lime-500">{{
         identityService.identity()?.userName ?? 'unknown'
       }}</span>
-      <span class="text-sm text-indigo-500">{{
+      <span class="text-xs font-semibold tracking-wider text-indigo-500">{{
         identityService.identity()?.userEmail ?? 'unknown'
       }}</span>
     </div>
   </div>
-  <div class="bg-background-2 px-6 py-4">
+  <div class="border-background-2 border-y-2 border-dashed px-6 py-4">
     <div class="form-field *:w-full">
       <label for="runCommand">Run Command</label>
       <div class="field-group">
@@ -39,25 +39,22 @@
   @let nextTheme = themeManagerService.getNextThemeInfo();
   <ul class="flex cursor-pointer flex-col gap-2 px-6 pb-6 *:py-3">
     <li
-      class="btn btn-ghost flex items-center justify-between gap-3 text-slate-900 dark:text-slate-100"
+      class="btn btn-ghost flex items-center justify-between gap-3"
       (click)="themeManagerService.cycleThrough()"
     >
       <span class="flex flex-col items-start text-sm">
         Change Theme
-        <span class="text-xs text-indigo-500">{{ nextTheme.name }}</span>
+        <span class="text-xs font-semibold text-indigo-500">{{ nextTheme.name }}</span>
       </span>
       <i class="{{ nextTheme.icon }}"></i>
     </li>
-    <li
-      class="btn btn-ghost flex items-center justify-between gap-3 text-slate-900 dark:text-slate-100"
-      (click)="handleLogout()"
-    >
+    <li class="btn btn-ghost flex items-center justify-between gap-3" (click)="handleLogout()">
       <span class="text-sm">Logout</span>
       <i class="fa-solid fa-right-from-bracket text-red-400"></i>
     </li>
     @for (module of sidebarModulesService.modules(); track module?.url) {
       <li
-        class="btn btn-ghost flex items-center justify-between gap-3 text-slate-900 dark:text-slate-100"
+        class="btn btn-ghost flex items-center justify-between gap-3"
         routerLink="{{ module!.url }}"
         routerLinkActive="navleft-router-link-active"
         (click)="sidebarModulesService.handleCollapse()"
@@ -68,7 +65,9 @@
         }
       </li>
     } @empty {
-      <li class="text-center text-sm text-slate-500 dark:text-slate-400">No modules available</li>
+      <li class="mt-4 rounded border-2 border-dashed border-gray-400 text-center text-sm">
+        No modules available
+      </li>
     }
   </ul>
 </section>

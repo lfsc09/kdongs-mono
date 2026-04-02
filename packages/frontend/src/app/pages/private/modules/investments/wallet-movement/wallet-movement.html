@@ -1,8 +1,8 @@
-<div class="bg-background-0 flex flex-col gap-6 py-6">
+<div class="bg-background-0 text-foreground-0 flex flex-col gap-6 py-6">
   <span class="text-xl font-medium text-lime-500 select-none">Movements</span>
   <div class="relative flex min-h-[300px] w-full flex-col">
     <div
-      class="border-background-2/40 bg-background-1 sticky top-20 flex h-14 flex-row items-center justify-end gap-2 rounded-t border px-4 py-2"
+      class="border-background-2/40 bg-background-1 text-foreground-1 sticky top-20 flex h-14 flex-row items-center justify-end gap-2 rounded-t border px-4 py-2"
     >
       <a class="btn btn-sm" routerLink="movements/new">
         <i class="fa-solid fa-plus"></i>
@@ -39,10 +39,10 @@
               >
                 <td class="relative text-left">
                   <span
-                    class="chip chip-xs text-foreground-1 dark:text-foreground-5"
+                    class="chip chip-outline chip-xs"
                     [class]="{
-                      'bg-green-300': movement.movementType === 'deposit',
-                      'bg-red-300': movement.movementType === 'withdraw',
+                      'border-green-500/50': movement.movementType === 'deposit',
+                      'border-red-400/50': movement.movementType === 'withdraw',
                     }"
                   >
                     {{ movement.movementType }}
@@ -65,10 +65,7 @@
               </tr>
             } @empty {
               <tr>
-                <td
-                  class="py-12 text-center text-sm text-slate-300 dark:text-slate-600"
-                  colspan="4"
-                >
+                <td class="py-12 text-center text-sm text-gray-300 dark:text-gray-600" colspan="4">
                   <span class="emo-creepy"></span>
                   No wallet movements found
                 </td>
@@ -81,8 +78,10 @@
     <div
       class="border-background-2/40 bg-background-1 sticky bottom-0 flex h-14 flex-row items-center justify-between rounded-b-lg border p-4 select-none"
     >
-      <div>
-        <span class="bg-background-0 mr-2 rounded px-3 py-1 text-sm">{{ totalItems() }}</span>
+      <div class="space-x-2">
+        <span class="bg-background-0 text-foreground-0 rounded-md px-3 py-1 text-sm">{{
+          totalItems()
+        }}</span>
         <span class="text-sm">rows</span>
       </div>
       <div class="flex flex-row items-center gap-6">
@@ -109,13 +108,13 @@
           </button>
           <div class="mx-2 flex flex-row items-center gap-2">
             <span
-              class="rounded-md bg-neutral-50 px-3 py-1 text-center font-mono text-sm dark:bg-neutral-900"
+              class="bg-background-0 text-foreground-0 rounded-md px-3 py-1 text-center text-sm"
             >
               {{ currPage() }}
             </span>
             <span class="font-mono text-sm">of</span>
             <span
-              class="rounded-md bg-neutral-50 px-3 py-1 text-center font-mono text-sm dark:bg-neutral-900"
+              class="bg-background-0 text-foreground-0 rounded-md px-3 py-1 text-center text-sm"
             >
               {{ totalPages() }}
             </span>

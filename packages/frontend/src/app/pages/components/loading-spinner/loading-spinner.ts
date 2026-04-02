@@ -37,7 +37,7 @@ export class LoadingSpinner {
     xl: 'h-16 w-16',
   }
   protected colors = {
-    foreground: 'stroke-slate-900 dark:stroke-slate-100',
+    foreground: 'stroke-gray-900 dark:stroke-gray-100',
     lime: 'stroke-lime-500 dark:stroke-lime-500',
   }
 }

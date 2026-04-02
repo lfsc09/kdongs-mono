@@ -8,7 +8,7 @@ import { Component, computed, input, ViewEncapsulation } from '@angular/core'
       class="fill-transparent {{ type() }} {{ svgSizes[size()].sizeClass }}"
     >
       <path
-        class="stroke-slate-300 {{ svgSizes[size()].dialWidth }}"
+        class="stroke-gray-300 {{ svgSizes[size()].dialWidth }}"
         d="M 21.716 78.284 A 40 40 0 1 1 78.284 78.284"
       ></path>
       @if (showValue()) {
@@ -119,7 +119,7 @@ export class Gauge {
         return { stroke: this.colorMeterSorted()[t].stroke, fill: this.colorMeterSorted()[t].fill }
       }
     }
-    return { stroke: 'stroke-slate-500', fill: 'fill-slate-500' }
+    return { stroke: 'stroke-gray-500', fill: 'fill-gray-500' }
   })
 
   /**
