@@ -22,7 +22,8 @@ const limiterConfig = defineConfig({
     redis: stores.redis({
       connectionName: 'main',
       keyPrefix: 'rate_limit',
-      rejectIfRedisNotReady: true,
+      // Turn on, if rejections when redis not ready are building up and causing memory leaks
+      rejectIfRedisNotReady: false,
     }),
   },
 })

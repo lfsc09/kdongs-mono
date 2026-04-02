@@ -110,7 +110,7 @@ export interface Registry {
       body: {}
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: ExtractQueryForGet<InferInput<(typeof import('#validators/investment/wallet').updateValidator)>>
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/investment/wallet').editValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/investment/wallet_controller').default['edit']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/investment/wallet_controller').default['edit']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
@@ -119,10 +119,10 @@ export interface Registry {
     methods: ["PUT","PATCH"]
     pattern: '/investments/wallets/:id'
     types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/investment/wallet').editValidator)>>
+      body: ExtractBody<InferInput<(typeof import('#validators/investment/wallet').updateValidator)>>
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: ExtractQuery<InferInput<(typeof import('#validators/investment/wallet').editValidator)>>
+      query: ExtractQuery<InferInput<(typeof import('#validators/investment/wallet').updateValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/investment/wallet_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/investment/wallet_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
@@ -194,7 +194,7 @@ export interface Registry {
       body: {}
       paramsTuple: [ParamValue, ParamValue]
       params: { wallet_id: ParamValue; id: ParamValue }
-      query: ExtractQueryForGet<InferInput<(typeof import('#validators/investment/wallet_movement').updateValidator)>>
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/investment/wallet_movement').editValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/investment/wallet_movement_controller').default['edit']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/investment/wallet_movement_controller').default['edit']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
@@ -203,10 +203,10 @@ export interface Registry {
     methods: ["PUT","PATCH"]
     pattern: '/investments/wallets/:wallet_id/movements/:id'
     types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/investment/wallet_movement').editValidator)>>
+      body: ExtractBody<InferInput<(typeof import('#validators/investment/wallet_movement').updateValidator)>>
       paramsTuple: [ParamValue, ParamValue]
       params: { wallet_id: ParamValue; id: ParamValue }
-      query: ExtractQuery<InferInput<(typeof import('#validators/investment/wallet_movement').editValidator)>>
+      query: ExtractQuery<InferInput<(typeof import('#validators/investment/wallet_movement').updateValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/investment/wallet_movement_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/investment/wallet_movement_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
